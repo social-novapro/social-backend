@@ -1,0 +1,9 @@
+{
+    "PORT" : 5002,
+    "SCHEMA_VERSIONS": {
+        "interactPostSchema" : "1.000",
+        "interactUserSchema" : "1.000",
+        "interactHomeSchema" : "1.000",
+        "interactMainSchema" : "1.000"
+    }
+}
