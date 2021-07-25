@@ -121,6 +121,11 @@ const MutationQuery = new GraphQLObjectType({
                     }, 
                     { new: true }
                 )
+
+                await interactUserSchema.findOneAndUpdate(
+                    { _id: userID} ,
+                    { $push : { posts: postID} }
+                )
                 console.log(post)
                 // const data = await interactUserSchema.findOneAndUpdate({ _id: userID }, { posts }, {new: true})
                 return post ? post : null

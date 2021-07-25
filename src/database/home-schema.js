@@ -4,15 +4,10 @@ const reqString = {
     type: String,
     required: true
 }
-const postIndex = mongoose.Schema({
-    user: reqString,
-    content: reqString,
-    likes: reqString, 
-    timePosted: reqString
-})
+
 const interactHomeSchema = mongoose.Schema({
     _id: reqString,
-    posts: [ postIndex ]
+    posts: [ reqString ]
 });
 
 module.exports = mongoose.model('interact-home', interactHomeSchema)

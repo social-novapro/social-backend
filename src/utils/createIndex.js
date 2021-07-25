@@ -11,6 +11,7 @@ async function createPostIndex(postID) {
     }, {
         upsert: true
     })
+
     return postID
 }
 

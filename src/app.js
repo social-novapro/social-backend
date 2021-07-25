@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors')
 const { graphqlHTTP } = require('express-graphql')
 
-
 const RootSchema = require('./graphql')
 const config = require('../config.json')
 const app = express();
@@ -29,5 +28,9 @@ app.use('/graphql', graphqlHTTP({
     schema: RootSchema,
 }))
 
+app.get('/', (req, res) => {
+    res.redirect('http://192.168.0.122:3000/api')
+    // res.redirect('https://astra.novapro.net/menu')
+})
 
 app.listen(PORT, () => console.log(`Running on Port ${PORT}`))
