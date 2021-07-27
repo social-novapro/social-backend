@@ -2,17 +2,21 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors')
 const { graphqlHTTP } = require('express-graphql')
-
 const RootSchema = require('./graphql')
 const config = require('../config.json')
 const app = express();
 const PORT = config.PORT;
-const APIv1 = require('./APIv1');
-const {v4 : uuidv4} = require('uuid')
+const APIv1 = require('./APIs/v1');
+const PrivAPIv1 = require('./APIs/v1Priv')
 
-// generate new unique ID
-// console.log(uuidv4())
+/* collect everything within a index
+const interactPostSchema = require('./database/posts-schema')
 
+async function test() {
+    const data1 =  await interactPostSchema.find()
+    console.log(data1)   
+}
+test()*/
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}))
@@ -23,6 +27,7 @@ mongoose.connect('mongodb://localhost:27017/Kate', {
     useUnifiedTopology: true,
     useFindAndModify: false 
 });
+
 
 app.use(cors({
     // origin: ['https://interact.novapro.net'],
@@ -44,5 +49,6 @@ app.get('/', (req, res) => {
 })
 
 app.use('/v1', APIv1);
+app.use('/v1Priv', PrivAPIv1);
 
 app.listen(PORT, () => console.log(`Running on Port ${PORT}`))

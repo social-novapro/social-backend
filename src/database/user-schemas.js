@@ -38,4 +38,4 @@ const interactUserSchema = mongoose.Schema({
     viewedPosts: [ reqString ]
 });
 
-module.exports = mongoose.model('interact-user', interactUserSchema)
+module.exports = mongoose.model('interact-user-old', interactUserSchema)

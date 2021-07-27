@@ -31,4 +31,4 @@ const interactPostSchema = mongoose.Schema({
     comments: [ reqString ]
 });
 
-module.exports = mongoose.model('interact-post', interactPostSchema)
+module.exports = mongoose.model('interact-post-old', interactPostSchema)

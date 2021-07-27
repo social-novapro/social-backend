@@ -1,0 +1,21 @@
+{
+    "v1" : {
+        "BASEURL": "https://interact-api.net/v1",
+        "AUTH" : [
+            {
+
+            }
+        ],
+        "GET" : {
+            "BaseMethodURL" : "(BASEURL)/get",
+            "methods" : [
+                {
+                   "n" : "post",
+                   "d" : "Get data for post",
+                   "u" : "(BaseMethodURL)/:postID",
+                   "h" : ["developer-token", "post-id"]
+                }
+            ]
+        }
+    }
+}

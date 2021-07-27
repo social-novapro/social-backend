@@ -1,4 +1,7 @@
 const router = require('express').Router()
+const user = require('./user')
+const allPosts = require('./allPosts')
+const post = require('./post')
 
 router.get('/post/:postID', (req, res) => {
     const { postID } = req.params
@@ -13,4 +16,7 @@ router.get('/post/:postID', (req, res) => {
     })
 })
 
+router.use('/user', user);
+router.use('/allPosts', allPosts);
+router.use('/post', post)
 module.exports = router;
