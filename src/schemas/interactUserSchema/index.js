@@ -22,4 +22,4 @@ const interactUserSchema = mongoose.Schema({
     totalReplies: reqNum
 });
 
-module.exports = mongoose.model('interact-user', interactUserSchema)
+module.exports = mongoose.model('interact-users', interactUserSchema)

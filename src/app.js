@@ -2,10 +2,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors')
 const { graphqlHTTP } = require('express-graphql')
-const RootSchema = require('./graphql')
 const config = require('../config.json')
-const app = express();
+
 const PORT = config.PORT;
+const app = express();
+const RootSchema = require('./graphql')
 const APIv1 = require('./APIs/v1');
 const PrivAPIv1 = require('./APIs/v1Priv')
 
@@ -28,14 +29,12 @@ mongoose.connect('mongodb://localhost:27017/Kate', {
     useFindAndModify: false 
 });
 
-
 app.use(cors({
     // origin: ['https://interact.novapro.net'],
     // origin: ['http://192.168.0.122:3000'],
     origin: ['http://localhost:3000'],
     credentials: true
 }))
-
 
 app.use('/graphql', graphqlHTTP({
     graphiql: true,

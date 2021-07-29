@@ -1,12 +1,6 @@
 const router = require('express').Router()
+const createPost = require('./createPost')
 
-router.get('/', (req, res) => {
-    if (req.user) {
-        res.send(req.user);
-    }
-    else {
-        res.status(401).send({msg: 'Unauthorized'});
-    }
-})
+router.use('/createPost', createPost);
 
 module.exports = router;

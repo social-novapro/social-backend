@@ -1,0 +1,123 @@
+{
+    "APIversions" : [
+        {
+            "API" : "v1",
+            "errorClasses" : [
+                {
+                    "code" : "A",
+                    "msg" : "Error with developer tokens."
+                },
+                {
+                    "code" : "B",
+                    "msg" : "Error with user private tokens."
+                },
+                {
+                    "code" : "C",
+                    "msg" : "Error within user schema."
+                },
+                {
+                    "code" : "D",
+                    "msg" : "Error relating to posts."
+                },
+                {
+                    "code" : "Z",
+                    "msg" : "Unknown errors."
+                }
+            ],
+            "errorCodes" : [
+                {
+                    "code" : "A001",
+                    "msg" : "Both the developer token, and application token that was provided was not found!"
+                },
+                {
+                    "code" : "A002",
+                    "msg" : "The developer token that was provided was not found!"
+                },
+                {
+                    "code" : "A003",
+                    "msg" : "The application token that was provided was not found!"
+                },
+                {
+                    "code" : "A004",
+                    "msg" : "There was no developer token and no application token provided."
+                },
+                {
+                    "code" : "A005",
+                    "msg" : "There was no provided developer token."
+                },
+                {
+                    "code" : "A006",
+                    "msg" : "There was no provided application token."
+                },
+                {
+                    "code" : "B001",
+                    "msg" : "The userID provided was not found."
+                },
+                {
+                    "code" : "B002",
+                    "msg" : "Both userToken, and accessToken that was provided was incorrect."
+                },
+                {
+                    "code" : "B003",
+                    "msg" : "The userToken provided was incorrect for the provided user."
+                },
+                {
+                    "code" : "B004",
+                    "msg" : "The user accessToken provided was incorrect for the provided user."
+                },
+                {
+                    "code" : "B005",
+                    "msg" : "There was no userID, userToken or accessToken provided."
+                },
+                {
+                    "code" : "B006",
+                    "msg" : "There was no userID or userToken provided."
+                },
+                {
+                    "code" : "B007",
+                    "msg" : "There was no userID or accessToken provided."
+                },
+                {
+                    "code" : "B008",
+                    "msg" : "There was no userToken or accessToken provided."
+                },
+                {
+                    "code" : "B009",
+                    "msg" : "There was no userID provided."
+                },
+                {
+                    "code" : "B010",
+                    "msg" : "There was no userToken provided."
+                },
+                {
+                    "code" : "B011",
+                    "msg" : "There was no accessToken provided."
+                },
+                {
+                    "code" : "C001",
+                    "msg" : "The requested username has already been used."
+                },
+                {
+                    "code" : "C002",
+                    "msg" : "You must provide the new user's username and displayName in order to create a user."
+                },
+                {
+                    "code" : "C003",
+                    "msg" : "You must provide the new user's username in order to create a user."
+                },
+                {
+                    "code" : "C004",
+                    "msg" : "You must provide the new user's displayName in order to create a user."
+                },
+                {
+                    "code" : "D001",
+                    "msg" : "The provided postID is not valid."
+                },
+                {
+                    "code" : "Z001",
+                    "msg" : "An unknown error has occurred for the provided user."
+                }
+            ]
+        }
+    ]
+}

@@ -1,12 +1,13 @@
 const router = require('express').Router()
 const interactPostSchema = require('../../../../schemas/interactPostSchema')
+const {searchError} = require('../../../../utils/searchError')
 
 router.get('/:postID', async (req, res) => {
     const { postID } = req.params
     
-    const PostData = await interactPostSchema.find({_id: postID})
+    const PostData = await interactPostSchema.findOne({_id: postID})
 
-    if (!PostData) return res.status(404).send({msg: "The provided postID is not valid."})
+    if (!PostData) return res.status(404).send(searchError("D001"))
     else return res.status(200).send(PostData);
 })
 
