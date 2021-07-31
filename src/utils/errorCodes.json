@@ -20,6 +20,10 @@
                     "msg" : "Error relating to posts."
                 },
                 {
+                    "code" : "E",
+                    "msg" : "Error with user tokens and access."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -112,6 +116,26 @@
                 {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid."
+                },
+                {
+                    "code" : "D002",
+                    "msg" : "There was an error trying to create the post."
+                },
+                {
+                    "code" : "E001",
+                    "msg" : "You must provide the post content, and a userID in order to submit a post."
+                },
+                {
+                    "code" : "E002",
+                    "msg" : "You must provide the post content in order to submit a post."
+                },
+                {
+                    "code" : "E003",
+                    "msg" : "You must provide a userID in order to submit a post."
+                },
+                {
+                    "code" : "E004",
+                    "msg" : "Forbidden, please have the user sign in again! The provided info was not correct!"
                 },
                 {
                     "code" : "Z001",
