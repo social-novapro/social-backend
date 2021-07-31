@@ -119,7 +119,7 @@
                 },
                 {
                     "code" : "D002",
-                    "msg" : "There was an error trying to create the post."
+                    "msg" : "There was an error trying to find the post data."
                 },
                 {
                     "code" : "E001",

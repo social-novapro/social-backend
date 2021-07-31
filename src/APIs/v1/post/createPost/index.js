@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
     )
 
     const PostData = await interactPostSchema.findOne({_id: postID})
-    if (!PostData) return res.status(404).send(earchError("D002"))
+    if (!PostData) return res.status(404).send(searchError("D002"))
     else return res.status(200).send(PostData);
 })
 
