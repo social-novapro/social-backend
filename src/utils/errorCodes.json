@@ -13,7 +13,7 @@
                 },
                 {
                     "code" : "C",
-                    "msg" : "Error within user schema."
+                    "msg" : "Error within user schema and relating to users."
                 },
                 {
                     "code" : "D",
@@ -114,12 +114,20 @@
                     "msg" : "You must provide the new user's displayName in order to create a user."
                 },
                 {
+                    "code" : "C005",
+                    "msg" : "There were no users found."
+                },
+                {
                     "code" : "D001",
-                    "msg" : "The provided postID is not valid."
+                    "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
                 {
                     "code" : "D002",
                     "msg" : "There was an error trying to find the post data."
+                },
+                {
+                    "code" : "D003",
+                    "msg" : "There were no posts found."
                 },
                 {
                     "code" : "E001",
@@ -136,6 +144,14 @@
                 {
                     "code" : "E004",
                     "msg" : "Forbidden, please have the user sign in again! The provided info was not correct!"
+                },
+                {
+                    "code" : "E005",
+                    "msg" : "The provided content length for post is over 512 characters."
+                },
+                {
+                    "code" : "E006",
+                    "msg" : "The provided content returns (times content goes on new line) for post is over 10 times."
                 },
                 {
                     "code" : "Z001",
