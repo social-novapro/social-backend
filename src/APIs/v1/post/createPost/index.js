@@ -15,8 +15,8 @@ router.post('/', async (req, res) => {
 
     let myReg = new RegExp("\n", "g")
     var returnedLines = content.match(myReg);
-    
-    if (returnedLines.length > 10) return res.status(400).send(searchError("E006"))
+
+    if (returnedLines) if (returnedLines.length > 10) return res.status(400).send(searchError("E006"))
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID})
   

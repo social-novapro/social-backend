@@ -6,7 +6,6 @@ router.get('/redirect', (req, res) => {
     res.redirect('http://localhost:3000/menu')
 })
 
-
 router.get('/:user', (req, res) => {
     console.log(req.body)
    // const { user } = req.body

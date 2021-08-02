@@ -24,6 +24,10 @@
                     "msg" : "Error with user tokens and access."
                 },
                 {
+                    "code" : "F",
+                    "msg" : "Error with code."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -152,6 +156,10 @@
                 {
                     "code" : "E006",
                     "msg" : "The provided content returns (times content goes on new line) for post is over 10 times."
+                },
+                {
+                    "code" : "F001",
+                    "msg" : "An error while creating a new User; Didn't provide argument for newUUID function."
                 },
                 {
                     "code" : "Z001",

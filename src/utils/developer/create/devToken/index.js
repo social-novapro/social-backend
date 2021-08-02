@@ -14,7 +14,7 @@ async function doubleCheckNewToken(newID) {
     else return newID
 }
 
-async function newDeveloperToken() {
+async function newDeveloperToken(userID) {
     const devToken = await newDevToken()
     const currentTime = checktime()
 
@@ -24,6 +24,7 @@ async function newDeveloperToken() {
         _id: devToken,
         __v: SCHEMA_VERSIONS.developerToken,
         creationTimestamp: currentTime,
+        userID,
         premium: false,
         APIuses: 0
     }, {
