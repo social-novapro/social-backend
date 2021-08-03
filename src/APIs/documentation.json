@@ -1,0 +1,29 @@
+{
+    "APIversions" : [
+        {
+            "API" : "v1",
+            "BASEURL" : "https://interact-api.novapro.net/v1",
+            "component" : [
+                {
+                    "BASEURL_COMP" : "(baseurl)/get",
+                    "methods" : [
+                        {
+                            "v" : false,
+                            "n" : "allPosts",
+                            "d" : "Get all posts",
+                            "u" : "/allPosts",
+                            "h" : [ "developer-token", "app-token"]
+                        },
+                        {
+                            "v" : false,
+                            "n" : "all Public Data",
+                            "d" : "Get all public data",
+                            "u" : "/allPulicData",
+                            "h" : [ "developer-token", "app-token"]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

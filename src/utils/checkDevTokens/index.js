@@ -13,9 +13,20 @@ async function checkDevTokens(devToken, appToken) {
     if (!checkDevToken && !checkAppToken) return { "authorized": false, "error" : searchError("A001")}
     else if (!checkDevToken) return { "authorized": false, "error" : searchError("A002")}
     else if (!checkAppToken) return { "authorized": false, "error" : searchError("A003")}
-    
-    await developerToken.findOneAndUpdate({_id: devToken}, { APIUses: APIUses + 1  })
-    await developerAppToken.findOneAndUpdate({_id: appToken}, { APIUses: APIUses + 1  })
+   
+    if (checkAppToken.devToken != checkDevToken._id) return { "authorized": false, "error" : "Provided App token is not matched with provided Dev token"}
+
+    var APIUsesDev
+    var APIUsesApp
+
+    if (!checkDevToken.APIUses) APIUsesDev = 0
+    else APIUsesDev = checkDevToken.APIUses
+
+    if (!checkAppToken.APIUses) APIUsesApp = 0
+    else APIUsesApp = checkAppToken.APIUses
+
+    await developerToken.findOneAndUpdate({_id: devToken}, { APIUses: APIUsesDev + 1  })
+    await developerAppToken.findOneAndUpdate({_id: appToken}, { APIUses: APIUsesApp + 1  })
 
     return { "authorized": true }
 }

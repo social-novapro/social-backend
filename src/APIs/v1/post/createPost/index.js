@@ -5,7 +5,6 @@ const interactUserSchema = require('../../../../schemas/interactUserSchema')
 const { searchError } = require('../../../../utils/searchError')
 
 router.post('/', async (req, res) => {
-    const postID = await newPostIndex()
     const { content, userID } = req.body 
     
     if (!content && !userID) return res.status(400).send(searchError("E001"))
@@ -21,14 +20,9 @@ router.post('/', async (req, res) => {
     const userIDCheck = await interactUserSchema.findOne({ _id: userID})
   
     if (!userIDCheck) return res.status(403).send(searchError("E004"))
+    
+    const postID = await newPostIndex(userID, content)
 
-    await interactPostSchema.findOneAndUpdate(
-        { _id: postID }, 
-        {
-            userID,
-            content,
-        }
-    )
 
     const PostData = await interactPostSchema.findOne({_id: postID})
     if (!PostData) return res.status(404).send(searchError("D002"))

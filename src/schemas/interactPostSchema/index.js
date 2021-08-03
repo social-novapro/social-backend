@@ -8,6 +8,10 @@ const reqNum = {
     type: Number,
     required: true
 }
+const reqBool = {
+    type: Boolean,
+    required: true
+}
 
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
@@ -15,7 +19,10 @@ const interactPostSchema = mongoose.Schema({
     timePosted: reqString,
     content: reqString,
     totalLikes: reqNum,
-    totalReplies: reqNum
+    totalReplies: reqNum,
+    edited: reqBool,
+    editedTimestamp: reqString,
+    editedAmount: reqNum
 });
 
 module.exports = mongoose.model('interact-post', interactPostSchema)

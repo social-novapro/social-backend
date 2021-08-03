@@ -2,6 +2,7 @@ const router = require('express').Router()
 const { newUserIndex } = require('../../../../utils/user/createUser')
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
 const { searchError } = require('../../../../utils/searchError/')
+const { checkUsername } = require('../../../../utils/checks/checkUser')
 
 router.post('/', async (req, res) => {
     const { username, displayName } = req.body 
@@ -10,6 +11,9 @@ router.post('/', async (req, res) => {
     else if (!username) return res.status(400).send(searchError("C003"))
     else if (!displayName) return res.status(400).send(searchError("C004"))
 
+    const checkedUser = await checkUsername(username)
+    if (checkedUser.error) return res.status(400).send(checkedUser.error)
+    
     const newUserID = await newUserIndex(username, displayName)
 
     if (newUserID.error) return res.status("400").send(newUserID.error)

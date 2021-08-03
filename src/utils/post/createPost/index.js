@@ -13,7 +13,7 @@ async function doubleCheckNewID(newID) {
     else return newID
 }
 
-async function newPostIndex() {
+async function newPostIndex(userID, content) {
     const postID = await newPostID()
     const currentTime = checktime()
 
@@ -23,6 +23,8 @@ async function newPostIndex() {
         _id: postID,
         __v: SCHEMA_VERSIONS.interactPostSchema,
         timePosted: currentTime,
+        userID,
+        content,
         totalLikes: 0,
         totalReplies: 0
     }, {

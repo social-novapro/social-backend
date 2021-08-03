@@ -1,5 +1,6 @@
 const {v4 : uuidv4} = require('uuid')
 const developerToken = require('../../../../schemas/developer/developerToken')
+const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema/')
 const { SCHEMA_VERSIONS } = require('../../../../../config.json')
 const { checktime } = require('../../../checktime')
 
@@ -31,6 +32,10 @@ async function newDeveloperToken(userID) {
         upsert: true
     })
 
+    await interactUserPrivSchema.findOneAndUpdate({
+        _id: userID
+    }, { devToken })
+    
     return devToken
 }
 

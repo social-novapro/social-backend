@@ -12,6 +12,7 @@ const reqNum = {
 const interactUserSchema = mongoose.Schema({
     _id: reqString,
     username: reqString,
+    lastEditUsername: reqNum,
     displayName: reqString,
     creationTimestamp: reqString,
     followerCount: reqNum,

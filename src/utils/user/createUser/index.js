@@ -27,36 +27,36 @@ async function doubleCheckNewID(newID) {
 }
 
 async function doubleCheckNewAccessToken(newAccessToken, userID) {
-   //  result = await interactUserSchema.find({ _id:  userID})
+    result = await interactUserPrivSchema.findOne({ _id: userID})
     if (result) return newUUID("accessToken", userID)
     else return newAccessToken
 }
 
-async function newUserIndex(username, displayName ) {
-    const checkUsername = await interactUserSchema.findOne({username: username})
-    console.log("1")
-    if (checkUsername) return {"error" : searchError("C001")}
-
+async function newUserIndex(username, displayName) {
     const userID = await newUUID("userID")
-    console.log("2")
-
     const userToken = await newUUID("userToken")
-    console.log("3")
-
     const accessToken = await newUUID("accessToken", userID)
-    console.log("4")
-
+    
     const currentTime = checktime()
 
     await interactUserPrivSchema.findOneAndUpdate({
-        _id: userID,
-    }, {
+        _id: userID
+    }, {        
         _id: userID,
         __v: SCHEMA_VERSIONS.interactUserPrivSchema,
-        accessToken,
         userToken
+    }, {
+        upsert: true
     })
-    console.log("5")
+    
+    await interactUserPrivSchema.findOneAndUpdate({
+        _id: userID
+    }, { 
+        $push : { accessTokens: accessToken } 
+    }, {
+        // new: true,
+        upsert: true
+    })
 
     await interactUserSchema.findOneAndUpdate({
         _id: userID
@@ -64,7 +64,8 @@ async function newUserIndex(username, displayName ) {
         _id: userID,
         __v: SCHEMA_VERSIONS.interactUserSchema,
         creationTimestamp: currentTime,
-        username, 
+        username,
+        lastEditUsername: currentTime,
         displayName,
         followerCount: 0,
         followingCount: 0,
