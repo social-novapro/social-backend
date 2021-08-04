@@ -2,7 +2,7 @@ const router = require('express').Router()
 const { newUserIndex } = require('../../../../utils/user/createUser')
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
 const { searchError } = require('../../../../utils/searchError/')
-const { checkUsername } = require('../../../../utils/checks/checkUser')
+const { checkUsername } = require('../../../../utils/checks/')
 
 router.post('/', async (req, res) => {
     const { username, displayName } = req.body 
@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
     const newUserID = await newUserIndex(username, displayName)
 
     if (newUserID.error) return res.status("400").send(newUserID.error)
-    const newUserData = await interactUserSchema.findOne({_id: newUserID })
+    const newUserData = await interactUserSchema.findOne({_id: newUserID})
 
     res.status(200).send(newUserData);
 })

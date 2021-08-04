@@ -1,25 +1,25 @@
 const router = require('express').Router()
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
 const { searchError } = require('../../../../utils/searchError')
-const { checkUsername } = require('../../../../utils/checks')
+// const { checkUsername } = require('../../../../utils/checks')
 const { checktime } = require('../../../../utils/checktime')
 
 router.put('/', async (req, res) => {
-    const { newUsername, userID } = req.body 
+    const { newDisplayname, userID } = req.body 
     
-    if (!newUsername && !userID) return res.status(400).send("no username or userid provided")//searchError("E001"))
-    else if (!newUsername) return res.status(400).send("no username provided.")//searchError("E002"))
+    if (!newDisplayname && !userID) return res.status(400).send("no displayname or userid provided")//searchError("E001"))
+    else if (!newDisplayname) return res.status(400).send("no displayname provided.")//searchError("E002"))
     else if (!userID) return res.status(400).send("no userid")//searchError("E003"))
 
-    const checkedUser = await checkUsername(newUsername)
-    if (checkedUser.error) return res.status(400).send(checkedUser.error)
+    // const checkedUser = await checkUsername(newDisplayname)
+    // if (checkedUser.error) return res.status(400).send(checkedUser.error)
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID})
     if (!userIDCheck) return res.status(403).send(searchError("E004"))
     
     var lastEdited = 0
-    if (!userIDCheck.lastEditUsername) lastEdited = 0
-    else lastEdited = userIDCheck.lastEditUsername
+    if (!userIDCheck.lastEditDisplayname) lastEdited = 0
+    else lastEdited = userIDCheck.lastEditDisplayname
 
     const currenttime = checktime()
     const timediff = currenttime - lastEdited
@@ -27,7 +27,7 @@ router.put('/', async (req, res) => {
     const firstSeconds = Math.floor(timediff / 1000) % 60;
 
     const minutes = 29 - firstMinutes
-    const seconds = 60 - firstSeconds
+    const seconds = 59 - firstSeconds
 
     var timeuntil
     if (!minutes) timeuntil = `${seconds} seconds`
@@ -35,12 +35,12 @@ router.put('/', async (req, res) => {
 
     if (timediff < 1800000) return res.status(400).send(`You must wait ${timeuntil} before changing again.`)//searchError("E004"))
 
-    await interactUserSchema.findOneAndUpdate(
+    const UserData = await interactUserSchema.findOneAndUpdate(
         { _id: userID }, 
-        { username: newUsername, lastEditUsername: currenttime }
+        { displayName: newDisplayname, lastEditDisplayname: currenttime }, 
+        { new: true, upsert: true }
     )
 
-    const UserData = await interactUserSchema.findOne({_id: userID})
     if (!UserData) return res.status(404).send("no user found")//searchError("D002"))
     else return res.status(200).send({"new" : UserData, "before" : userIDCheck});
 })

@@ -67,6 +67,7 @@ async function newUserIndex(username, displayName) {
         username,
         lastEditUsername: currentTime,
         displayName,
+        lastEditDisplayname: currentTime,
         followerCount: 0,
         followingCount: 0,
         likeCount: 0,

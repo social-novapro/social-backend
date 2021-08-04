@@ -3,6 +3,7 @@ const interactPostSchema = require('../../../../schemas/interactPostSchema')
 const { newPostIndex } = require('../../../../utils/post/createPost')
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
 const { searchError } = require('../../../../utils/searchError')
+const { checkPostContent } = require('../../../../utils/checks')
 
 router.post('/', async (req, res) => {
     const { content, userID } = req.body 
@@ -12,17 +13,14 @@ router.post('/', async (req, res) => {
     else if (!userID) return res.status(400).send(searchError("E003"))
     else if (content.length > 512) return res.status(400).send(searchError("E005"))
 
-    let myReg = new RegExp("\n", "g")
-    var returnedLines = content.match(myReg);
-
-    if (returnedLines) if (returnedLines.length > 10) return res.status(400).send(searchError("E006"))
+    const checkedContent = await checkPostContent(content)
+    if (checkedContent) return res.status(400).send(checkedContent.error)
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID})
   
     if (!userIDCheck) return res.status(403).send(searchError("E004"))
     
     const postID = await newPostIndex(userID, content)
-
 
     const PostData = await interactPostSchema.findOne({_id: postID})
     if (!PostData) return res.status(404).send(searchError("D002"))

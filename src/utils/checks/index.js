@@ -1,5 +1,5 @@
-const { searchError } = require("../../searchError")
-const interactUserSchema = require('../../../schemas/interactUserSchema')
+const { searchError } = require("../searchError")
+const interactUserSchema = require('../../schemas/interactUserSchema')
 
 async function checkUsername(username) {
     const usernameCheck = await interactUserSchema.findOne({ username })
@@ -26,4 +26,12 @@ function checkDisplayname() {
 
 }
 
-module.exports = { checkUsername, checkDisplayname }
+async function checkPostContent(content) {
+    let myReg = new RegExp("\n", "g")
+    var returnedLines = content.match(myReg);
+
+    if (returnedLines) if (returnedLines.length > 10) return { "error" : searchError("E006")}
+    else return
+}
+
+module.exports = { checkUsername, checkDisplayname, checkPostContent }

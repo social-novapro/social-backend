@@ -3,6 +3,7 @@ const interactUserSchema = require('../../../../schemas/interactUserSchema')
 const interactPostSchema = require('../../../../schemas/interactPostSchema')
 const { searchError } = require('../../../../utils/searchError')
 const { checktime } = require('../../../../utils/checktime')
+const { checkPostContent } = require('../../../../utils/checks')
 
 router.put('/', async (req, res) => {
     const { content, postID, userID } = req.body 
@@ -16,10 +17,8 @@ router.put('/', async (req, res) => {
     else if (!postID) return res.status(400).send("no postid")//searchError("E003"))
     else if (content.length > 512) return res.status(400).send("")//searchError("E005"))
 
-    let myReg = new RegExp("\n", "g")
-    var returnedLines = content.match(myReg);
-
-    if (returnedLines) if (returnedLines.length > 10) return res.status(400).send("to many returned lines")//searchError("E006"))
+    const checkedContent = await checkPostContent(content)
+    if (checkedContent) return res.status(400).send(checkedContent.error)
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID})
     if (!userIDCheck) return res.status(403).send("no user found")//searchError("E004"))
