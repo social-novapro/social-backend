@@ -7,7 +7,7 @@ const { checkPostContent } = require('../../../../utils/checks')
 
 router.post('/', async (req, res) => {
     const { content, userID } = req.body 
-    
+
     if (!content && !userID) return res.status(400).send(searchError("E001"))
     else if (!content) return res.status(400).send(searchError("E002"))
     else if (!userID) return res.status(400).send(searchError("E003"))

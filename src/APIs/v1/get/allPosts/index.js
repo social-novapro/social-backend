@@ -5,19 +5,30 @@ const { searchError } = require('../../../../utils/searchError')
 
 router.get('/', async (req, res) => {
     const AllPosts = await interactPostSchema.find()
-    
+
     sendPosts = [ ]
+
     for (post of AllPosts) {
         if (post.content) {
-            /*if (post.userID) {
+            var type
+            var postData = post
+            var userData
+
+            if (post.userID) {
                 const UserData = await interactUserSchema.findOne({_id: post.userID})
-                if (!UserData) post.userData = {}
-                else post.userData = UserData
-            }*/
-            sendPosts.push(post)
+                if (UserData) {
+                    userData = UserData
+                    type = { "type" : "post", "user" : "included" }
+                }
+                else type = { "type" : "post"}
+            }
+            else type = { "type" : "post" }
+
+            var dataSend = { type, postData, userData}
+            sendPosts.push(dataSend)
         }
-       
     }
+    
     if (!AllPosts) return res.status(404).send(searchError("D003"))
     else return res.status(200).send(sendPosts);
 })

@@ -16,8 +16,10 @@ router.get('/', async (req, res) => {
         var username
         var displayname
 
-        if (user.username && user.displayName) {
-
+        if (lookupkey == user._id) {
+            usersFound.push(user)
+        }
+        else if (user.username && user.displayName) {
             username = user.username.toLowerCase()
             displayname = user.displayName.toLowerCase()
 
@@ -58,8 +60,23 @@ router.get('/', async (req, res) => {
 
         if (post.content) {
             content = post.content.toLowerCase()
-            if (content.toLowerCase().startsWith(lookupKeylower)) {
-                postsFound.push(post)
+
+            if (content.toLowerCase().startsWith(lookupKeylower) || lookupkey == post._id) {
+                var type
+                var postData = post
+                var userData
+
+                if (post.userID) {
+                    type = { "type" : "post", "user" : "included" }
+                    userData = await interactUserSchema.findOne({ _id: post.userID})
+                }
+                else {
+                    type = { "type" : "post" }
+                }
+
+                var sendPost = { type, postData, userData}
+
+                postsFound.push(sendPost)
             }
         }
     }
