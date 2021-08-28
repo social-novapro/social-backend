@@ -34,7 +34,11 @@ mongoose.connect('mongodb://localhost:27017/Kate', {
 
 
 app.use(cors({
-    origin: [ 'https://interact.novapro.net', 'http://localhost:5500', 'https://interact.dkravec.repl.co' ],
+    origin: [ 
+        'https://interact.novapro.net', 
+        'http://localhost:5500', 
+        'https://interact.dkravec.repl.co'
+    ],
     // origin: ['https://interact.novapro.net'],
     // origin: ['http://192.168.0.122:3000'],
     //origin: ['https://interact.dkravec.repl.co/', 'http://localhost:3000', 'http://localhost:5500/', 'https://interact.novapro.net/' ],
