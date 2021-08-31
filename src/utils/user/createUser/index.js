@@ -32,7 +32,7 @@ async function doubleCheckNewAccessToken(newAccessToken, userID) {
     else return newAccessToken
 }
 
-async function newUserIndex(username, displayName) {
+async function newUserIndex(username, displayName, password) {
     const userID = await newUUID("userID")
     const userToken = await newUUID("userToken")
     const accessToken = await newUUID("accessToken", userID)
@@ -44,7 +44,8 @@ async function newUserIndex(username, displayName) {
     }, {        
         _id: userID,
         __v: SCHEMA_VERSIONS.interactUserPrivSchema,
-        userToken
+        userToken,
+        password
     }, {
         upsert: true
     })

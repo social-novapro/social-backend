@@ -23,9 +23,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}))
 
 //mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
-//mongoose.connect('mongodb://192.168.0.122:27017/Kate', {
-
-mongoose.connect('mongodb://localhost:27017/Kate', {
+mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
+//mongoose.connect('mongodb://localhost:27017/Kate', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
@@ -39,9 +38,6 @@ app.use(cors({
         'http://localhost:5500', 
         'https://interact.dkravec.repl.co'
     ],
-    // origin: ['https://interact.novapro.net'],
-    // origin: ['http://192.168.0.122:3000'],
-    //origin: ['https://interact.dkravec.repl.co/', 'http://localhost:3000', 'http://localhost:5500/', 'https://interact.novapro.net/' ],
     credentials: true
 }))
 
