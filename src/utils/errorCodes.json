@@ -102,6 +102,10 @@
                     "msg" : "There was no accessToken provided."
                 },
                 {
+                    "code" : "B012",
+                    "msg" : "The username provided was not found."
+                },
+                {
                     "code" : "C001",
                     "msg" : "The requested username has already been used."
                 },

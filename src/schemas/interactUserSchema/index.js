@@ -14,6 +14,8 @@ const interactUserSchema = mongoose.Schema({
     username: reqString,
     lastEditUsername: reqNum,
     displayName: reqString,
+    description: reqString,
+    pronouns: reqString,
     lastEditDisplayname: reqNum,
     creationTimestamp: reqString,
     followerCount: reqNum,

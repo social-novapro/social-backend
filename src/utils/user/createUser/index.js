@@ -32,7 +32,9 @@ async function doubleCheckNewAccessToken(newAccessToken, userID) {
     else return newAccessToken
 }
 
-async function newUserIndex(username, displayName, password) {
+async function newUserIndex(newUserDataForEntry) {
+    const { username, displayName, password, description, pronouns } = newUserDataForEntry
+
     const userID = await newUUID("userID")
     const userToken = await newUUID("userToken")
     const accessToken = await newUUID("accessToken", userID)
@@ -64,11 +66,13 @@ async function newUserIndex(username, displayName, password) {
     }, {        
         _id: userID,
         __v: SCHEMA_VERSIONS.interactUserSchema,
-        creationTimestamp: currentTime,
         username,
         lastEditUsername: currentTime,
         displayName,
+        description, 
+        pronouns,
         lastEditDisplayname: currentTime,
+        creationTimestamp: currentTime,
         followerCount: 0,
         followingCount: 0,
         likeCount: 0,

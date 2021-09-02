@@ -1,7 +1,7 @@
 const interactUserPrivSchema = require('../../schemas/interactUserPrivSchema')
 const { searchError } = require('../searchError')
 
-async function checkDevTokens(userID, userToken, accessToken) {
+async function checkUserTokens(userID, userToken, accessToken) {
     if (!userID && !userToken && !userToken) return { "authorized": false, "error" : searchError("B005") }
     if (!userID && !userToken) return { "authorized": false, "error" : searchError("B006") }
     if (!userID && !accessToken) return { "authorized": false, "error" : searchError("B007") }
@@ -10,11 +10,9 @@ async function checkDevTokens(userID, userToken, accessToken) {
     if (!userToken) return { "authorized": false, "error" : searchError("B010") }
     if (!accessToken) return { "authorized": false, "error" : searchError("B011") }
 
-    if (!userTokenCorrect) return { "authorized": false, "error" : searchError("B003") }
-    if (!accessTokenCorrect) return { "authorized": false, "error" : searchError("B004")}
+    // if (!userTokenCorrect) return { "authorized": false, "error" : searchError("B003") }
+    // if (!accessTokenCorrect) return { "authorized": false, "error" : searchError("B004")}
     
-
-
     const checkPrivUser = await interactUserPrivSchema.findOne({_id: userID})
     if (!checkPrivUser) return { "authorized": false, "error" : searchError("B001") }
     const userTokenCorrect = (checkPrivUser.userToken === userToken)
@@ -31,4 +29,4 @@ async function checkDevTokens(userID, userToken, accessToken) {
     return { "authorized": true }
 }
 
-module.exports = { checkDevTokens };
+module.exports = { checkUserTokens };

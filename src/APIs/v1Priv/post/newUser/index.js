@@ -5,7 +5,7 @@ const { searchError } = require('../../../../utils/searchError/')
 const { checkUsername } = require('../../../../utils/checks/')
 
 router.post('/', async (req, res) => {
-    const { username, displayName, password } = req.body 
+    const { username, displayName, password, description, pronouns } = req.body 
     
     if (!username && !displayName) return res.status(400).send(searchError("C002"))
     else if (!username) return res.status(400).send(searchError("C003"))
@@ -15,7 +15,8 @@ router.post('/', async (req, res) => {
     const checkedUser = await checkUsername(username)
     if (checkedUser.error) return res.status(400).send(checkedUser.error)
     
-    const newUserID = await newUserIndex(username, displayName, password)
+    const newUserDataForEntry = { username, displayName, password, description, pronouns}   
+    const newUserID = await newUserIndex(newUserDataForEntry)
 
     if (newUserID.error) return res.status("400").send(newUserID.error)
     const newUserData = await interactUserSchema.findOne({_id: newUserID})
