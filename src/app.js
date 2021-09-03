@@ -1,10 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const WebSocket = require('ws')
+const http = require('http')
 const cors = require('cors')
 const { graphqlHTTP } = require('express-graphql')
 const config = require('../config.json')
 
 const PORT = config.PORT;
+const PORT_WS = config.PORT_WS;
 const app = express();
 const RootSchema = require('./graphql')
 const APIv1 = require('./APIs/v1');
@@ -22,15 +25,13 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}))
 
-mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
-//mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
-//mongoose.connect('mongodb://localhost:27017/Kate', {
+// mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
+// mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
+mongoose.connect('mongodb://localhost:27017/Kate', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
 });
-
-
 
 app.use(cors({
     origin: [ 
@@ -55,4 +56,64 @@ app.get('/', (req, res) => {
 app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
 
-app.listen(PORT, () => console.log(`Running on Port ${PORT}`))
+// START API SITE
+app.listen(PORT, () => console.log(`API server started on port ${PORT}`))
+
+// WEBSOCKET CODE
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws) => {
+    console.log("user has connected")
+
+    wss.clients.forEach(client => {
+        if (client != ws) {
+            client.send(`New user has joined the chat`);
+        }    
+        else {
+            client.send(`You have joined the chat`)
+        }
+    });
+
+    ws.isAlive = true;
+
+    ws.on('pong', () => {
+        console.log("pong")
+        ws.isAlive = true;
+    });
+
+    ws.on('close', () => {
+        wss.clients.forEach(client => {
+            if (client != ws) {
+                client.send(`A user has disconnected`);
+            }    
+        });
+        console.log("user has disconnected")
+    })
+    
+    //connection is up, let's add a simple simple event
+    ws.on('message', (message) => {
+        console.log(`${message} from another user`)
+
+        wss.clients.forEach(client => {
+            if (client != ws) {
+                client.send(`"${message}" - another user`);
+            }    
+            else {
+                client.send(`You sent: ${message}`)
+            }
+        });
+    });
+});
+
+setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (!ws.isAlive) return ws.terminate();
+        
+        ws.isAlive = false;
+        ws.ping(null, false, true);
+    });
+}, 10000);
+
+//start our server
+server.listen(PORT_WS, () => console.log(`WebSocket server started on port ${PORT}`));

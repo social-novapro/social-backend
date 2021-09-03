@@ -2,7 +2,6 @@ const router = require('express').Router()
 const interactPostSchema = require('../../../../schemas/interactPostSchema')
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
 
-
 router.get('/', async (req, res) => {
     const { lookupkey } = req.headers
     
