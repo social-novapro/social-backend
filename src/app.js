@@ -25,9 +25,9 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}))
 
-// mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
+mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
 // mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
-mongoose.connect('mongodb://localhost:27017/Kate', {
+//mongoose.connect('mongodb://localhost:27017/Kate', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
@@ -47,11 +47,12 @@ app.use('/graphql', graphqlHTTP({
     schema: RootSchema,
 }))
 
+/*
 app.get('/', (req, res) => {
     // res.redirect('https://interact.novapro.net/api')
     // res.redirect('http://192.168.0.122:3000/api')
     res.redirect('http://localhost:3000/api')
-})
+})*/
 
 app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
