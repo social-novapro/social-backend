@@ -57,7 +57,7 @@ app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
 
 // START API SITE
-app.listen(PORT, () => console.log(`API server started on port ${PORT}`))
+// app.listen(PORT, () => console.log(`API server started on port ${PORT}`))
 
 // WEBSOCKET CODE
 const server = http.createServer(app);
@@ -116,4 +116,4 @@ setInterval(() => {
 }, 10000);
 
 //start our server
-server.listen(PORT_WS, () => console.log(`WebSocket server started on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server started on port ${PORT}!`));
