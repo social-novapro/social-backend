@@ -33,7 +33,7 @@ async function doubleCheckNewAccessToken(newAccessToken, userID) {
 }
 
 async function newUserIndex(newUserDataForEntry) {
-    const { username, displayName, password, description, pronouns } = newUserDataForEntry
+    const { username, displayName, password, description, pronouns, statusTitle } = newUserDataForEntry
 
     const userID = await newUUID("userID")
     const userToken = await newUUID("userToken")
@@ -71,6 +71,7 @@ async function newUserIndex(newUserDataForEntry) {
         displayName,
         description, 
         pronouns,
+        statusTitle,
         lastEditDisplayname: currentTime,
         creationTimestamp: currentTime,
         followerCount: 0,

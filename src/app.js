@@ -5,9 +5,7 @@ const http = require('http')
 const cors = require('cors')
 const { graphqlHTTP } = require('express-graphql')
 const config = require('../config.json')
-
 const PORT = config.PORT;
-const PORT_WS = config.PORT_WS;
 const app = express();
 const RootSchema = require('./graphql')
 const APIv1 = require('./APIs/v1');
@@ -59,43 +57,135 @@ app.use('/v1Priv', PrivAPIv1);
 
 // START API SITE
 // app.listen(PORT, () => console.log(`API server started on port ${PORT}`))
+function getTime() {
+    const d = new Date();
+    const currentTime = d.getTime()
+    return currentTime
+}
 
 // WEBSOCKET CODE
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+var totalUsers = 0
+
 wss.on('connection', (ws) => {
+    totalUsers = totalUsers + 1
+
+   // console.log(ws.isAlive)
+    console.log(totalUsers)
     console.log("user has connected")
+    
 
     wss.clients.forEach(client => {
         if (client != ws) {
-            client.send(`New user has joined the chat`);
+            const currentTime = getTime()
+            const messageSend = {
+                type: 06,
+                apiVersion: config.LATEST_API,
+                userJoin: {
+                    userID: "unknown",
+                    user: "otherUser",
+                    currentUsers: totalUsers,
+                    content: "A new user has joined the chat",
+                    timeStamp: currentTime
+                }
+            }
+
+            client.send(JSON.stringify(messageSend))
+            console.log(messageSend)
+
         }    
         else {
-            client.send(`You have joined the chat`)
+            const currentTime = getTime()
+
+            const messageSend = {
+                type: 06,
+                apiVersion: config.LATEST_API,
+                userJoin: {
+                    userID: "unknown",
+                    user: "ownUser",
+                    currentUsers: totalUsers,
+                    content:"You joined the chat joined the chat",
+                    timeStamp: currentTime
+                }
+            }
+
+            client.send(JSON.stringify(messageSend))
+            console.log(messageSend)
+
         }
     });
 
     ws.isAlive = true;
 
     ws.on('pong', () => {
-        console.log("pong")
+      //  console.log("pong")
         ws.isAlive = true;
     });
 
     ws.on('close', () => {
+        totalUsers = totalUsers -  1
+
         wss.clients.forEach(client => {
             if (client != ws) {
-                client.send(`A user has disconnected`);
-            }    
+                const messageSend = {
+                    type: 07,
+                    apiVersion: config.LATEST_API,
+                    userLeave: {
+                        userID: "unknown",
+                        user: "otherUser",
+                        currentUsers: totalUsers,
+                        content: "A user has disconnected"	
+                    }
+                }
+                client.send(JSON.stringify(messageSend))
+                console.log(messageSend)
+            }
         });
-        console.log("user has disconnected")
+        console.log(totalUsers)
     })
     
     //connection is up, let's add a simple simple event
     ws.on('message', (message) => {
-        console.log(`${message} from another user`)
+        const data = JSON.parse(message)
 
+        if (data.type == 02) {
+            wss.clients.forEach(client => {
+                if (client != ws) {
+                    const messageSend = {
+                        type: 02,
+                        apiVersion: config.LATEST_API,
+                        message: {
+                            userID: "unknown",
+                            user: "otherUser",
+                            currentUsers: totalUsers,
+                            content: data.message.content
+                        }
+                    }
+                    client.send(JSON.stringify(messageSend))
+                    console.log(messageSend)
+                   //  client.send(`"${data.message.content}" - another user`);
+                }    
+                else {
+                    const messageSend = {
+                        type: 02,
+                        apiVersion: config.LATEST_API,
+                        message: {
+                            userID: "unknown",
+                            user: "ownUser",
+                            currentUsers: totalUsers,
+                            content: data.message.content
+                        }
+                    }
+                    client.send(JSON.stringify(messageSend))
+                    console.log(messageSend)
+
+                    // client.send(`You sent: ${message}`)
+                }
+            });
+        }
+        /*
         wss.clients.forEach(client => {
             if (client != ws) {
                 client.send(`"${message}" - another user`);
@@ -104,6 +194,7 @@ wss.on('connection', (ws) => {
                 client.send(`You sent: ${message}`)
             }
         });
+        */
     });
 });
 
@@ -115,6 +206,12 @@ setInterval(() => {
         ws.ping(null, false, true);
     });
 }, 10000);
+
+/*
+function sendAllUsers(allUsers, currentUser) {
+
+}
+*/
 
 //start our server
 server.listen(PORT, () => console.log(`Server started on port ${PORT}!`));

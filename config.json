@@ -1,6 +1,5 @@
 {
     "PORT" : 5002,
-    "PORT_WS" : 5004,
     "LATEST_API" : "v1",
     "SCHEMA_VERSIONS": {
         "interactPostSchema" : "1.000",
