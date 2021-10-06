@@ -8,6 +8,7 @@
         "interactHomeSchema" : "1.000",
         "interactMainSchema" : "1.000",
         "developerToken" : "1.000",
-        "developerAppToken" : "1.000"
+        "developerAppToken" : "1.000",
+        "liveChatSchema" : "1.000"
     }
 }

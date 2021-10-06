@@ -23,9 +23,9 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}))
 
-mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
+// mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
 // mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
-//mongoose.connect('mongodb://localhost:27017/Kate', {
+mongoose.connect('mongodb://localhost:27017/Kate', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
@@ -69,6 +69,8 @@ const wss = new WebSocket.Server({ server });
 
 var totalUsers = 0
 
+const wsUtils = require('./WS/v1/utils')
+
 wss.on('connection', (ws) => {
     totalUsers = totalUsers + 1
 
@@ -79,7 +81,6 @@ wss.on('connection', (ws) => {
 
     wss.clients.forEach(client => {
         if (client != ws) {
-            const currentTime = getTime()
             const messageSend = {
                 type: 06,
                 apiVersion: config.LATEST_API,
@@ -88,17 +89,16 @@ wss.on('connection', (ws) => {
                     user: "otherUser",
                     currentUsers: totalUsers,
                     content: "A new user has joined the chat",
-                    timeStamp: currentTime
+                    timeStamp: getTime()
                 }
             }
 
+            wsUtils.saveChat(messageSend)
+
             client.send(JSON.stringify(messageSend))
             console.log(messageSend)
-
         }    
         else {
-            const currentTime = getTime()
-
             const messageSend = {
                 type: 06,
                 apiVersion: config.LATEST_API,
@@ -107,13 +107,12 @@ wss.on('connection', (ws) => {
                     user: "ownUser",
                     currentUsers: totalUsers,
                     content:"You joined the chat joined the chat",
-                    timeStamp: currentTime
+                    timeStamp: getTime()
                 }
             }
 
             client.send(JSON.stringify(messageSend))
             console.log(messageSend)
-
         }
     });
 
@@ -136,9 +135,12 @@ wss.on('connection', (ws) => {
                         userID: "unknown",
                         user: "otherUser",
                         currentUsers: totalUsers,
-                        content: "A user has disconnected"	
+                        content: "A user has disconnected",
+                        timeStamp: getTime()
                     }
                 }
+                wsUtils.saveChat(messageSend)
+
                 client.send(JSON.stringify(messageSend))
                 console.log(messageSend)
             }
@@ -160,9 +162,12 @@ wss.on('connection', (ws) => {
                             userID: "unknown",
                             user: "otherUser",
                             currentUsers: totalUsers,
-                            content: data.message.content
+                            content: data.message.content,
+                            timeStamp: getTime()
                         }
                     }
+
+                    wsUtils.saveChat(messageSend)
                     client.send(JSON.stringify(messageSend))
                     console.log(messageSend)
                    //  client.send(`"${data.message.content}" - another user`);
@@ -175,7 +180,8 @@ wss.on('connection', (ws) => {
                             userID: "unknown",
                             user: "ownUser",
                             currentUsers: totalUsers,
-                            content: data.message.content
+                            content: data.message.content,
+                            timeStamp: getTime()
                         }
                     }
                     client.send(JSON.stringify(messageSend))
