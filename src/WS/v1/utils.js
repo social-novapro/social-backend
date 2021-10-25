@@ -43,10 +43,30 @@ async function saveChat(chatData) {
             
             break;
         case 06:
-        
+            await liveChatSchema.findOneAndUpdate({
+                _id: newID
+            }, {        
+                _id: newID,
+                __v: SCHEMA_VERSIONS.liveChatSchema,
+                type,
+                apiVersion,
+                userJoin: chatData.userJoin
+            }, {
+                upsert: true
+            }) 
             break;
         case 07:
-            
+            await liveChatSchema.findOneAndUpdate({
+                _id: newID
+            }, {        
+                _id: newID,
+                __v: SCHEMA_VERSIONS.liveChatSchema,
+                type,
+                apiVersion,
+                userLeave: chatData.userLeave
+            }, {
+                upsert: true
+            }) 
             break;
         default:
             break;
@@ -54,4 +74,9 @@ async function saveChat(chatData) {
     
 }
 
-module.exports = { saveChat }
+async function sendAllChatData() {
+    const all = await liveChatSchema.find()
+    return all
+}
+
+module.exports = { saveChat, sendAllChatData }

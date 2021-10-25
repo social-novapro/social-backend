@@ -65,142 +65,129 @@ function getTime() {
 
 // WEBSOCKET CODE
 const server = http.createServer(app);
+ //const WebSocketRoute = require('./WS')
+// app.use('/ws',WebSocketRoute )
 const wss = new WebSocket.Server({ server });
 
 var totalUsers = 0
 
 const wsUtils = require('./WS/v1/utils')
 
-wss.on('connection', (ws) => {
+wss.on('connection', async (ws) => {
     totalUsers = totalUsers + 1
 
    // console.log(ws.isAlive)
     console.log(totalUsers)
     console.log("user has connected")
-    
+
+    const data = await wsUtils.sendAllChatData()
+
+    for (const chat of data ) {
+        ws.send(JSON.stringify(chat))
+    }
+
+    var messageSend = {
+        type: 06,
+        apiVersion: config.LATEST_API,
+        userJoin: {
+            userID: "unknown",
+            user: "otherUser",
+            currentUsers: totalUsers,
+            content: "A new user has joined the chat",
+            timeStamp: getTime()
+        }
+    }
+    var messageSendOwn = {
+        type: 06,
+        apiVersion: config.LATEST_API,
+        userJoin: {
+            userID: "unknown",
+            user: "ownUser",
+            currentUsers: totalUsers,
+            content: "You joined the chat!",
+            timeStamp: getTime()
+        }
+    }
+
+    // wsUtils.saveChat(messageSend)
 
     wss.clients.forEach(client => {
         if (client != ws) {
-            const messageSend = {
-                type: 06,
-                apiVersion: config.LATEST_API,
-                userJoin: {
-                    userID: "unknown",
-                    user: "otherUser",
-                    currentUsers: totalUsers,
-                    content: "A new user has joined the chat",
-                    timeStamp: getTime()
-                }
-            }
-
-            wsUtils.saveChat(messageSend)
-
             client.send(JSON.stringify(messageSend))
-            console.log(messageSend)
         }    
         else {
-            const messageSend = {
-                type: 06,
-                apiVersion: config.LATEST_API,
-                userJoin: {
-                    userID: "unknown",
-                    user: "ownUser",
-                    currentUsers: totalUsers,
-                    content:"You joined the chat joined the chat",
-                    timeStamp: getTime()
-                }
-            }
-
-            client.send(JSON.stringify(messageSend))
-            console.log(messageSend)
+            client.send(JSON.stringify(messageSendOwn))
         }
     });
 
     ws.isAlive = true;
 
     ws.on('pong', () => {
-      //  console.log("pong")
         ws.isAlive = true;
     });
 
     ws.on('close', () => {
         totalUsers = totalUsers -  1
+        const messageSend = {
+            type: 07,
+            apiVersion: config.LATEST_API,
+            userLeave: {
+                userID: "unknown",
+                user: "otherUser",
+                currentUsers: totalUsers,
+                content: "A user has disconnected",
+                timeStamp: getTime()
+            }
+        }
+        
+       //  wsUtils.saveChat(messageSend)
 
         wss.clients.forEach(client => {
             if (client != ws) {
-                const messageSend = {
-                    type: 07,
-                    apiVersion: config.LATEST_API,
-                    userLeave: {
-                        userID: "unknown",
-                        user: "otherUser",
-                        currentUsers: totalUsers,
-                        content: "A user has disconnected",
-                        timeStamp: getTime()
-                    }
-                }
-                wsUtils.saveChat(messageSend)
-
                 client.send(JSON.stringify(messageSend))
-                console.log(messageSend)
             }
         });
-        console.log(totalUsers)
     })
     
     //connection is up, let's add a simple simple event
     ws.on('message', (message) => {
         const data = JSON.parse(message)
 
+        var messageSend = {
+            type: 02,
+            apiVersion: config.LATEST_API,
+            message: {
+                userID: "unknown",
+                user: "otherUser",
+                currentUsers: totalUsers,
+                content: data.message.content,
+                timeStamp: getTime()
+            }
+        }
+        var messageSendOwn = {
+            type: 02,
+            apiVersion: config.LATEST_API,
+            message: {
+                userID: "unknown",
+                user: "ownUser",
+                currentUsers: totalUsers,
+                content: data.message.content,
+                timeStamp: getTime()
+            }
+        }
+
+        wsUtils.saveChat(messageSend)
+
         if (data.type == 02) {
             wss.clients.forEach(client => {
                 if (client != ws) {
-                    const messageSend = {
-                        type: 02,
-                        apiVersion: config.LATEST_API,
-                        message: {
-                            userID: "unknown",
-                            user: "otherUser",
-                            currentUsers: totalUsers,
-                            content: data.message.content,
-                            timeStamp: getTime()
-                        }
-                    }
-
-                    wsUtils.saveChat(messageSend)
                     client.send(JSON.stringify(messageSend))
-                    console.log(messageSend)
-                   //  client.send(`"${data.message.content}" - another user`);
                 }    
                 else {
-                    const messageSend = {
-                        type: 02,
-                        apiVersion: config.LATEST_API,
-                        message: {
-                            userID: "unknown",
-                            user: "ownUser",
-                            currentUsers: totalUsers,
-                            content: data.message.content,
-                            timeStamp: getTime()
-                        }
-                    }
-                    client.send(JSON.stringify(messageSend))
-                    console.log(messageSend)
-
-                    // client.send(`You sent: ${message}`)
+                    client.send(JSON.stringify(messageSendOwn))
                 }
             });
         }
-        /*
-        wss.clients.forEach(client => {
-            if (client != ws) {
-                client.send(`"${message}" - another user`);
-            }    
-            else {
-                client.send(`You sent: ${message}`)
-            }
-        });
-        */
     });
 });
 

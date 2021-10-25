@@ -11,7 +11,6 @@ router.post('/', async (req, res) => {
     if (!content && !userID) return res.status(400).send(searchError("E001"))
     else if (!content) return res.status(400).send(searchError("E002"))
     else if (!userID) return res.status(400).send(searchError("E003"))
-    else if (content.length > 512) return res.status(400).send(searchError("E005"))
 
     const checkedContent = await checkPostContent(content)
     if (checkedContent) return res.status(400).send(checkedContent.error)

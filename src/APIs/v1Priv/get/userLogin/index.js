@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 
     if (foundPrivUser.password != password) return res.status(403).send("password provided was incorreect");
     
-    res.status(200).send("your logged in!");
+    res.status(200).send({"login" : true, "priv" : foundPrivUser, "public" : foundUsername});
 })
 
 module.exports = router;
