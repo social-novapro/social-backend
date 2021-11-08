@@ -23,9 +23,9 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}))
 
-mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
+// mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
 // mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
-//mongoose.connect('mongodb://localhost:27017/Kate', {
+mongoose.connect('mongodb://localhost:27017/Kate', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
@@ -52,6 +52,15 @@ app.get('/', (req, res) => {
     res.redirect('http://localhost:3000/api')
 })*/
 
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+})
+app.get('/apiDocs', (req, res) => {
+    res.sendFile(__dirname + '/APIs/apidocs.json');
+})
+app.get('/apiDocsJS', (req, res) => {
+    res.sendFile(__dirname + '/APIs/apidocs.js');
+})
 app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
 
@@ -66,12 +75,18 @@ function getTime() {
 // WEBSOCKET CODE
 const server = http.createServer(app);
  //const WebSocketRoute = require('./WS')
-// app.use('/ws',WebSocketRoute )
+// app.use('/ws',WebSocketRoute 
 const wss = new WebSocket.Server({ server });
 
 var totalUsers = 0
 
 const wsUtils = require('./WS/v1/utils')
+
+function sendEveryone(sendMessage) {
+    wss.clients.forEach(client => {
+        client.send(JSON.stringify(sendMessage))
+    })
+}
 
 wss.on('connection', async (ws) => {
     totalUsers = totalUsers + 1
@@ -110,7 +125,8 @@ wss.on('connection', async (ws) => {
     }
 
     // wsUtils.saveChat(messageSend)
-
+   //  sendEveryone(messageSend)
+   
     wss.clients.forEach(client => {
         if (client != ws) {
             client.send(JSON.stringify(messageSend))

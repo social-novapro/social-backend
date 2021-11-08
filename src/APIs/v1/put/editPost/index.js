@@ -1,20 +1,29 @@
 const router = require('express').Router()
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
+const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema')
 const interactPostSchema = require('../../../../schemas/interactPostSchema')
 const { searchError } = require('../../../../utils/searchError')
 const { checktime } = require('../../../../utils/checktime')
 const { checkPostContent } = require('../../../../utils/checks')
 
 router.put('/', async (req, res) => {
-    const { content, postID, userID } = req.body 
-    
-    if (!content && !userID && !postID) return res.status(400).send("no content, userid, and postid")//searchError("E001"))
-    else if (!content && !userID) return res.status(400).send("no content and userid")//searchError("E001"))
+    const { content, postID, userID, userToken} = req.body 
+
+    if (!content && !userID && !postID && !userToken) return res.status(400).send("no content, userid, and postid")//searchError("E001"))
+    else if (!content && !userID && !postID) return res.status(400).send("no content, userid, and postid")//searchError("E001"))
+    else if (!content && !userID && !userToken) return res.status(400).send("no content, userid, and postid")//searchError("E001"))
+    else if (!userID && !postID && !userToken) return res.status(400).send("no content, userid, and postid")//searchError("E001"))
     else if (!content && !postID) return res.status(400).send("no content and postid")//searchError("E001"))
-    else if (!userID && !postID) return res.status(400).send("no userid and no postid")//searchError("E001"))
+    else if (!content && !userID) return res.status(400).send("no content and userid")//searchError("E001"))
+    else if (!content && !userToken) return res.status(400).send("no content and postid")//searchError("E001"))
+    else if (!postID && !userID) return res.status(400).send("no userid and no postid")//searchError("E001"))
+    else if (!userID && !userToken) return res.status(400).send("no userid and no postid")//searchError("E001"))
+    else if (!postID && !userToken) return res.status(400).send("no userid and no postid")//searchError("E001"))
     else if (!content) return res.status(400).send("no content")//searchError("E002"))
     else if (!userID) return res.status(400).send("no userid")//searchError("E003"))
     else if (!postID) return res.status(400).send("no postid")//searchError("E003"))
+    else if (!userToken) return res.status(400).send("no userToken")//searchError("E003"))
+
     else if (content.length > 512) return res.status(400).send("")//searchError("E005"))
 
     const checkedContent = await checkPostContent(content)
@@ -22,6 +31,9 @@ router.put('/', async (req, res) => {
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID})
     if (!userIDCheck) return res.status(403).send("no user found")//searchError("E004"))
+
+    const userTokenCheck = await interactUserPrivSchema.findOne({_id: userID}) 
+    if (userTokenCheck.userToken != userToken) return res.status(403).send("that user token is incorrect.")
 
     const postCheck = await interactPostSchema.findOne({ _id: postID})
 

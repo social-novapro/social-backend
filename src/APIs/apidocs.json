@@ -1,4 +1,5 @@
 {
+    "currentAPI" : "v1",
     "v1" : {
         "BASEURL": "https://interact-api.net/v1",
         "AUTH" : [
@@ -11,7 +12,7 @@
             "methods" : [
                 {
                    "n" : "post",
-                   "d" : "Get data for post",
+                   "d" : "Get data for a post",
                    "u" : "(BaseMethodURL)/:postID",
                    "h" : ["developer-token", "post-id"]
                 }

@@ -1,22 +1,32 @@
 const router = require('express').Router()
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
+const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema')
 const { searchError } = require('../../../../utils/searchError')
 const { checkUsername } = require('../../../../utils/checks')
 const { checktime } = require('../../../../utils/checktime')
 
 router.put('/', async (req, res) => {
-    const { newUsername, userID } = req.body 
+    const { newUsername, userID, userToken } = req.body 
+
+    const { newUsername, userID, userToken } = req.body 
     
-    if (!newUsername && !userID) return res.status(400).send("no username or userid provided")//searchError("E001"))
+    if (!newUsername && !userID && !userToken) return res.status(400).send("no username, userid, and userToken was provided")//searchError("E001"))
+    else if (!newUsername && !userToken) return res.status(400).send("no username and no userToken ")//searchError("E003"))
+    else if (!newUsername && !userID) return res.status(400).send("no username and userID provided.")//searchError("E002"))
+    else if (!userID && !userToken) return res.status(400).send("no userid and userToken")//searchError("E003"))
     else if (!newUsername) return res.status(400).send("no username provided.")//searchError("E002"))
     else if (!userID) return res.status(400).send("no userid")//searchError("E003"))
-
-    const checkedUser = await checkUsername(newUsername)
-    if (checkedUser.error) return res.status(400).send(checkedUser.error)
+    else if (!userToken) return res.status(400).send("no userToken provided.")//searchError("E002"))
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID})
     if (!userIDCheck) return res.status(403).send(searchError("E004"))
     
+    const userTokenCheck = await interactUserPrivSchema.findOne({_id: userID}) 
+    if (userTokenCheck.userToken != userToken) return res.status(403).send("that user token is incorrect.")
+   
+    const checkedUser = await checkUsername(newUsername)
+    if (checkedUser.error) return res.status(400).send(checkedUser.error)
+
     var lastEdited = 0
     if (!userIDCheck.lastEditUsername) lastEdited = 0
     else lastEdited = userIDCheck.lastEditUsername
