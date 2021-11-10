@@ -4,27 +4,24 @@ const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSche
 const { searchError } = require('../../../../utils/searchError')
 const { checkUsername } = require('../../../../utils/checks')
 const { checktime } = require('../../../../utils/checktime')
+const { checkRequestTokens } = require('../../../../utils/checkRequestTokens')
 
 router.put('/', async (req, res) => {
-    const { newUsername, userID, userToken } = req.body 
-
-    const { newUsername, userID, userToken } = req.body 
+    const { newusername, userid, usertoken } = req.headers 
     
-    if (!newUsername && !userID && !userToken) return res.status(400).send("no username, userid, and userToken was provided")//searchError("E001"))
-    else if (!newUsername && !userToken) return res.status(400).send("no username and no userToken ")//searchError("E003"))
-    else if (!newUsername && !userID) return res.status(400).send("no username and userID provided.")//searchError("E002"))
-    else if (!userID && !userToken) return res.status(400).send("no userid and userToken")//searchError("E003"))
-    else if (!newUsername) return res.status(400).send("no username provided.")//searchError("E002"))
-    else if (!userID) return res.status(400).send("no userid")//searchError("E003"))
-    else if (!userToken) return res.status(400).send("no userToken provided.")//searchError("E002"))
+    const checkTokens = await checkRequestTokens(req.headers)
 
-    const userIDCheck = await interactUserSchema.findOne({ _id: userID})
+    if (checkTokens) if (checkTokens.authorized==false) return res.status(400).send(checkTokens)
+
+
+    if (!newusername && !userid) return res.status(400).send("no username and userID provided.")//searchError("E002"))
+    else if (!newusername) return res.status(400).send("no username provided.")//searchError("E002"))
+    else if (!userid) return res.status(400).send("no userid")//searchError("E003"))
+
+    const userIDCheck = await interactUserSchema.findOne({ _id: userid})
     if (!userIDCheck) return res.status(403).send(searchError("E004"))
     
-    const userTokenCheck = await interactUserPrivSchema.findOne({_id: userID}) 
-    if (userTokenCheck.userToken != userToken) return res.status(403).send("that user token is incorrect.")
-   
-    const checkedUser = await checkUsername(newUsername)
+    const checkedUser = await checkUsername(newusername)
     if (checkedUser.error) return res.status(400).send(checkedUser.error)
 
     var lastEdited = 0
@@ -46,11 +43,11 @@ router.put('/', async (req, res) => {
     if (timediff < 1800000) return res.status(400).send(`You must wait ${timeuntil} before changing again.`)//searchError("E004"))
 
     await interactUserSchema.findOneAndUpdate(
-        { _id: userID }, 
-        { username: newUsername, lastEditUsername: currenttime }
+        { _id: userid }, 
+        { username: newusername, lastEditUsername: currenttime }
     )
 
-    const UserData = await interactUserSchema.findOne({_id: userID})
+    const UserData = await interactUserSchema.findOne({_id: userid})
     if (!UserData) return res.status(404).send("no user found")//searchError("D002"))
     else return res.status(200).send({"new" : UserData, "before" : userIDCheck});
 })

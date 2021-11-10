@@ -12,7 +12,7 @@ async function checkUserTokens(userID, userToken, accessToken) {
 
     // if (!userTokenCorrect) return { "authorized": false, "error" : searchError("B003") }
     // if (!accessTokenCorrect) return { "authorized": false, "error" : searchError("B004")}
-    
+
     const checkPrivUser = await interactUserPrivSchema.findOne({_id: userID})
     if (!checkPrivUser) return { "authorized": false, "error" : searchError("B001") }
     const userTokenCorrect = (checkPrivUser.userToken === userToken)
