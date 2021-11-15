@@ -1,7 +1,18 @@
 const interactUserPrivSchema = require('../../schemas/interactUserPrivSchema')
+const interactUserAccessSchema = require('../../schemas/interactUserAccessSchema')
 const { searchError } = require('../searchError')
 
 async function checkUserTokens(userID, userToken, accessToken) {
+
+
+
+
+
+
+
+    console.log(userID)
+    console.log(userToken)
+    console.log(accessToken)
     if (!userID && !userToken && !userToken) return { "authorized": false, "error" : searchError("B005") }
     if (!userID && !userToken) return { "authorized": false, "error" : searchError("B006") }
     if (!userID && !accessToken) return { "authorized": false, "error" : searchError("B007") }
@@ -15,13 +26,19 @@ async function checkUserTokens(userID, userToken, accessToken) {
 
     const checkPrivUser = await interactUserPrivSchema.findOne({_id: userID})
     if (!checkPrivUser) return { "authorized": false, "error" : searchError("B001") }
+
+
+
+
     const userTokenCorrect = (checkPrivUser.userToken === userToken)
     var accessTokenCorrect
+    console.log('---')
+    console.log(checkPrivUser.accessTokens[0])
 
-    for (accessTokenSearch of checkPrivUser.accessToken) {
-        if (accessTokenSearch === accessToken) accessTokenCorrect = true
-    }
+    if (checkPrivUser.accessTokens[0] === accessToken) accessTokenCorrect = true
 
+    console.log(userTokenCorrect)
+    console.log(accessTokenCorrect)
     if (!userTokenCorrect && !accessTokenCorrect) return { "authorized": false, "error" : searchError("B002") }
     else if (!userTokenCorrect) return { "authorized": false, "error" : searchError("B003") }
     else if (!accessTokenCorrect) return { "authorized": false, "error" : searchError("B004")}

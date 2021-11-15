@@ -12,7 +12,7 @@ const nonreqString = {
 const interactUserPrivSchema = mongoose.Schema({
     _id: reqString,
     userToken: reqString,
-    accessTokens: [reqString],
+    // accessTokens: [reqString],
     password: reqString,
     devToken: nonreqString
 });

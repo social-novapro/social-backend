@@ -52,14 +52,23 @@ async function newUserIndex(newUserDataForEntry) {
         upsert: true
     })
     
-    await interactUserPrivSchema.findOneAndUpdate({
+    await interactUserAccessSchema.findOneAndUpdate({
+        _id: accessToken
+    }, { 
+        userToken,
+        userID,
+        appToken: 'interact-novaproductions-main'
+    }, {
+        upsert: true
+    })
+    /*await interactUserPrivSchema.findOneAndUpdate({
         _id: userID
     }, { 
         $push : { accessTokens: accessToken } 
     }, {
         // new: true,
         upsert: true
-    })
+    })*/
 
     await interactUserSchema.findOneAndUpdate({
         _id: userID

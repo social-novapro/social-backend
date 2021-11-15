@@ -106,6 +106,10 @@
                     "msg" : "The username provided was not found."
                 },
                 {
+                    "code" : "B013",
+                    "msg" : "The userID provided was not found in the private schema."
+                },
+                {
                     "code" : "C001",
                     "msg" : "The requested username has already been used."
                 },
