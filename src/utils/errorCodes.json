@@ -28,6 +28,10 @@
                     "msg" : "Error with code."
                 },
                 {
+                    "code" : "G",
+                    "msg" : "Error logging in."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -169,6 +173,26 @@
                     "code" : "F001",
                     "msg" : "An error while creating a new User; Didn't provide argument for newUUID function."
                 },
+                {
+                    "code" : "G001",
+                    "msg" : "no username provided"
+                }, 
+                {
+                    "code" : "G002",
+                    "msg" : "no password provided"
+                }, 
+                {
+                    "code" : "G003",
+                    "msg" : "unable to find username provided"
+                }, 
+                {
+                    "code" : "G004",
+                    "msg" : "unable to find username provided in private"
+                }, 
+                {
+                    "code" : "G005",
+                    "msg" : "password provided was incorreect"
+                }, 
                 {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."

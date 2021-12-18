@@ -167,6 +167,7 @@ wss.on('connection', async (ws) => {
     
     //connection is up, let's add a simple simple event
     ws.on('message', (message) => {
+        console.log(message)
         const data = JSON.parse(message)
 
         var messageSend = {
@@ -207,6 +208,10 @@ wss.on('connection', async (ws) => {
     });
 });
 
+
+/* 
+area of code is breaking for some reason
+
 setInterval(() => {
     wss.clients.forEach((ws) => {
         if (!ws.isAlive) return ws.terminate();
@@ -215,6 +220,7 @@ setInterval(() => {
         ws.ping(null, false, true);
     });
 }, 10000);
+*/
 
 /*
 function sendAllUsers(allUsers, currentUser) {
