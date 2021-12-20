@@ -1,6 +1,7 @@
 const {v4 : uuidv4} = require('uuid')
 const interactUserSchema = require('../../../schemas/interactUserSchema')
 const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema')
+const interactUserAccessSchema = require('../../../schemas/interactUserAccessSchema')
 const { SCHEMA_VERSIONS } = require('../../../../config.json')
 const { checktime } = require('../../checktime')
 const { searchError } = require('../../searchError/')
