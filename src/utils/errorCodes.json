@@ -134,6 +134,10 @@
                     "msg" : "There were no users found."
                 },
                 {
+                    "code" : "C006",
+                    "msg": "you must insert a password"
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
