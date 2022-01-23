@@ -70,6 +70,8 @@ async function newUserIndex(newUserDataForEntry) {
         // new: true,
         upsert: true
     })*/
+    
+    if (!description) description = `${username} is new to Interact, make sure to say hello!`
 
     await interactUserSchema.findOneAndUpdate({
         _id: userID
