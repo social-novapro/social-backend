@@ -34,7 +34,7 @@ async function doubleCheckNewAccessToken(newAccessToken, userID) {
 }
 
 async function newUserIndex(newUserDataForEntry) {
-    const { username, displayName, password, description, pronouns, statusTitle } = newUserDataForEntry
+    var { username, displayName, password, description, pronouns, statusTitle } = newUserDataForEntry
 
     const userID = await newUUID("userID")
     const userToken = await newUUID("userToken")
