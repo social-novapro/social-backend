@@ -76,7 +76,10 @@ async function saveChat(chatData) {
 
 async function sendAllChatData() {
     const all = await liveChatSchema.find()
-    return all
+    const send = all.slice((all.length - 5), all.length)
+
+  //  console.log(all.slice(- 5))
+    return all.slice(- 5)
 }
 
 module.exports = { saveChat, sendAllChatData }

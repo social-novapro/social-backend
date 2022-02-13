@@ -35,7 +35,9 @@ app.use(cors({
     origin: [ 
         'https://interact.novapro.net', 
         'http://localhost:5500', 
-        'https://interact.dkravec.repl.co'
+        'https://interact.dkravec.repl.co',
+        'http://localhost:3000',
+        'http://127.0.0.1:5500'
     ],
     credentials: true
 }))
@@ -88,10 +90,38 @@ function sendEveryone(sendMessage) {
     })
 }
 
-wss.on('connection', async (ws) => {
+wss.on('connection', async (ws, req) => {
     totalUsers = totalUsers + 1
 
-   // console.log(ws.isAlive)
+   // const paramsData = checkURLParams(req.url)
+    const userID = checkUserID()
+
+    function checkURLParams(url) {
+        const params = new URLSearchParams(url)
+        const userID = params.has('/?userID')
+    
+        if (userID) {
+            const userIDSearch = params.get('/?userID')
+            return {"param":true, paramTypes: [ {"paramName":"userID", "userID":userIDSearch}]}
+        }
+    
+        return {"param":false}
+    }
+
+    function checkUserID() {
+        const paramsData = checkURLParams(req.url)
+        var userIDFound
+
+        if (paramsData.param) {
+            for (const currentParam of paramsData.paramTypes) {
+                userIDFound = currentParam.userID
+                if (currentParam.userID) return userIDFound
+            }
+        }
+        return defaultUserID
+    }
+
+   // console.log(w/s.isAlive)
     console.log(totalUsers)
     console.log("user has connected")
 
@@ -105,10 +135,9 @@ wss.on('connection', async (ws) => {
         type: 06,
         apiVersion: config.LATEST_API,
         userJoin: {
-            userID: "unknown",
-            user: "otherUser",
+            userID,
             currentUsers: totalUsers,
-            content: "A new user has joined the chat",
+            content: `${userID} has joined the chat`,
             timeStamp: getTime()
         }
     }
@@ -116,8 +145,7 @@ wss.on('connection', async (ws) => {
         type: 06,
         apiVersion: config.LATEST_API,
         userJoin: {
-            userID: "unknown",
-            user: "ownUser",
+            userID,
             currentUsers: totalUsers,
             content: "You joined the chat!",
             timeStamp: getTime()
@@ -167,26 +195,14 @@ wss.on('connection', async (ws) => {
     
     //connection is up, let's add a simple simple event
     ws.on('message', (message) => {
-        console.log(message)
+
         const data = JSON.parse(message)
 
         var messageSend = {
             type: 02,
             apiVersion: config.LATEST_API,
             message: {
-                userID: "unknown",
-                user: "otherUser",
-                currentUsers: totalUsers,
-                content: data.message.content,
-                timeStamp: getTime()
-            }
-        }
-        var messageSendOwn = {
-            type: 02,
-            apiVersion: config.LATEST_API,
-            message: {
-                userID: "unknown",
-                user: "ownUser",
+                userID: data.message.userID,
                 currentUsers: totalUsers,
                 content: data.message.content,
                 timeStamp: getTime()
@@ -197,12 +213,7 @@ wss.on('connection', async (ws) => {
 
         if (data.type == 02) {
             wss.clients.forEach(client => {
-                if (client != ws) {
-                    client.send(JSON.stringify(messageSend))
-                }    
-                else {
-                    client.send(JSON.stringify(messageSendOwn))
-                }
+                client.send(JSON.stringify(messageSend))
             });
         }
     });
