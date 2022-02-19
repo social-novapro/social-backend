@@ -3,9 +3,10 @@ const liveChatSchema = require('../../schemas/liveChatSchema')
 const {SCHEMA_VERSIONS} = require('../../../config.json')
 
 async function saveChat(chatData) {
-    const newID = uuidv4()
-    const { type, apiVersion } = chatData
+    const { _id, apiVersion, type, user  } = chatData
+    const newID = _id
 
+  //  await liveChatSchema.create({ _id: chatData._id, 
     switch (type) {
         case 01:
             await liveChatSchema.findOneAndUpdate({
@@ -14,29 +15,31 @@ async function saveChat(chatData) {
                 _id: newID,
                 __v: SCHEMA_VERSIONS.liveChatSchema,
                 type,
+                user,
                 apiVersion,
                 pings: chatData.pings
             }, {
                 upsert: true
             }) 
             break;
-        case 02:
+        case 02: // post message
             await liveChatSchema.findOneAndUpdate({
-                _id: newID
+                _id,
             }, {        
                 _id: newID,
                 __v: SCHEMA_VERSIONS.liveChatSchema,
                 type,
+                user,
                 apiVersion,
                 message: chatData.message
             }, {
                 upsert: true
             }) 
             break;
-        case 03:
-            
+        case 03: // delete message
+            await liveChatSchema.findOneAndDelete({ _id })
             break;
-        case 04:
+        case 04: // edit message
             
             break;
         case 05:
@@ -49,6 +52,7 @@ async function saveChat(chatData) {
                 _id: newID,
                 __v: SCHEMA_VERSIONS.liveChatSchema,
                 type,
+                user,
                 apiVersion,
                 userJoin: chatData.userJoin
             }, {
@@ -62,6 +66,7 @@ async function saveChat(chatData) {
                 _id: newID,
                 __v: SCHEMA_VERSIONS.liveChatSchema,
                 type,
+                user,
                 apiVersion,
                 userLeave: chatData.userLeave
             }, {

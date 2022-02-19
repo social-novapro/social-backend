@@ -32,6 +32,10 @@
                     "msg" : "Error logging in."
                 },
                 {
+                    "code" : "H",
+                    "msg" : "Live chat error."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -205,6 +209,14 @@
                     "code" : "G005",
                     "msg" : "password provided was incorreect"
                 }, 
+                {
+                    "code" : "H001",
+                    "msg" : "You tried to delete a post that is not yours."
+                }, 
+                {
+                    "code" : "H002",
+                    "msg" : "You tried to send an invalid post type."
+                },
                 {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."

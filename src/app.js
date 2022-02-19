@@ -10,6 +10,8 @@ const app = express();
 const RootSchema = require('./graphql')
 const APIv1 = require('./APIs/v1');
 const PrivAPIv1 = require('./APIs/v1Priv')
+const {v4 : uuidv4} = require('uuid')
+const {searchError} = require('./utils/searchError')
 
 /* collect everything within a index
 const interactPostSchema = require('./database/posts-schema')
@@ -82,7 +84,9 @@ const wss = new WebSocket.Server({ server });
 
 var totalUsers = 0
 
-const wsUtils = require('./WS/v1/utils')
+const wsUtils = require('./WS/v1/utils');
+const interactUserSchema = require('./schemas/interactUserSchema');
+const liveChatSchema = require('./schemas/liveChatSchema');
 
 function sendEveryone(sendMessage) {
     wss.clients.forEach(client => {
@@ -130,38 +134,31 @@ wss.on('connection', async (ws, req) => {
     for (const chat of data ) {
         ws.send(JSON.stringify(chat))
     }
+    
+    const newJoinID = uuidv4()
+
+    const userData = await interactUserSchema.findOne({ _id: userID }) 
+    const user = {
+        _id: userID,
+        username: userData.username,
+        displayName: userData.displayName,
+    }
 
     var messageSend = {
+        _id: newJoinID,
         type: 06,
+        user,
         apiVersion: config.LATEST_API,
         userJoin: {
             userID,
             currentUsers: totalUsers,
-            content: `${userID} has joined the chat`,
-            timeStamp: getTime()
-        }
-    }
-    var messageSendOwn = {
-        type: 06,
-        apiVersion: config.LATEST_API,
-        userJoin: {
-            userID,
-            currentUsers: totalUsers,
-            content: "You joined the chat!",
+            content: `${user.displayName} has joined the chat`,
             timeStamp: getTime()
         }
     }
 
-    // wsUtils.saveChat(messageSend)
-   //  sendEveryone(messageSend)
-   
     wss.clients.forEach(client => {
-        if (client != ws) {
-            client.send(JSON.stringify(messageSend))
-        }    
-        else {
-            client.send(JSON.stringify(messageSendOwn))
-        }
+        client.send(JSON.stringify(messageSend))
     });
 
     ws.isAlive = true;
@@ -172,50 +169,88 @@ wss.on('connection', async (ws, req) => {
 
     ws.on('close', () => {
         totalUsers = totalUsers -  1
-        const messageSend = {
+        const newID = uuidv4()
+
+        var messageSend = {
+            _id: newID,
             type: 07,
             apiVersion: config.LATEST_API,
+            user,
             userLeave: {
-                userID: "unknown",
-                user: "otherUser",
+                userID: userID,
                 currentUsers: totalUsers,
-                content: "A user has disconnected",
+                content: `${user.displayName} has disconnected`,
                 timeStamp: getTime()
             }
         }
         
-       //  wsUtils.saveChat(messageSend)
-
         wss.clients.forEach(client => {
-            if (client != ws) {
-                client.send(JSON.stringify(messageSend))
-            }
+            client.send(JSON.stringify(messageSend))
         });
     })
     
     //connection is up, let's add a simple simple event
-    ws.on('message', (message) => {
-
+    ws.on('message', async (message) => {
         const data = JSON.parse(message)
+        const newID = uuidv4()
 
-        var messageSend = {
-            type: 02,
-            apiVersion: config.LATEST_API,
-            message: {
-                userID: data.message.userID,
-                currentUsers: totalUsers,
-                content: data.message.content,
-                timeStamp: getTime()
-            }
+        var messageSend
+
+        switch (data.type) {
+            case 2:
+                messageSend = {
+                    _id: newID,
+                    type: 02,
+                    user,
+                    apiVersion: config.LATEST_API,
+                    message: {
+                        userID,
+                        currentUsers: totalUsers,
+                        content: data.message.content,
+                        timeStamp: getTime()
+                    }
+                }
+
+                wsUtils.saveChat(messageSend)
+                break;
+            case 3:
+                const messageDeleteCheck = await liveChatSchema.findOne({ _id: data.messageToDelete })
+
+                if (!messageDeleteCheck) {
+                    return ws.send(JSON.stringify(`no message`));
+                }
+                else if (!messageDeleteCheck.user) {
+                    return ws.send(JSON.stringify(`no user`));
+
+                }
+                else if (messageDeleteCheck.user._id != userID) {
+                    return ws.send(JSON.stringify(searchError("H001")));
+                }
+                else if (messageDeleteCheck.user._id == userID) {
+                    messageSend = {
+                        _id: data.messageToDelete,
+                        type: 03,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        deleteMessage: {
+                            content: messageDeleteCheck.content,
+                            timeStamp: getTime()
+                        }
+                    }
+
+                    wsUtils.saveChat(messageSend)
+                }
+
+                break;
+            default:
+                break;
         }
 
-        wsUtils.saveChat(messageSend)
+        if (!messageSend) return ws.send(JSON.stringify(searchError("H002")));
 
-        if (data.type == 02) {
-            wss.clients.forEach(client => {
-                client.send(JSON.stringify(messageSend))
-            });
-        }
+        wss.clients.forEach(client => {
+            client.send(JSON.stringify(messageSend))
+        });
     });
 });
 

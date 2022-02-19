@@ -47,9 +47,17 @@ const userLeaveSchema = mongoose.Schema({
     timeStamp: reqString
 })
 
+// user
+const userSchema = mongoose.Schema({
+    _id: reqString,
+    username: reqString,
+    displayName: reqString,
+})
+
 const interactLiveChatSchema = mongoose.Schema({
     _id: reqString,
     type: reqNum,
+    user: userSchema,
     apiVersions: reqString,
     pings: pingsSchema, 
     message: messageSchema,
