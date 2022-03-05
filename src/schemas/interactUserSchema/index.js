@@ -9,6 +9,15 @@ const reqNum = {
     required: true
 }
 
+// type 06
+const privacySettingSchema = mongoose.Schema({
+    discoverSetting: reqNum,
+    postVisiblityDefault: reqNum,
+    postReplyDefault: reqNum,
+})
+
+// 1: public, 2: friends of friends, 3: private
+
 const interactUserSchema = mongoose.Schema({
     _id: reqString,
     username: reqString,
@@ -24,7 +33,8 @@ const interactUserSchema = mongoose.Schema({
     likeCount: reqNum,
     likedCount: reqNum,
     totalPosts: reqNum,
-    totalReplies: reqNum
+    totalReplies: reqNum,
+    privacySetting: privacySettingSchema
 });
 
 module.exports = mongoose.model('interact-users', interactUserSchema)

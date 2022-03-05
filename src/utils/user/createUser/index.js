@@ -5,6 +5,7 @@ const interactUserAccessSchema = require('../../../schemas/interactUserAccessSch
 const { SCHEMA_VERSIONS } = require('../../../../config.json')
 const { checktime } = require('../../checktime')
 const { searchError } = require('../../searchError/')
+const { createAccessToken } = require('../createAccessToken')
 
 async function newUUID(usage, userID) {
     const newID = uuidv4()
@@ -27,19 +28,12 @@ async function doubleCheckNewID(newID) {
     else return newID
 }
 
-async function doubleCheckNewAccessToken(newAccessToken, userID) {
-    result = await interactUserPrivSchema.findOne({ _id: userID})
-    if (result) return newUUID("accessToken", userID)
-    else return newAccessToken
-}
-
 async function newUserIndex(newUserDataForEntry) {
-    var { username, displayName, password, description, pronouns, statusTitle } = newUserDataForEntry
+    var { username, displayName, password, description, pronouns, statusTitle, devToken, appToken } = newUserDataForEntry
 
     const userID = await newUUID("userID")
     const userToken = await newUUID("userToken")
-    const accessToken = await newUUID("accessToken", userID)
-    
+
     const currentTime = checktime()
 
     await interactUserPrivSchema.findOneAndUpdate({
@@ -52,24 +46,8 @@ async function newUserIndex(newUserDataForEntry) {
     }, {
         upsert: true
     })
-    
-    await interactUserAccessSchema.findOneAndUpdate({
-        _id: accessToken
-    }, { 
-        userToken,
-        userID,
-        appToken: 'interact-novaproductions-main'
-    }, {
-        upsert: true
-    })
-    /*await interactUserPrivSchema.findOneAndUpdate({
-        _id: userID
-    }, { 
-        $push : { accessTokens: accessToken } 
-    }, {
-        // new: true,
-        upsert: true
-    })*/
+
+    await createAccessToken(userID, userToken, appToken)
     
     if (!description) description = `${username} is new to Interact, make sure to say hello!`
 

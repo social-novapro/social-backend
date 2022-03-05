@@ -1,0 +1,39 @@
+const router = require('express').Router()
+const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
+const interactUserAccessSchema = require('../../../../schemas/interactUserAccessSchema');
+const interactUserSchema = require('../../../../schemas/interactUserSchema')
+const { searchError } = require('../../../../utils/searchError')
+const { checkDevTokens } = require('../../../../utils/checkDevTokens')
+const { createAccessToken } = require('../../../../utils/user/createAccessToken')
+
+router.get('/', async (req, res) => {
+    const { devtoken, apptoken, username, password } = req.headers
+
+    const tokenData = await checkDevTokens(devtoken, apptoken)
+    if (tokenData.authorized === false) return res.status(401).send(tokenData)
+
+    if (!username) return res.status(403).send(searchError("G001"));
+    if (!password) return res.status(403).send(searchError("G002"));
+
+    const foundUsername = await interactUserSchema.findOne({username})
+    if (!foundUsername) return res.status(403).send(searchError("G003"));
+    
+    const foundPrivUser = await interactUserPrivSchema.findOne({_id: foundUsername._id})
+    if (!foundPrivUser) return res.status(403).send(searchError("G004"));
+
+    if (foundPrivUser.password != password) return res.status(403).send(searchError("G005"));
+
+    const accessTokenFound = await createAccessToken(foundPrivUser._id, foundPrivUser.userToken, apptoken)
+
+    const sendData = {
+        "login" : true,
+        "publicData" : foundUsername,
+        "accessToken" : accessTokenFound._id,
+        "userToken" : accessTokenFound.userToken,
+        "userID" : accessTokenFound.userID,
+    }
+
+    res.status(200).send(sendData);
+})
+
+module.exports = router;
