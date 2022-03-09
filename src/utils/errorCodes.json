@@ -36,6 +36,10 @@
                     "msg" : "Live chat error."
                 },
                 {
+                    "code" : "I",
+                    "msg" : "Legacy routing error."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -71,15 +75,15 @@
                 },
                 {
                     "code" : "B002",
-                    "msg" : "Both userToken, and accessToken that was provided was incorrect."
+                    "msg" : "The userToken provided did not match the provided userID's userToken, and the accessToken provided did not match the accessToken for the userToken and appToken."
                 },
                 {
                     "code" : "B003",
-                    "msg" : "The userToken provided was incorrect for the provided user."
+                    "msg" : "The userToken provided did not match the provided userID."
                 },
                 {
                     "code" : "B004",
-                    "msg" : "The user accessToken provided was incorrect for the provided user."
+                    "msg" : "The accessToken provided did not match the accessToken for the provided userToken, appToken, and userID."
                 },
                 {
                     "code" : "B005",
@@ -216,6 +220,10 @@
                 {
                     "code" : "H002",
                     "msg" : "You tried to send an invalid post type."
+                },
+                {
+                    "code" : "I001",
+                    "msg" : "Please use /v1/auth/userLogin instead of /v1Priv/get/get/userLogin."
                 },
                 {
                     "code" : "Z001",

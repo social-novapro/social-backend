@@ -1,6 +1,5 @@
 const router = require('express').Router()
 const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
-const interactUserAccessSchema = require('../../../../schemas/interactUserAccessSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
 const { searchError } = require('../../../../utils/searchError')
 const { checkDevTokens } = require('../../../../utils/checkDevTokens')

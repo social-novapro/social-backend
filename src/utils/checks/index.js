@@ -22,6 +22,10 @@ async function checkUsername(username) {
     else return { "allowed" : true}
 }
 
+async function checkPassword(password) {
+
+}
+
 function checkDisplayname() {
 
 }

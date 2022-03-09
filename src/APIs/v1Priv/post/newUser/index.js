@@ -1,9 +1,11 @@
 const router = require('express').Router()
 const { newUserIndex } = require('../../../../utils/user/createUser')
 const interactUserSchema = require('../../../../schemas/interactUserSchema')
+const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema')
 const { searchError } = require('../../../../utils/searchError/')
-const { checkUsername } = require('../../../../utils/checks/')
+const { checkUsername, checkPassword } = require('../../../../utils/checks/')
 const { checkDevTokens } = require('../../../../utils/checkDevTokens')
+const { createAccessToken } = require('../../../../utils/user/createAccessToken/')
 
 router.post('/', async (req, res) => {
     const { devtoken, apptoken} = req.headers
@@ -21,13 +23,33 @@ router.post('/', async (req, res) => {
     const checkedUser = await checkUsername(username)
     if (checkedUser.error) return res.status(400).send(checkedUser.error)
     
+    const checkedPassword = await checkPassword(password)
+    if (checkedPassword.error) return res.status(400).send(checkedPassword.error)
+
     const newUserDataForEntry = { username, displayName, password, description, pronouns, statusTitle, devToken: devtoken, appToken: apptoken }   
     const newUserID = await newUserIndex(newUserDataForEntry)
 
     if (newUserID.error) return res.status("400").send(newUserID.error)
-    const newUserData = await interactUserSchema.findOne({_id: newUserID})
 
-    res.status(200).send(newUserData);
+    const foundUsername = await interactUserSchema.findOne({username})
+    if (!foundUsername) return res.status(403).send(searchError("G003"));
+    
+    const foundPrivUser = await interactUserPrivSchema.findOne({_id: foundUsername._id})
+    if (!foundPrivUser) return res.status(403).send(searchError("G004"));
+
+    if (foundPrivUser.password != password) return res.status(403).send(searchError("G005"));
+
+    const accessTokenFound = await createAccessToken(foundPrivUser._id, foundPrivUser.userToken, apptoken)
+
+    const sendData = {
+        "login" : true,
+        "publicData" : foundUsername,
+        "accessToken" : accessTokenFound._id,
+        "userToken" : accessTokenFound.userToken,
+        "userID" : accessTokenFound.userID,
+    }
+
+    res.status(200).send(sendData);
 })
 
 module.exports = router;
