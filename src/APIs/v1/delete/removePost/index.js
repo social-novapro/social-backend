@@ -1,25 +1,20 @@
-const router = require('express').Router()
-const interactUserSchema = require('../../../../schemas/interactUserSchema')
-const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema')
-const interactPostSchema = require('../../../../schemas/interactPostSchema')
-const {searchError} = require('../../../../utils/searchError')
+const router = require('express').Router();
+const interactPostSchema = require('../../../../schemas/interactPostSchema');
+const {searchError} = require('../../../../utils/searchError');
+const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.delete('/:postID', async (req, res) => {
-    const { postID } = req.params
-    const { userToken, userID} = req.headers
+    const tokenData = await checkRequestTokens(req);
+    if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    if (!userID && !userToken) return res.status(400).send("no userid and userToken")//searchError("E003"))
-    else if (!userID) return res.status(400).send("no userid")//searchError("E003"))
-    else if (!userToken) return res.status(400).send("no userToken provided.")//searchError("E002"))
+    const { postID } = req.params;
+    const { userid } = req.headers;
+    
+   if (!postID) return res.status(400).send("no postid");//searchError("E003"))
 
-    const userIDCheck = await interactUserSchema.findOne({ _id: userID})
-    if (!userIDCheck) return res.status(403).send("no user found")//searchError("E004"))
-
-    const userTokenCheck = await interactUserPrivSchema.findOne({_id: userID}) 
-    if (userTokenCheck.userToken != userToken) return res.status(403).send("that user token is incorrect.")
-
-    const PostData = await interactPostSchema.findOneAndDelete({_id: postID})
-    if (!PostData) return res.status(404).send(searchError("D001"))
+    const PostData = await interactPostSchema.findOneAndDelete({_id: postID});
+    if (!PostData) return res.status(404).send(searchError("D001"));
+    else if (PostData.userID != userid) return res.status(403).send("you are not the owner of this post");
     else return res.status(200).send("The post has been deleted.");
 })
 

@@ -1,13 +1,17 @@
-const router = require('express').Router()
-const interactPostSchema = require('../../../../schemas/interactPostSchema')
-const {searchError} = require('../../../../utils/searchError')
+const router = require('express').Router();
+const interactPostSchema = require('../../../../schemas/interactPostSchema');
+const {searchError} = require('../../../../utils/searchError');
+const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.get('/:postID', async (req, res) => {
-    const { postID } = req.params
-    
-    const PostData = await interactPostSchema.findOne({_id: postID})
+    const tokenData = await checkRequestTokens(req);
+    if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    if (!PostData) return res.status(404).send(searchError("D001"))
+    const { postID } = req.params;
+    
+    const PostData = await interactPostSchema.findOne({_id: postID});
+
+    if (!PostData) return res.status(404).send(searchError("D001"));
     else return res.status(200).send(PostData);
 })
 

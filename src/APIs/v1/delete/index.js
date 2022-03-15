@@ -1,6 +1,6 @@
-const router = require('express').Router()
-const removePost = require('./removePost')
+const router = require('express').Router();
+const removePost = require('./removePost');
 
-router.use('/removePost', removePost)
+router.use('/removePost', removePost);
 
 module.exports = router;

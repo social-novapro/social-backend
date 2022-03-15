@@ -1,10 +1,10 @@
-const {v4 : uuidv4} = require('uuid')
-const liveChatSchema = require('../../schemas/liveChatSchema')
-const {SCHEMA_VERSIONS} = require('../../../config.json')
+const {v4 : uuidv4} = require('uuid');
+const liveChatSchema = require('../../schemas/liveChatSchema');
+const {SCHEMA_VERSIONS} = require('../../../config.json');
 
 async function saveChat(chatData) {
-    const { _id, apiVersion, type, user  } = chatData
-    const newID = _id
+    const { _id, apiVersion, type, user  } = chatData;
+    const newID = _id;
 
   //  await liveChatSchema.create({ _id: chatData._id, 
     switch (type) {
@@ -20,7 +20,7 @@ async function saveChat(chatData) {
                 pings: chatData.pings
             }, {
                 upsert: true
-            }) 
+            });
             break;
         case 02: // post message
             await liveChatSchema.findOneAndUpdate({
@@ -34,10 +34,10 @@ async function saveChat(chatData) {
                 message: chatData.message
             }, {
                 upsert: true
-            }) 
+            });
             break;
         case 03: // delete message
-            await liveChatSchema.findOneAndDelete({ _id })
+            await liveChatSchema.findOneAndDelete({ _id });
             break;
         case 04: // edit message
             
@@ -57,7 +57,7 @@ async function saveChat(chatData) {
                 userJoin: chatData.userJoin
             }, {
                 upsert: true
-            }) 
+            });
             break;
         case 07:
             await liveChatSchema.findOneAndUpdate({
@@ -71,20 +71,19 @@ async function saveChat(chatData) {
                 userLeave: chatData.userLeave
             }, {
                 upsert: true
-            }) 
+            });
             break;
         default:
             break;
-    }
-    
-}
+    };
+};
 
 async function sendAllChatData() {
-    const all = await liveChatSchema.find()
-    const send = all.slice((all.length - 5), all.length)
+    const all = await liveChatSchema.find();
+    const send = all.slice((all.length - 5), all.length);
 
   //  console.log(all.slice(- 5))
-    return all.slice(- 5)
-}
+    return all.slice(- 5);
+};
 
-module.exports = { saveChat, sendAllChatData }
+module.exports = { saveChat, sendAllChatData };

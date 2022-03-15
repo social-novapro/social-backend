@@ -1,5 +1,5 @@
-const router = require('express').Router()
-const createPost = require('./createPost')
+const router = require('express').Router();
+const createPost = require('./createPost');
 
 router.use('/createPost', createPost);
 

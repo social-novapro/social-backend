@@ -1,28 +1,32 @@
-const router = require('express').Router()
-const interactPostSchema = require('../../../../schemas/interactPostSchema')
-const { newPostIndex } = require('../../../../utils/post/createPost')
-const interactUserSchema = require('../../../../schemas/interactUserSchema')
-const { searchError } = require('../../../../utils/searchError')
-const { checkPostContent } = require('../../../../utils/checks')
+const router = require('express').Router();
+const interactPostSchema = require('../../../../schemas/interactPostSchema');
+const { newPostIndex } = require('../../../../utils/post/createPost');
+const interactUserSchema = require('../../../../schemas/interactUserSchema');
+const { searchError } = require('../../../../utils/searchError');
+const { checkPostContent } = require('../../../../utils/checks');
+const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.post('/', async (req, res) => {
-    const { content, userID } = req.body 
+    const tokenData = await checkRequestTokens(req);
+    if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    if (!content && !userID) return res.status(400).send(searchError("E001"))
-    else if (!content) return res.status(400).send(searchError("E002"))
-    else if (!userID) return res.status(400).send(searchError("E003"))
+    const { content, userID } = req.body;
 
-    const checkedContent = await checkPostContent(content)
-    if (checkedContent) return res.status(400).send(checkedContent.error)
+    if (!content && !userID) return res.status(400).send(searchError("E001"));
+    else if (!content) return res.status(400).send(searchError("E002"));
+    else if (!userID) return res.status(400).send(searchError("E003"));
 
-    const userIDCheck = await interactUserSchema.findOne({ _id: userID})
+    const checkedContent = await checkPostContent(content);
+    if (checkedContent) return res.status(400).send(checkedContent.error);
+
+    const userIDCheck = await interactUserSchema.findOne({ _id: userID});
   
-    if (!userIDCheck) return res.status(403).send(searchError("E004"))
+    if (!userIDCheck) return res.status(403).send(searchError("E004"));
     
-    const postID = await newPostIndex(userID, content)
+    const postID = await newPostIndex(userID, content);
 
-    const PostData = await interactPostSchema.findOne({_id: postID})
-    if (!PostData) return res.status(404).send(searchError("D002"))
+    const PostData = await interactPostSchema.findOne({_id: postID});
+    if (!PostData) return res.status(404).send(searchError("D002"));
     else return res.status(200).send(PostData);
 })
 

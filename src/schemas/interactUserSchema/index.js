@@ -1,20 +1,20 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const reqString = {
     type: String,
     required: true
-}
+};
 const reqNum = {
     type: Number,
     required: true
-}
+};
 
 // type 06
 const privacySettingSchema = mongoose.Schema({
     discoverSetting: reqNum,
     postVisiblityDefault: reqNum,
     postReplyDefault: reqNum,
-})
+});
 
 // 1: public, 2: friends of friends, 3: private
 
@@ -37,4 +37,4 @@ const interactUserSchema = mongoose.Schema({
     privacySetting: privacySettingSchema
 });
 
-module.exports = mongoose.model('interact-users', interactUserSchema)
+module.exports = mongoose.model('interact-users', interactUserSchema);

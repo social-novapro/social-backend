@@ -1,17 +1,17 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const reqString = {
     type: String,
     required: true
-}
+};
 const reqNum = {
     type: Number,
     required: true
-}
+};
 const reqBool = {
     type: Boolean,
     required: true
-}
+};
 
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
@@ -25,4 +25,4 @@ const interactPostSchema = mongoose.Schema({
     editedAmount: reqNum
 });
 
-module.exports = mongoose.model('interact-post', interactPostSchema)
+module.exports = mongoose.model('interact-post', interactPostSchema);

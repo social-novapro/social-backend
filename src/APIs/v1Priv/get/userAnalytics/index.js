@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const interactUserAnalyticSchema = require('../../../../schemas/analytics/interactUserAnalyticSchema');
+const { checkRequestTokens } = require('./../../../../utils/checkRequestTokens');
+
+router.get('/:userID', async (req, res) => {
+    const tokenData = await checkRequestTokens(req);
+    if (tokenData.authorized == false) return res.status(401).send(tokenData);
+
+    const { userID } = req.params;
+    const userAnalytics = await interactUserAnalyticSchema.find({ _id: userID});
+
+    return res.status(200).send(userAnalytics);
+})
+
+module.exports = router;

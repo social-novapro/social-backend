@@ -3,6 +3,6 @@ function checktime() {
     const timeMS = d.getTime();
 
     return timeMS;
-}
+};
 
-module.exports = { checktime }
+module.exports = { checktime };

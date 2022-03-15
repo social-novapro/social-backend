@@ -1,17 +1,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const WebSocket = require('ws')
-const http = require('http')
-const cors = require('cors')
-const { graphqlHTTP } = require('express-graphql')
-const config = require('../config.json')
+const WebSocket = require('ws');
+const http = require('http');
+const cors = require('cors');
+const { graphqlHTTP } = require('express-graphql');
+const config = require('../config.json');
 const PORT = config.PORT;
 const app = express();
-const RootSchema = require('./graphql')
+const RootSchema = require('./graphql');
 const APIv1 = require('./APIs/v1');
-const PrivAPIv1 = require('./APIs/v1Priv')
-const {v4 : uuidv4} = require('uuid')
-const {searchError} = require('./utils/searchError')
+const PrivAPIv1 = require('./APIs/v1Priv');
+const {v4 : uuidv4} = require('uuid');
+const {searchError} = require('./utils/searchError');
 
 /* collect everything within a index
 const interactPostSchema = require('./database/posts-schema')
@@ -23,7 +23,7 @@ async function test() {
 test()*/
 
 app.use(express.json());
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({extended: false}));
 
 // mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
 // mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
@@ -42,12 +42,12 @@ app.use(cors({
         'http://127.0.0.1:5500'
     ],
     credentials: true
-}))
+}));
 
 app.use('/graphql', graphqlHTTP({
     graphiql: true,
     schema: RootSchema,
-}))
+}));
 
 /*
 app.get('/', (req, res) => {
@@ -58,13 +58,13 @@ app.get('/', (req, res) => {
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
-})
+});
 app.get('/apiDocs', (req, res) => {
     res.sendFile(__dirname + '/APIs/apidocs.json');
-})
+});
 app.get('/apiDocsJS', (req, res) => {
     res.sendFile(__dirname + '/APIs/apidocs.js');
-})
+});
 app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
 
@@ -72,9 +72,9 @@ app.use('/v1Priv', PrivAPIv1);
 // app.listen(PORT, () => console.log(`API server started on port ${PORT}`))
 function getTime() {
     const d = new Date();
-    const currentTime = d.getTime()
-    return currentTime
-}
+    const currentTime = d.getTime();
+    return currentTime;
+};
 
 // WEBSOCKET CODE
 const server = http.createServer(app);
@@ -82,7 +82,7 @@ const server = http.createServer(app);
 // app.use('/ws',WebSocketRoute 
 const wss = new WebSocket.Server({ server });
 
-var totalUsers = 0
+var totalUsers = 0;
 
 const wsUtils = require('./WS/v1/utils');
 const interactUserSchema = require('./schemas/interactUserSchema');
@@ -90,59 +90,59 @@ const liveChatSchema = require('./schemas/liveChatSchema');
 
 function sendEveryone(sendMessage) {
     wss.clients.forEach(client => {
-        client.send(JSON.stringify(sendMessage))
-    })
-}
+        client.send(JSON.stringify(sendMessage));
+    });
+};
 
 wss.on('connection', async (ws, req) => {
-    totalUsers = totalUsers + 1
+    totalUsers = totalUsers + 1;
 
    // const paramsData = checkURLParams(req.url)
-    const userID = checkUserID()
+    const userID = checkUserID();
 
     function checkURLParams(url) {
-        const params = new URLSearchParams(url)
-        const userID = params.has('/?userID')
+        const params = new URLSearchParams(url);
+        const userID = params.has('/?userID');
     
         if (userID) {
-            const userIDSearch = params.get('/?userID')
-            return {"param":true, paramTypes: [ {"paramName":"userID", "userID":userIDSearch}]}
-        }
+            const userIDSearch = params.get('/?userID');
+            return {"param":true, paramTypes: [ {"paramName":"userID", "userID":userIDSearch}]};
+        };
     
-        return {"param":false}
-    }
+        return {"param":false};
+    };
 
     function checkUserID() {
-        const paramsData = checkURLParams(req.url)
-        var userIDFound
+        const paramsData = checkURLParams(req.url);
+        var userIDFound;
 
         if (paramsData.param) {
             for (const currentParam of paramsData.paramTypes) {
-                userIDFound = currentParam.userID
-                if (currentParam.userID) return userIDFound
-            }
-        }
-        return defaultUserID
-    }
+                userIDFound = currentParam.userID;
+                if (currentParam.userID) return userIDFound;
+            };
+        };
+        return defaultUserID;
+    };
 
    // console.log(w/s.isAlive)
-    console.log(totalUsers)
-    console.log("user has connected")
+    console.log(totalUsers);
+    console.log("user has connected");
 
-    const data = await wsUtils.sendAllChatData()
+    const data = await wsUtils.sendAllChatData();
 
     for (const chat of data ) {
-        ws.send(JSON.stringify(chat))
-    }
+        ws.send(JSON.stringify(chat));
+    };
     
-    const newJoinID = uuidv4()
+    const newJoinID = uuidv4();
 
-    const userData = await interactUserSchema.findOne({ _id: userID }) 
+    const userData = await interactUserSchema.findOne({ _id: userID }) ;
     const user = {
         _id: userID,
         username: userData.username,
         displayName: userData.displayName,
-    }
+    };
 
     var messageSend = {
         _id: newJoinID,
@@ -155,10 +155,10 @@ wss.on('connection', async (ws, req) => {
             content: `${user.displayName} has joined the chat`,
             timeStamp: getTime()
         }
-    }
+    };
 
     wss.clients.forEach(client => {
-        client.send(JSON.stringify(messageSend))
+        client.send(JSON.stringify(messageSend));
     });
 
     ws.isAlive = true;
@@ -168,8 +168,8 @@ wss.on('connection', async (ws, req) => {
     });
 
     ws.on('close', () => {
-        totalUsers = totalUsers -  1
-        const newID = uuidv4()
+        totalUsers = totalUsers -  1;
+        const newID = uuidv4();
 
         var messageSend = {
             _id: newID,
@@ -182,19 +182,19 @@ wss.on('connection', async (ws, req) => {
                 content: `${user.displayName} has disconnected`,
                 timeStamp: getTime()
             }
-        }
+        };
         
         wss.clients.forEach(client => {
-            client.send(JSON.stringify(messageSend))
+            client.send(JSON.stringify(messageSend));
         });
-    })
-    
+    });
+
     //connection is up, let's add a simple simple event
     ws.on('message', async (message) => {
-        const data = JSON.parse(message)
-        const newID = uuidv4()
+        const data = JSON.parse(message);
+        const newID = uuidv4();
 
-        var messageSend
+        var messageSend;
 
         switch (data.type) {
             case 2:
@@ -209,24 +209,20 @@ wss.on('connection', async (ws, req) => {
                         content: data.message.content,
                         timeStamp: getTime()
                     }
-                }
+                };
 
-                wsUtils.saveChat(messageSend)
+                wsUtils.saveChat(messageSend);
                 break;
             case 3:
-                const messageDeleteCheck = await liveChatSchema.findOne({ _id: data.messageToDelete })
+                const messageDeleteCheck = await liveChatSchema.findOne({ _id: data.messageToDelete });
 
                 if (!messageDeleteCheck) {
                     return ws.send(JSON.stringify(`no message`));
-                }
-                else if (!messageDeleteCheck.user) {
+                } else if (!messageDeleteCheck.user) { 
                     return ws.send(JSON.stringify(`no user`));
-
-                }
-                else if (messageDeleteCheck.user._id != userID) {
+                } else if (messageDeleteCheck.user._id != userID) {
                     return ws.send(JSON.stringify(searchError("H001")));
-                }
-                else if (messageDeleteCheck.user._id == userID) {
+                } else if (messageDeleteCheck.user._id == userID) {
                     messageSend = {
                         _id: data.messageToDelete,
                         type: 03,
@@ -239,12 +235,12 @@ wss.on('connection', async (ws, req) => {
                     }
 
                     wsUtils.saveChat(messageSend)
-                }
+                };
 
                 break;
             default:
                 break;
-        }
+        };
 
         if (!messageSend) return ws.send(JSON.stringify(searchError("H002")));
 

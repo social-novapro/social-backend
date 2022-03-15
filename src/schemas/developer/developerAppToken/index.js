@@ -1,14 +1,14 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const reqString = {
     type: String,
     required: true
-}
+};
 
 const reqNum = {
     type: Number,
     required: true
-}
+};
 
 const developerAppToken = mongoose.Schema({
    _id: reqString,
@@ -18,4 +18,4 @@ const developerAppToken = mongoose.Schema({
    createdTimestamp: reqString,
 });
 
-module.exports = mongoose.model('developer-app-token', developerAppToken)
+module.exports = mongoose.model('developer-app-token', developerAppToken);

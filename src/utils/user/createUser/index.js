@@ -1,40 +1,40 @@
-const {v4 : uuidv4} = require('uuid')
-const interactUserSchema = require('../../../schemas/interactUserSchema')
-const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema')
-const interactUserAccessSchema = require('../../../schemas/interactUserAccessSchema')
-const { SCHEMA_VERSIONS } = require('../../../../config.json')
-const { checktime } = require('../../checktime')
-const { searchError } = require('../../searchError/')
-const { createAccessToken } = require('../createAccessToken')
+const {v4 : uuidv4} = require('uuid');
+const interactUserSchema = require('../../../schemas/interactUserSchema');
+const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
+const interactUserAccessSchema = require('../../../schemas/interactUserAccessSchema');
+const { SCHEMA_VERSIONS } = require('../../../../config.json');
+const { checktime } = require('../../checktime');
+const { searchError } = require('../../searchError/');
+const { createAccessToken } = require('../createAccessToken');
 
 async function newUUID(usage, userID) {
-    const newID = uuidv4()
+    const newID = uuidv4();
     switch (usage) {
         case "userID":
-            return doubleCheckNewID(newID)
+            return doubleCheckNewID(newID);
         case "userToken":
-            return doubleCheckNewID(newID)
+            return doubleCheckNewID(newID);
         case "accessToken":
-            return doubleCheckNewAccessToken(newID, userID)
+            return doubleCheckNewAccessToken(newID, userID);
         default:
-            console.log("Default")
-            break
-    }
-}
+            console.log("Default");
+            break;
+    };
+};
 
 async function doubleCheckNewID(newID) {
-    result = await interactUserSchema.findOne({ _id: newID })
-    if (result) return newUUID("userID")
-    else return newID
-}
+    result = await interactUserSchema.findOne({ _id: newID });
+    if (result) return newUUID("userID");
+    else return newID;
+};
 
 async function newUserIndex(newUserDataForEntry) {
-    var { username, displayName, password, description, pronouns, statusTitle, devToken, appToken } = newUserDataForEntry
+    var { username, displayName, password, description, pronouns, statusTitle, devToken, appToken } = newUserDataForEntry;
 
-    const userID = await newUUID("userID")
-    const userToken = await newUUID("userToken")
+    const userID = await newUUID("userID");
+    const userToken = await newUUID("userToken");
 
-    const currentTime = checktime()
+    const currentTime = checktime();
 
     await interactUserPrivSchema.findOneAndUpdate({
         _id: userID
@@ -45,11 +45,11 @@ async function newUserIndex(newUserDataForEntry) {
         password
     }, {
         upsert: true
-    })
+    });
 
-    await createAccessToken(userID, userToken, appToken)
+    await createAccessToken(userID, userToken, appToken);
     
-    if (!description) description = `${username} is new to Interact, make sure to say hello!`
+    if (!description) description = `${username} is new to Interact, make sure to say hello!`;
 
     await interactUserSchema.findOneAndUpdate({
         _id: userID
@@ -72,9 +72,9 @@ async function newUserIndex(newUserDataForEntry) {
         totalReplies: 0
     }, {
         upsert: true
-    })
+    });
 
-    return userID
-}
+    return userID;
+};
 
-module.exports = { newUserIndex } 
+module.exports = { newUserIndex };

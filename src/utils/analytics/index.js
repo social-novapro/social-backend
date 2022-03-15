@@ -1,0 +1,21 @@
+const interactUserAnalyticSchema = require('../../schemas/analytics/interactUserAnalyticSchema/')
+const { v4: uuidv4 } = require('uuid')
+
+function getTime() {
+    const d = new Date();
+    const currentTime = d.getTime()
+    return currentTime
+}
+
+async function analytics(req) {
+    console.log(req.baseUrl)
+    console.log(req.originalUrl)
+    console.log(req.headers)
+    
+    await interactUserAnalyticSchema.findOneAndUpdate(
+        { _id: req.headers.userid }, 
+        { $push : { "userConnections" : { _id: uuidv4(), timestamp: getTime(), api_urlbase: req.baseUrl, api_url: req.originalUrl  } } }
+    )
+}
+
+module.exports = { analytics };

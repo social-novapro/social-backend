@@ -1,9 +1,9 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const reqString = {
     type: String,
     required: true
-}
+};
 
 const interactUserAccessSchema = mongoose.Schema({
     _id: reqString, 
@@ -12,4 +12,4 @@ const interactUserAccessSchema = mongoose.Schema({
     appToken: reqString
 });
 
-module.exports = mongoose.model('interact-user-access', interactUserAccessSchema)
+module.exports = mongoose.model('interact-user-access', interactUserAccessSchema);

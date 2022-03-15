@@ -1,13 +1,13 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const reqString = {
     type: String,
     required: true
-}
+};
 const nonreqString = {
     type: String,
     required: false
-}
+};
 
 const interactUserPrivSchema = mongoose.Schema({
     _id: reqString,
@@ -17,4 +17,4 @@ const interactUserPrivSchema = mongoose.Schema({
     devToken: nonreqString
 });
 
-module.exports = mongoose.model('interact-user-priv', interactUserPrivSchema)
+module.exports = mongoose.model('interact-user-priv', interactUserPrivSchema);

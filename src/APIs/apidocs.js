@@ -1,9 +1,9 @@
 fetch('/apiDocs').then(response => response.json()).then(data => {
-    buildView(data)
-})
+    buildView(data);
+});
 
 function buildView(data) {
-    const v1Api = data.v1
+    const v1Api = data.v1;
     document.getElementById("populate").innerHTML = `
         <p>Current API Version: ${data.currentAPI}</p>
         <div id="apiVersions"> 
@@ -16,18 +16,17 @@ function buildView(data) {
                 <p>${getMethods(v1Api.GET.BaseMethodURL.replace('(BASEURL)', v1Api.BASEURL), v1Api.GET.methods)}<p>
             </div>
         </div>
-
-    `
-}
+    `;
+};
 
 function getMethods(BaseURL, methods) {
-    var dataParsed =''
+    var dataParsed ='';
 
     for (const method of methods) {
-        const name = method.n 
-        const data = method.d
-        const url = method.u.replace('(BaseMethodURL)', BaseURL)
-        const headers = method.h.join(', ')
+        const name = method.n ;
+        const data = method.d;
+        const url = method.u.replace('(BaseMethodURL)', BaseURL);
+        const headers = method.h.join(', ');
 
         dataParsed += `
             <div>
@@ -36,8 +35,8 @@ function getMethods(BaseURL, methods) {
                 <p>URL: ${url}</p>
                 <p>Headers: ${headers}</p>
             </div>
-        `
-    }
+        `;
+    };
 
-    return dataParsed
-}
+    return dataParsed;
+};

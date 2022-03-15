@@ -1,84 +1,67 @@
-const router = require('express').Router()
-const interactPostSchema = require('../../../../schemas/interactPostSchema')
-const interactUserSchema = require('../../../../schemas/interactUserSchema')
+const router = require('express').Router();
+const interactPostSchema = require('../../../../schemas/interactPostSchema');
+const interactUserSchema = require('../../../../schemas/interactUserSchema');
+const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.get('/', async (req, res) => {
-    const { lookupkey } = req.headers
-    
-    const UserData = await interactUserSchema.find()
-    const PostData = await interactPostSchema.find()
+    const tokenData = await checkRequestTokens(req);
+    if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const lookupKeylower = lookupkey.toLowerCase()
-    var usersFound = []
+    const { lookupkey } = req.headers;
+    
+    const UserData = await interactUserSchema.find();
+    const PostData = await interactPostSchema.find();
+
+    const lookupKeylower = lookupkey.toLowerCase();
+    var usersFound = [];
 
     for (user of UserData) {
-        var username
-        var displayname
+        var username;
+        var displayname;
 
-        if (lookupkey == user._id) {
-            usersFound.push(user)
-        }
+        if (lookupkey == user._id) usersFound.push(user);
         else if (user.username && user.displayName) {
-            username = user.username.toLowerCase()
-            displayname = user.displayName.toLowerCase()
+            username = user.username.toLowerCase();
+            displayname = user.displayName.toLowerCase();
 
-            if ( 
-                username.startsWith(lookupKeylower) && 
-                displayname.startsWith(lookupKeylower) 
-            ) {
-                usersFound.push(user)
-            }
-            else if (username.startsWith(lookupKeylower)) {
-                usersFound.push(user)
-            }
-            else if (displayname.startsWith(lookupKeylower)) {
-                usersFound.push(user)
-            }
-        }
-        else if (user.username) {
-            username = user.username.toLowerCase()
+            if (username.startsWith(lookupKeylower) && displayname.startsWith(lookupKeylower)) usersFound.push(user);
+            else if (username.startsWith(lookupKeylower)) usersFound.push(user);
+            else if (displayname.startsWith(lookupKeylower)) usersFound.push(user);
+        } else if (user.username) {
+            username = user.username.toLowerCase();
+            if (username.startsWith(lookupKeylower)) usersFound.push(user);
+        } else if (user.displayName) {
+            displayname = user.username.toLowerCase();
 
-            if (username.startsWith(lookupKeylower)) {
-                usersFound.push(user)
-            }
-        }
-        else if (user.displayName) {
-            displayname = user.username.toLowerCase()
+            if (displayname.startsWith(lookupKeylower)) usersFound.push(user);
+        };
+    };
 
-            if (displayname.startsWith(lookupKeylower)) {
-                usersFound.push(user)
-            }
-        }
-    }
-
-    var postsFound = []
+    var postsFound = [];
 
     for (post of PostData) {
-        var username
-        var displayname
+        var username;
+        var displayname;
 
         if (post.content) {
-            content = post.content.toLowerCase()
+            content = post.content.toLowerCase();
 
             if (content.toLowerCase().startsWith(lookupKeylower) || lookupkey == post._id) {
-                var type
-                var postData = post
-                var userData
+                var type;
+                var postData = post;
+                var userData;
 
                 if (post.userID) {
-                    type = { "type" : "post", "user" : "included" }
-                    userData = await interactUserSchema.findOne({ _id: post.userID})
-                }
-                else {
-                    type = { "type" : "post" }
-                }
+                    type = { "type" : "post", "user" : "included" };
+                    userData = await interactUserSchema.findOne({ _id: post.userID});
+                } else type = { "type" : "post" };
 
-                var sendPost = { type, postData, userData}
+                var sendPost = { type, postData, userData};
 
-                postsFound.push(sendPost)
-            }
-        }
-    }
+                postsFound.push(sendPost);
+            };
+        };
+    };
 
     /* OLD SEARCHING FUNCTION
     const lookupArgs = lookupkey.toLowerCase().split("")
@@ -123,10 +106,9 @@ router.get('/', async (req, res) => {
     var found = {
         usersFound,
         postsFound
-    }
+    };
 
     return res.status(200).send(found);
 })
 
-module.exports = router
-
+module.exports = router;
