@@ -7,7 +7,7 @@ router.get('/:userID', async (req, res) => {
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
     const { userID } = req.params;
-    const userAnalytics = await interactUserAnalyticSchema.find({ _id: userID});
+    const userAnalytics = await interactUserAnalyticSchema.findOne({ _id: userID});
 
     return res.status(200).send(userAnalytics);
 })

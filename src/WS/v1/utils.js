@@ -8,7 +8,7 @@ async function saveChat(chatData) {
 
   //  await liveChatSchema.create({ _id: chatData._id, 
     switch (type) {
-        case 01:
+        case 01: // pings
             await liveChatSchema.findOneAndUpdate({
                 _id: newID
             }, {        
@@ -25,8 +25,8 @@ async function saveChat(chatData) {
         case 02: // post message
             await liveChatSchema.findOneAndUpdate({
                 _id,
-            }, {        
-                _id: newID,
+            }, {      
+                _id: newID,  
                 __v: SCHEMA_VERSIONS.liveChatSchema,
                 type,
                 user,
@@ -39,13 +39,29 @@ async function saveChat(chatData) {
         case 03: // delete message
             await liveChatSchema.findOneAndDelete({ _id });
             break;
-        case 04: // edit message
+        case 04: // reactions
             
             break;
-        case 05:
-            
+        case 05: // edit message
+            console.log(chatData)
+            await liveChatSchema.findOneAndUpdate({
+                _id,
+            }, {     
+             //   _id,   
+                __v: SCHEMA_VERSIONS.liveChatSchema,
+                user,
+                apiVersion,
+                message: {
+                    timeStamp: chatData.oldMessage.timeStamp,
+                    content: chatData.newMessage.content,
+                    edited: true,
+                    editedTimeStamp: chatData.newMessage.timeStamp
+                }
+            }, {
+                upsert: true
+            });
             break;
-        case 06:
+        case 06: // user jooin
             await liveChatSchema.findOneAndUpdate({
                 _id: newID
             }, {        
@@ -59,7 +75,7 @@ async function saveChat(chatData) {
                 upsert: true
             });
             break;
-        case 07:
+        case 07: // user leave
             await liveChatSchema.findOneAndUpdate({
                 _id: newID
             }, {        

@@ -26,8 +26,11 @@ const messageSchema = mongoose.Schema({
     user: reqString,
     currentUsers: reqString,
     content: reqString,
-    timeStamp: reqString
+    timeStamp: reqString,
+    edited: reqBool,
+    editedTimeStamp: reqString
 });
+
 
 // type 06
 const userJoinSchema = mongoose.Schema({

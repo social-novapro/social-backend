@@ -13,12 +13,12 @@ router.get('/:userID', async (req, res) => {
 
     const { userID } = req.params;
     
-    const UserData = await interactUserSchema.find({ _id: userID});
-    const UserPrivData = await interactUserPrivSchema.find({_id: userID});
+    const UserData = await interactUserSchema.findOne({ _id: userID});
+    const UserPrivData = await interactUserPrivSchema.findOne({_id: userID});
     const PostData = await interactPostSchema.find({ userID });
     const devTokenData = await developerToken.find({ userID });
     const devAppTokensData = await developerAppToken.find({ userID });
-    const analyticData = await interactUserAnalyticSchema.find({ _id: userID });
+    const analyticData = await interactUserAnalyticSchema.findOne({ _id: userID });
 
     const allData = {
         "userProfile" : UserData,

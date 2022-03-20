@@ -25,13 +25,61 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
+// mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
 // mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
-// mongoose.connect('mongodb://localhost:27017/Kate', {
+mongoose.connect('mongodb://localhost:27017/Kate', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
 });
+
+/*
+const developerAppToken = require('./schemas/developer/developerAppToken');
+const developerToken = require('./schemas/developer/developerToken');
+const interactUserPrivSchema = require('./schemas/interactUserPrivSchema');
+const {SCHEMA_VERSIONS} = require('../config.json');
+
+createTokens()
+
+async function createTokens() {
+    function checktime() {
+        var d = new Date();
+        const timeMS = d.getTime();
+    
+        return timeMS;
+    };
+    
+    await developerToken.findOneAndUpdate({
+        _id: "6292d8ae-8c33-4d46-a617-4ac048bd6f11"
+    }, {        
+        _id: "6292d8ae-8c33-4d46-a617-4ac048bd6f11",
+        __v: SCHEMA_VERSIONS.developerToken,
+        creationTimestamp: checktime(),
+        userID: "main",
+        premium: false,
+        APIuses: 0
+    }, {
+        upsert: true
+    });
+    
+    await interactUserPrivSchema.findOneAndUpdate({
+        _id: "main"
+    }, { devToken: "6292d8ae-8c33-4d46-a617-4ac048bd6f11" });
+    
+    await developerAppToken.findOneAndUpdate({
+        _id: "3610b8af-81c9-4fa2-80dc-2e2d0fd77421"
+    }, {        
+        _id: "3610b8af-81c9-4fa2-80dc-2e2d0fd77421",
+        __v: SCHEMA_VERSIONS.developerAppToken,
+        userID: "main",
+        devToken: "6292d8ae-8c33-4d46-a617-4ac048bd6f11",
+        APIUses: 0,
+        creationTimestamp: checktime(),
+    }, {
+        upsert: true
+    });
+}
+*/
 
 app.use(cors({
     origin: [ 
@@ -96,6 +144,11 @@ function sendEveryone(sendMessage) {
 
 wss.on('connection', async (ws, req) => {
     totalUsers = totalUsers + 1;
+    
+    var userTyping = {
+        typingSince: getTime(),
+        typing: false
+    }
 
    // const paramsData = checkURLParams(req.url)
     const userID = checkUserID();
@@ -137,7 +190,7 @@ wss.on('connection', async (ws, req) => {
     
     const newJoinID = uuidv4();
 
-    const userData = await interactUserSchema.findOne({ _id: userID }) ;
+    const userData = await interactUserSchema.findOne({ _id: userID });
     const user = {
         _id: userID,
         username: userData.username,
@@ -207,7 +260,8 @@ wss.on('connection', async (ws, req) => {
                         userID,
                         currentUsers: totalUsers,
                         content: data.message.content,
-                        timeStamp: getTime()
+                        timeStamp: getTime(),
+                        edited: false
                     }
                 };
 
@@ -236,7 +290,56 @@ wss.on('connection', async (ws, req) => {
 
                     wsUtils.saveChat(messageSend)
                 };
+            case 05: 
+                if (!data.editMessage) return ws.send("you much have a editMessage object included in your message")
+                if (!data.editMessage.postID) return ws.send("you must have a postID inside your editMessage object")
+                const messageOld = await liveChatSchema.findOne({ _id: data.editMessage.postID });
 
+                if (!messageOld) {
+                    return ws.send(JSON.stringify(`no message`));
+                } else if (!messageOld.user) {
+                    return ws.send(JSON.stringify(`no user`));
+                } else if (messageOld.user._id != userID) {
+                    return ws.send(JSON.stringify(searchError("H001")));
+                } else if (messageOld.user._id == userID) {
+
+                    const newEdit = data.editMessage.content
+                    console.log(messageOld)
+                    messageSend = {
+                        _id: messageOld._id,
+                        type: 05,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        newMessage: {
+                            postID: messageOld._id,
+                            currentUsers: totalUsers,
+                            content: newEdit,
+                            editedTimeStamp: getTime()
+                        },
+                        oldMessage: {
+                            postID: messageOld._id,
+                            content: messageOld.message.content,
+                            timeStamp: messageOld.message.timeStamp
+                        }
+                    };
+                    wsUtils.saveChat(messageSend)
+                };
+                break;
+            case 08:
+                messageSend = {
+                    type: 08,
+                    user,
+                    apiVersion: config.LATEST_API,
+                    userTyping: true
+                };
+                break;
+            case 09:
+                messageSend = {
+                    type: 09,
+                    user,
+                    apiVersion: config.LATEST_API,
+                    userTyping: false
+                };
                 break;
             default:
                 break;
