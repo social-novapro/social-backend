@@ -25,9 +25,9 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-// mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
+mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
 // mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
-mongoose.connect('mongodb://localhost:27017/Kate', {
+// mongoose.connect('mongodb://localhost:27017/Kate', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
@@ -152,6 +152,11 @@ wss.on('connection', async (ws, req) => {
 
    // const paramsData = checkURLParams(req.url)
     const userID = checkUserID();
+    
+    const newJoinID = uuidv4();
+
+    const userData = await interactUserSchema.findOne({ _id: userID });
+    if (!userData) return ws.close()
 
     function checkURLParams(url) {
         const params = new URLSearchParams(url);
@@ -187,10 +192,7 @@ wss.on('connection', async (ws, req) => {
     for (const chat of data ) {
         ws.send(JSON.stringify(chat));
     };
-    
-    const newJoinID = uuidv4();
-
-    const userData = await interactUserSchema.findOne({ _id: userID });
+        
     const user = {
         _id: userID,
         username: userData.username,
