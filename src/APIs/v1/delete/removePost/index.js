@@ -15,7 +15,7 @@ router.delete('/:postID', async (req, res) => {
     const PostData = await interactPostSchema.findOneAndDelete({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D001"));
     else if (PostData.userID != userid) return res.status(403).send("you are not the owner of this post");
-    else return res.status(200).send("The post has been deleted.");
+    else return res.status(200).send({'deleted': true});
 })
 
 module.exports = router;

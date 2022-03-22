@@ -5,6 +5,8 @@ const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
 const { searchError } = require('../../../../utils/searchError');
 
 router.get('/:userid', async (req, res) => {
+    return res.status(400).send({error: "not done route" });
+    
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 

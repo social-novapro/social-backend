@@ -25,9 +25,12 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-mongoose.connect('mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate', {
-// mongoose.connect('mongodb://192.168.0.132:27017/Kate', {
-// mongoose.connect('mongodb://localhost:27017/Kate', {
+var mongoURL
+
+if (config.current == "dev") mongoURL = config.dev.mongo_url;
+else mongoURL = config.prod.mongo_url;
+
+mongoose.connect(mongoURL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
@@ -180,6 +183,7 @@ wss.on('connection', async (ws, req) => {
                 if (currentParam.userID) return userIDFound;
             };
         };
+        if (!defaultUserID) return {"param" : "false"};
         return defaultUserID;
     };
 

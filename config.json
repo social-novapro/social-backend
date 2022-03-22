@@ -1,4 +1,11 @@
 {
+    "current" : "prod",
+    "dev" : {
+        "mongo_url" : "mongodb://localhost:27017/Kate"
+    },
+    "prod" : {
+        "mongo_url" : "mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate" 
+    },
     "PORT" : 5002,
     "LATEST_API" : "v1",
     "SCHEMA_VERSIONS": {
