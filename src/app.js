@@ -243,14 +243,32 @@ wss.on('connection', async (ws, req) => {
             }
         };
         
+        var messageSend2 = {
+            type: 09,
+            user,
+            apiVersion: config.LATEST_API,
+            userTyping: false
+        };
+
         wss.clients.forEach(client => {
             client.send(JSON.stringify(messageSend));
+            client.send(JSON.stringify(messageSend2));
         });
+
+        ws.close();
     });
 
     //connection is up, let's add a simple simple event
     ws.on('message', async (message) => {
-        const data = JSON.parse(message);
+        var data
+
+        try {
+            data = JSON.parse(message);
+        }
+        catch {
+            console.log(err)
+            ws.send(JSON.stringify({"error": "Invalid JSON"}));
+        } 
         const newID = uuidv4();
 
         var messageSend;
@@ -277,9 +295,9 @@ wss.on('connection', async (ws, req) => {
                 const messageDeleteCheck = await liveChatSchema.findOne({ _id: data.messageToDelete });
 
                 if (!messageDeleteCheck) {
-                    return ws.send(JSON.stringify(`no message`));
+                    return ws.send(JSON.stringify({ "error" : `no message`}));
                 } else if (!messageDeleteCheck.user) { 
-                    return ws.send(JSON.stringify(`no user`));
+                    return ws.send(JSON.stringify({ "error" : `no user`}));
                 } else if (messageDeleteCheck.user._id != userID) {
                     return ws.send(JSON.stringify(searchError("H001")));
                 } else if (messageDeleteCheck.user._id == userID) {
@@ -296,15 +314,16 @@ wss.on('connection', async (ws, req) => {
 
                     wsUtils.saveChat(messageSend)
                 };
+                break;
             case 05: 
-                if (!data.editMessage) return ws.send("you much have a editMessage object included in your message")
-                if (!data.editMessage.postID) return ws.send("you must have a postID inside your editMessage object")
+                if (!data.editMessage) return ws.send(JSON.stringify({'error' : "you must have a editMessage object included in your message"}))
+                if (!data.editMessage.postID) return ws.send(JSON.stringify({"error" : "you must have a postID inside your editMessage object"}))
                 const messageOld = await liveChatSchema.findOne({ _id: data.editMessage.postID });
 
                 if (!messageOld) {
-                    return ws.send(JSON.stringify(`no message`));
+                    return ws.send(JSON.stringify({"error" : `no message`}));
                 } else if (!messageOld.user) {
-                    return ws.send(JSON.stringify(`no user`));
+                    return ws.send(JSON.stringify({"error" : `no user`}));
                 } else if (messageOld.user._id != userID) {
                     return ws.send(JSON.stringify(searchError("H001")));
                 } else if (messageOld.user._id == userID) {
@@ -332,22 +351,27 @@ wss.on('connection', async (ws, req) => {
                 };
                 break;
             case 08:
+                //if (userTyping.typing == true) return 
                 messageSend = {
                     type: 08,
                     user,
                     apiVersion: config.LATEST_API,
                     userTyping: true
                 };
+                //userTyping.typing = true
                 break;
             case 09:
+                //if (userTyping.typing == false) return
                 messageSend = {
                     type: 09,
                     user,
                     apiVersion: config.LATEST_API,
                     userTyping: false
                 };
+                //userTyping.typing = true
                 break;
             default:
+                return ws.send(JSON.stringify({ "error" : "invalid message type"}));
                 break;
         };
 
