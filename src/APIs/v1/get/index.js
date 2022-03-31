@@ -7,6 +7,7 @@ const allPublicData = require('./allPublicData');
 const post = require('./post');
 const search = require('./search');
 const analyticTrend = require('./analyticTrend');
+const userByID = require('./userByID');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -16,5 +17,6 @@ router.use('/allPublicData', allPublicData);
 router.use('/post', post);
 router.use('/search', search);
 router.use('/analyticTrend', analyticTrend);
+router.use('/userByID', userByID);
 
 module.exports = router;

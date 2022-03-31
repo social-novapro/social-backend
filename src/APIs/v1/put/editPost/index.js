@@ -11,23 +11,16 @@ router.put('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { content, postID, userID, userToken} = req.body;
+    const { content, postID/*, userID, userToken*/} = req.body;
 
-    if (!content && !userID && !postID && !userToken) return res.status(400).send("no content, userid, and postid");//searchError("E001"))
-    else if (!content && !userID && !postID) return res.status(400).send("no content, userid, and postid");//searchError("E001"))
-    else if (!content && !userID && !userToken) return res.status(400).send("no content, userid, and postid");//searchError("E001"))
-    else if (!userID && !postID && !userToken) return res.status(400).send("no content, userid, and postid");//searchError("E001"))
-    else if (!content && !postID) return res.status(400).send("no content and postid");//searchError("E001"))
-    else if (!content && !userID) return res.status(400).send("no content and userid");//searchError("E001"))
-    else if (!content && !userToken) return res.status(400).send("no content and postid");//searchError("E001"))
-    else if (!postID && !userID) return res.status(400).send("no userid and no postid");//searchError("E001"))
-    else if (!userID && !userToken) return res.status(400).send("no userid and no postid");//searchError("E001"))
-    else if (!postID && !userToken) return res.status(400).send("no userid and no postid");//searchError("E001"))
-    else if (!content) return res.status(400).send("no content");//searchError("E002"))
-    else if (!userID) return res.status(400).send("no userid");//searchError("E003"))
-    else if (!postID) return res.status(400).send("no postid");//searchError("E003"))
-    else if (!userToken) return res.status(400).send("no userToken");//searchError("E003"))
-    else if (content.length > 512) return res.status(400).send("");//searchError("E005"))
+    const { userid , usertoken } = req.headers
+    const userID = userid 
+    const userToken = usertoken
+    
+    if (!content && !postID) return res.status(400).send({ error: 'Missing content and postID' });
+    else if (!content) return res.status(400).send({ error: 'content is required' });
+    else if (!postID) return res.status(400).send({ error: 'postID is required' });
+    else if (content.length > 512) return res.status(400).send(searchError("E005"))
 
     const checkedContent = await checkPostContent(content);
     if (checkedContent) return res.status(400).send(checkedContent.error);

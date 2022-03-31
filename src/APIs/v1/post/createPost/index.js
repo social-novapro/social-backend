@@ -10,7 +10,8 @@ router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { content, userID } = req.body;
+    const { content, userID } = req.body
+    var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : null;
 
     if (!content && !userID) return res.status(400).send(searchError("E001"));
     else if (!content) return res.status(400).send(searchError("E002"));
@@ -23,7 +24,7 @@ router.post('/', async (req, res) => {
   
     if (!userIDCheck) return res.status(403).send(searchError("E004"));
     
-    const postID = await newPostIndex(userID, content);
+    const postID = await newPostIndex(userID, content, quoteReplyPostID);
 
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));
