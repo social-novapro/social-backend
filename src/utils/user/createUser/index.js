@@ -6,6 +6,8 @@ const { SCHEMA_VERSIONS } = require('../../../../config.json');
 const { checktime } = require('../../checktime');
 const { searchError } = require('../../searchError/');
 const { createAccessToken } = require('../createAccessToken');
+const SHA1 = require("crypto-js/sha1");
+const { useID } = require("@dothq/id")
 
 async function newUUID(usage, userID) {
     const newID = uuidv4();
@@ -33,7 +35,7 @@ async function newUserIndex(newUserDataForEntry) {
 
     const userID = await newUUID("userID");
     const userToken = await newUUID("userToken");
-
+    const saltedPassword = `${useID(2)}:${SHA1(password).toString()}`
     const currentTime = checktime();
 
     await interactUserPrivSchema.findOneAndUpdate({
@@ -42,7 +44,8 @@ async function newUserIndex(newUserDataForEntry) {
         _id: userID,
         __v: SCHEMA_VERSIONS.interactUserPrivSchema,
         userToken,
-        password
+        salted: true,
+        password: saltedPassword
     }, {
         upsert: true
     });
