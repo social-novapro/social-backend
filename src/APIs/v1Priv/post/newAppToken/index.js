@@ -9,9 +9,9 @@ router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { userid, devtoken } = req.headers;
+    const { userid, userdevtoken } = req.headers;
 
-    const newAppToken = await newDeveloperAppToken(userid, devtoken);
+    const newAppToken = await newDeveloperAppToken(userid, userdevtoken);
     
     const newTokenData = await developerAppToken.findOne({ _id: newAppToken });
     res.status(200).send(newTokenData);

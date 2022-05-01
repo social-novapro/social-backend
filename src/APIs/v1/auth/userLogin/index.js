@@ -5,6 +5,7 @@ const { searchError } = require('../../../../utils/searchError');
 const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken');
 const SHA1 = require("crypto-js/sha1");
+const { useID } = require("@dothq/id")
 
 router.get('/', async (req, res) => {
     const { devtoken, apptoken, username, password } = req.headers;
@@ -31,6 +32,19 @@ router.get('/', async (req, res) => {
     }
     else {
         if (foundPrivUser.password != password) return res.status(403).send(searchError("G005"));
+        else {
+            const saltedPassword = `${useID(2)}:${SHA1(password).toString()}`
+    
+            await interactUserPrivSchema.findOneAndUpdate({
+                _id: foundUsername._id
+            }, {        
+                salted: true,
+                password: saltedPassword
+            }, {
+                upsert: true
+            });
+        }
+
         passwordCorrect=true
     }
 
