@@ -10,10 +10,12 @@ router.post('/', async (req, res) => {
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
     const { userid, userdevtoken } = req.headers;
-
+    if (!userdevtoken) return res.status(401).send({'error': "You must include userdevtoken inside your headers to create a new token."})
+    
     const newAppToken = await newDeveloperAppToken(userid, userdevtoken);
     
     const newTokenData = await developerAppToken.findOne({ _id: newAppToken });
+    if (!newTokenData) return res.status(404).send({'error': "Could not find created app id."})
     res.status(200).send(newTokenData);
 });
 
