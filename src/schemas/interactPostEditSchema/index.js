@@ -9,21 +9,17 @@ const reqNum = {
     required: true
 };
 
-const reqBool = {
-    type: Boolean,
-    required: true
-};
-
 const editSchema = {
-    timestamp: reqString,
+    publicTimestamp: reqString,
+    removedTimestamp: reqString,
     content: reqString
 }
 
-const interactPostEditsSchema = mongoose.Schema({
+const interactPostEditSchema = mongoose.Schema({
     _id: reqString,
     userID: reqString,
     edits: [editSchema]
 });
 
 
-module.exports = mongoose.model('interact-post-edits', interactPostEditsSchema);
+module.exports = mongoose.model('interact-post-edits', interactPostEditSchema);

@@ -22,6 +22,30 @@ router.put('/:postID', async (req, res) => {
    // //const userLiked = await interactPostLikeSchema.findOne({ _id: postID, peopleLiked: { $elemMatch: { _id: tokenData.userID } } });
     //if (userLiked) return res.status(400).send({ error: "user has already liked the post" });
 
+    var userID = req.headers.userid
+    
+    const postLikes = await interactPostLikeSchema.findOne({ _id: postID});
+    
+    var operation = "add"
+
+    if (postLikes)  {
+        for (const like of postLikes.peopleLiked) {
+            if (like._id == userID) return res.status(400).send({ error: "user has already liked the post" });
+            //operation = "sub";
+        };
+    };
+
+    console.log(operation)
+   
+    // if (userAlreadyLiked) return res.status(400).send({ error: "user has already liked the post" });
+    var totalLikes = postFound.totalLikes ? postFound.totalLikes : 0
+
+    // if (operation == "add") {
+    await interactPostLikeSchema.findOneAndUpdate(
+        { _id: postID }, 
+        { $push : { "peopleLiked" : { _id: userID, timeStamp: checktime() } } },
+        { upsert: true }
+    )
 
     var newTotalLikes = 0
     if (!postFound.totalLikes) newTotalLikes = 1
@@ -30,22 +54,32 @@ router.put('/:postID', async (req, res) => {
 
     console.log(newTotalLikes)
 
-    var userID = req.headers.userid
-
     await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
     
-    const look =  await interactPostLikeSchema.findOne({ _id: postID, peopleLiked : { _id: userID } })  
-    console.log(look)
-    if (look) return res.status(400).send({ error: "user has already liked the post" });
+    
+    // await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: totalLikes + 1}, { upsert: true });
+    
+    /*} else if (operation == "sub") {
+        await interactPostLikeSchema.findOneAndUpdate(
+            { _id: postID }, 
+            { $pull : { "peopleLiked" : { _id: userID, timeStamp: checktime() } } },
+            { safe: true, multi: false },
+            { upsert: true }
+        );
+        await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: totalLikes - 1}, { upsert: true });
 
-    await interactPostLikeSchema.findOneAndUpdate(
-        { _id: postID }, 
-        { $push : { "peopleLiked" : { _id: userID, timeStamp: checktime() } } }
-    )
+    };*/
+
+    // var newTotalLikes = 0
+    // if (!postFound.totalLikes) newTotalLikes = 1
+    // else newTotalLikes = postFound.totalLikes + 1;
+
+    // await editAmountLikes(postID, postFound, operation)
+    // await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
 
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
-
-
+console.log(postFoundNew)
+console.log(postFound)
     return res.status(200).send(postFoundNew);
 })
 

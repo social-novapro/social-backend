@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
+const interactPostEditSchema = require('../../../../schemas/interactPostEditSchema')
 const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const { searchError } = require('../../../../utils/searchError');
@@ -44,9 +45,21 @@ router.put('/', async (req, res) => {
     
     await interactPostSchema.findOneAndUpdate(
         { _id: postID }, 
-        { content, edited: true, editedTimestamp, editedAmount }
+        { content, edited: true, editedTimestamp, editedAmount },
+        { upsert: true }
     );
 
+    await interactPostEditSchema.findOneAndUpdate( 
+        { _id: postID },
+        { $push : { "edits" : { 
+            publicTimestamp: postCheck.editedAmount == 0 ? postCheck.timestamp : postCheck.editedTimestamp,
+            removeTimestamp: editedTimestamp,
+            content: postCheck.content
+        }}},
+        { upsert: true }
+    )
+    const editPost = interactPostEditSchema.findOne({_id: postID})
+        console.log(editPost)
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));
     else return res.status(200).send({"new" : PostData, "before" : postCheck});
