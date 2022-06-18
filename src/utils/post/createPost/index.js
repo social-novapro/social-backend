@@ -15,11 +15,11 @@ async function doubleCheckNewID(newID) {
     else return newID;
 };
 
-async function newPostIndex(userID, content, quoteReplyPostID) {
+async function newPostIndex(userID, data) {
+    const { content, quoteReplyPostID, replyingPostID } = data
     const postID = await newPostID();
     const currentTime = checktime();
 
-    const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -34,21 +34,43 @@ async function newPostIndex(userID, content, quoteReplyPostID) {
     }, {
         upsert: true
     });
-    if (quotingPost) {
-        const quotingUser = await interactUserSchema.findOne({_id: quotingPost.userID})
 
-        await interactPostSchema.findOneAndUpdate({
-            _id: postID
-        }, {
-            quoteReplyPostID: `${quotingPost ? quotingPost._id : null}`,
-            quotedPost: quotingPost,
-            quotedUser: quotingUser
-        }, {
-            upsert: true
-        })
+    if (quoteReplyPostID) {
+        const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
+        if (quotingPost) return quotingPostSetup(quotingPost, postID)
+    }
+    if (replyingPostID) {
+        const replyingPost = await interactPostSchema.findOne({_id: replyingPostID});
+        if (replyingPost) await replyingPostSetup(replyingPost, postID);
     }
     
     return postID;
 };
+
+async function quotingPostSetup(quotingPost, postID) {
+    const quotingUser = await interactUserSchema.findOne({_id: quotingPost.userID})
+
+    await interactPostSchema.findOneAndUpdate({
+        _id: postID
+    }, {
+        quoteReplyPostID: `${quotingPost ? quotingPost._id : null}`,
+        quotedPost: quotingPost,
+        quotedUser: quotingUser
+    }, {
+        upsert: true
+    })
+    return postID;
+}
+
+async function replyingPostSetup(replyingPost, postID) {
+    await interactPostSchema.findOneAndUpdate({
+        _id: postID
+    }, {
+        replyingPostID: replyingPost._id,
+    }, {
+        upsert: true
+    })
+    return postID;
+}
 
 module.exports = { newPostIndex };

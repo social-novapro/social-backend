@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const interactPostEditSchema = require('../../../../schemas/interactPostEditSchema');
+const interactPostEditSchema = require('../../../../schemas/postSchemas/interactPostEditSchema');
 const {searchError} = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 

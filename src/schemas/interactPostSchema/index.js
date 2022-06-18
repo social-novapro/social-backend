@@ -62,7 +62,8 @@ const interactPostSchema = mongoose.Schema({
     editedAmount: reqNum,
     quoteReplyPostID: reqString,
     quotedPost: interactPostSchemaForQuote,
-    quotedUser: interactUserSchemaForQuote
+    quotedUser: interactUserSchemaForQuote,
+    replyingPostID: reqString
 });
 
 
