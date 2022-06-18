@@ -8,6 +8,7 @@ const post = require('./post');
 const search = require('./search');
 const analyticTrend = require('./analyticTrend');
 const userByID = require('./userByID');
+const postEditHistory = require('./postEditHistory');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -18,5 +19,6 @@ router.use('/post', post);
 router.use('/search', search);
 router.use('/analyticTrend', analyticTrend);
 router.use('/userByID', userByID);
+router.use('/postEditHistory', postEditHistory);
 
 module.exports = router;
