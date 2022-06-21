@@ -9,6 +9,7 @@ const search = require('./search');
 const analyticTrend = require('./analyticTrend');
 const userByID = require('./userByID');
 const postEditHistory = require('./postEditHistory');
+const bookmarks = require('./bookmarks');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -20,5 +21,6 @@ router.use('/search', search);
 router.use('/analyticTrend', analyticTrend);
 router.use('/userByID', userByID);
 router.use('/postEditHistory', postEditHistory);
+router.use('/bookmarks', bookmarks);
 
 module.exports = router;
