@@ -8,6 +8,10 @@ const reqNum = {
     type: Number,
     required: true
 };
+const reqBool = {
+    type: Boolean,
+    required: true
+};
 
 // type 06
 const privacySettingSchema = mongoose.Schema({
@@ -34,7 +38,8 @@ const interactUserSchema = mongoose.Schema({
     likedCount: reqNum,
     totalPosts: reqNum,
     totalReplies: reqNum,
-    privacySetting: privacySettingSchema
+    privacySetting: privacySettingSchema,
+    verified: reqBool
 });
 
 module.exports = mongoose.model('interact-users', interactUserSchema);
