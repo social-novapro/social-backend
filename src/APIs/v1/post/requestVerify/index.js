@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const interactVerifyRequests = require('../../../../schemas/postSchemas/interactVerifyRequests')
+const interactVerifyRequests = require('../../../../schemas/interactVerifyRequests')
 const { searchError } = require('../../../../utils/searchError');
 const { checktime } = require('../../../../utils/checktime');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
