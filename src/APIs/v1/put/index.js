@@ -9,5 +9,6 @@ router.use('/editPost', editPost);
 router.use('/editUsername', editUsername);
 router.use('/editDisplayname', editDisplayname);
 router.use('/likePost', likePost);
-router.use('./userEdit', userEdit);
+router.use('/userEdit', userEdit);
+
 module.exports = router;
