@@ -30,7 +30,7 @@ const interactUserSchema = mongoose.Schema({
     description: reqString,
     pronouns: reqString,
     statusTitle: reqString,
-    lastEditDisplayname: reqNum,
+    lastEdit: reqNum,
     creationTimestamp: reqString,
     followerCount: reqNum,
     followingCount: reqNum,
