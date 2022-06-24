@@ -23,7 +23,7 @@ router.put('/', async (req, res) => {
     if (!userIDCheck) return res.status(403).send(searchError("E004"));
     
     for(editableAttribute of editableAttributes){
-        if(!headers.contains(editableAttribute)
+        if(!headers.contains(editableAttribute))
            return res.status(400).send(searchError("E010"));
     }
   
