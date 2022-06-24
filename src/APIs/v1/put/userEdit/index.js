@@ -8,7 +8,8 @@ router.put('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const headers, { userid } = req.headers;
+    const headers = req.headers
+    const userid = headers.userid
     
     const editableAttributes = [
       "newUsername",
