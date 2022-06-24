@@ -43,7 +43,7 @@ router.put('/', async (req, res) => {
     );
 
     if (!UserData) return res.status(404).send("no user found");//searchError("D002"))
-    else return res.status(200).send({"new" : UserData, "before" : userIDCheck});
+    else return res.status(200).send({"new" : UserData, "before" : userIDCheck, "warning": "deprecated–use userEdit instead."});
 })
 
 module.exports = router;
