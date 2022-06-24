@@ -19,9 +19,12 @@ router.post('/', async (req, res) => {
     if (!postCheck) return res.status(403).send({ "error" : "no post with that id"} );//("E004"))
 
     const savedTimestamp = checktime();
-    const userbookmarks = await interactPostBookmarks.findOne({ _id: userID }) 
+    var userbookmarks = await interactPostBookmarks.findOne({ _id: userID }) 
     
-    if (!userbookmarks) await setupMainBookmark();
+    if (!userbookmarks) {
+        await setupMainBookmark();
+        userbookmarks = await interactPostBookmarks.findOne({ _id: userID });
+    };
 
     var foundList = false;
     var foundMain = false;
@@ -33,6 +36,11 @@ router.post('/', async (req, res) => {
         };
     };
 
+    if (userbookmarks && userbookmarks.saves)  {
+        for (const save of userbookmarks.saves) {
+            if (save._id == postID) return res.status(403).send({ "error" : "Post was already saved."})
+        }
+    }
     if (!foundMain) await setupMainBookmark()
     var bookmarkToSave = foundList ? listname : "main"
     
@@ -46,7 +54,7 @@ router.post('/', async (req, res) => {
         { upsert: true }
     );
 
-    const Bookmarks = await interactPostBookmarks.findOne({ _id: postID });
+    const Bookmarks = await interactPostBookmarks.findOne({ _id: userID });
     if (!Bookmarks) return res.status(404).send({"error" : "no bookmarks for this user found"});
     else return res.status(200).send({Bookmarks});
 
