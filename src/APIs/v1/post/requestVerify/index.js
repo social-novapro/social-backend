@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
         { upsert: true }
     );
 
-    const NewRequest = await interactVerifyRequests.findOne({ _id: postID });
+    const NewRequest = await interactVerifyRequests.findOne({ _id: userid });
     if (!NewRequest) return res.status(404).send({"error" : "an error occured while saving request, please try again."});
     else return res.status(200).send({NewRequest});
 });
