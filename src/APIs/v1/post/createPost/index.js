@@ -11,6 +11,7 @@ router.post('/', async (req, res) => {
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
     const { content, userID } = req.body
+    if (userID != req.headers.userid) return res.status(400).send(searchError("E009"));
     var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : null;
     var replyingPostID = req.body.replyingPostID ? req.body.replyingPostID : null;
 

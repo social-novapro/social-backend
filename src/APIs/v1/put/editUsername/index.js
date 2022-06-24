@@ -10,7 +10,7 @@ router.put('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { newusername, userid } = req.headers ;
+    const { newusername, userid } = req.headers;
     
     // const checkTokens = await checkRequestTokens(req.headers)
     // if (checkTokens) if (checkTokens.authorized==false) return res.status(400).send(checkTokens)

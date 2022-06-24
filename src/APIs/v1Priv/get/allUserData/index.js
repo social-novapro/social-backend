@@ -7,12 +7,13 @@ const developerToken = require('../../../../schemas/developer/developerToken');
 const interactUserAnalyticSchema = require('../../../../schemas/analytics/interactUserAnalyticSchema');
 const { checkRequestTokens } = require('./../../../../utils/checkRequestTokens');
 
-router.get('/:userID', async (req, res) => {
+router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { userID } = req.params;
-    
+    const { userid } = req.headers;
+    const userID = userid;
+
     const UserData = await interactUserSchema.findOne({ _id: userID});
     const UserPrivData = await interactUserPrivSchema.findOne({_id: userID});
     const PostData = await interactPostSchema.find({ userID });

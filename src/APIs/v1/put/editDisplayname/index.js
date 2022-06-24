@@ -10,7 +10,6 @@ router.put('/', async (req, res) => {
 
     const { newdisplayname, userid } = req.headers;
 
-
     if (!newdisplayname && !userid) return res.status(400).send("no displayname and userID provided.");//searchError("E002"))
     else if (!newdisplayname) return res.status(400).send("no displayname provided.");//searchError("E002"))
     else if (!userid) return res.status(400).send("no userid");//searchError("E003"))

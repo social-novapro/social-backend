@@ -190,6 +190,10 @@
                     "msg": "There was no provided developer token."
                 },
                 {
+                    "code" : "E009",
+                    "msg" : "The userID provided in header is not the same as userID in header."
+                },
+                {
                     "code" : "F001",
                     "msg" : "An error while creating a new User; Didn't provide argument for newUUID function."
                 },
