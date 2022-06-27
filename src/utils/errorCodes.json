@@ -157,6 +157,11 @@
                     "code" : "D003",
                     "msg" : "There were no posts found."
                 },
+                
+                {
+                    "code" : "D004",
+                    "msg" : "Incorrect content type; use String."
+                },
                 {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
