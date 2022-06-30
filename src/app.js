@@ -653,7 +653,6 @@ wss.on('connection', async (ws, req) => {
                 } else if (messageOld.user._id != userID) {
                     return ws.send(JSON.stringify(searchError("H001")));
                 } else if (messageOld.user._id == userID) {
-
                     const newEdit = data.editMessage.content
                     console.log(messageOld)
                     messageSend = {
@@ -696,6 +695,22 @@ wss.on('connection', async (ws, req) => {
                 };
                 //userTyping.typing = true
                 break;
+            case 101:
+                errorMessage = {
+                    type: 101,
+                    user,
+                    apiVersion: config.LATEST_API,
+                    error: "no messageID included"
+                }
+                if (!data.messageID) {
+                    messageSend = errorMessage
+                }
+                else {
+                    const messageFound = wsUtils.getMessage(data?.postID)
+                    if (!messageFound) messageSend = errorMessage
+                    else messageSend = messageFound
+                }
+                break;
             default:
                 return ws.send(JSON.stringify({ "error" : "invalid message type"}));
                 break;
@@ -708,6 +723,7 @@ wss.on('connection', async (ws, req) => {
         });
     });
 });
+
 // */
 /* 
 area of code is breaking for some reason
@@ -729,4 +745,5 @@ function sendAllUsers(allUsers, currentUser) {
 */
 
 //start our server
+
 server.listen(PORT, () => console.log(`Server started on port ${PORT}!`));

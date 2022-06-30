@@ -101,5 +101,10 @@ async function sendAllChatData() {
   //  console.log(all.slice(- 5))
     return all.slice(- 5);
 };
+async function getMessage(messageID) {
+    const message = await liveChatSchema.find({ _id: messageID });
 
-module.exports = { saveChat, sendAllChatData };
+    return message;
+};
+
+module.exports = { saveChat, sendAllChatData, getMessage };

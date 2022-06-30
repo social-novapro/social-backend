@@ -27,10 +27,10 @@ const messageSchema = mongoose.Schema({
     currentUsers: reqString,
     content: reqString,
     timeStamp: reqString,
+    replyTo: reqString, // messageID
     edited: reqBool,
     editedTimeStamp: reqString
 });
-
 
 // type 06
 const userJoinSchema = mongoose.Schema({
