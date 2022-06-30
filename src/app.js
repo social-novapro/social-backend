@@ -611,6 +611,7 @@ wss.on('connection', async (ws, req) => {
                         currentUsers: totalUsers,
                         content: data.message.content,
                         timeStamp: getTime(),
+                        replyTo: data.message.replyTo? data.message.replyTo : null,
                         edited: false
                     }
                 };
