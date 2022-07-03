@@ -10,6 +10,7 @@ const analyticTrend = require('./analyticTrend');
 const userByID = require('./userByID');
 const postEditHistory = require('./postEditHistory');
 const bookmarks = require('./bookmarks');
+const postLikedBy = require('./postLikedBy');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -22,5 +23,6 @@ router.use('/analyticTrend', analyticTrend);
 router.use('/userByID', userByID);
 router.use('/postEditHistory', postEditHistory);
 router.use('/bookmarks', bookmarks);
+router.use('/postLikedBy', postLikedBy);
 
 module.exports = router;

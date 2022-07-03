@@ -655,22 +655,39 @@ wss.on('connection', async (ws, req) => {
                     return ws.send(JSON.stringify(searchError("H001")));
                 } else if (messageOld.user._id == userID) {
                     const newEdit = data.editMessage.content
-                    console.log(messageOld)
                     messageSend = {
                         _id: messageOld._id,
                         type: 05,
                         user,
                         apiVersion: config.LATEST_API,
+                        // message (same content) 
+                        /*
+                        message
+                            postID
+                            replyTo
+                            timeStamp
+                            editedTimestamp
+
+                        newContent: newEdit
+                        
+                        originalContent: content
+                        
+                        
+                        
+                        save new mongo soon
+                        */
                         newMessage: {
-                            postID: messageOld._id,
-                            currentUsers: totalUsers,
+                            postID: messageOld._id, // dont need after
+                            currentUsers: totalUsers, // dont need
                             content: newEdit,
                             editedTimeStamp: getTime()
+                            // add replying
                         },
                         oldMessage: {
-                            postID: messageOld._id,
+                            postID: messageOld._id, // dont need after
                             content: messageOld.message.content,
-                            timeStamp: messageOld.message.timeStamp
+                            timeStamp: messageOld.message.timeStamp//dont need after
+                            // add replying
                         }
                     };
                     wsUtils.saveChat(messageSend)
