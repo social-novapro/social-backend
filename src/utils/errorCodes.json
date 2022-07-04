@@ -37,8 +37,16 @@
                 },
                 {
                     "code" : "I",
-                    "msg" : "Legacy routing error."
+                    "msg" : "Legacy or incomplete routing error."
                 },
+                {
+                    "code" : "J",
+                    "msg" : "Error with badges."
+                },
+                {
+                    "code" : "K",
+                    "msg" : "Error with bookmarks."
+                }
                 {
                     "code" : "Z",
                     "msg" : "Unknown errors."
@@ -158,6 +166,14 @@
                     "msg" : "There were no posts found."
                 },
                 {
+                    "code" : "D004",
+                    "msg" : "No edits found for post."
+                },
+                {
+                    "code" : "D005",
+                    "msg" : "Post not found or no likes"
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
@@ -228,6 +244,38 @@
                 {
                     "code" : "I001",
                     "msg" : "Please use /v1/auth/userLogin instead of /v1Priv/get/get/userLogin."
+                },
+                {
+                    "code" : "I002",
+                    "msg" : "not done route"
+                },
+                {
+                    "code" : "J001",
+                    "msg" : "User already has a request pending."
+                },
+                {
+                    "code" : "J002",
+                    "msg" : "No content provided."
+                },
+                {
+                    "code" : "J003",
+                    "msg" : "an error occured while saving request, please try again."
+                },
+                {
+                    "code" : "K001",
+                    "msg" : "postID is required"
+                },
+                {
+                    "code" : "K002",
+                    "msg" : "no post with that id"
+                },
+                {
+                    "code" : "K003",
+                    "msg" : "Post was already saved."
+                },
+                {
+                    "code" : "K004",
+                    "msg" : "no bookmarks for this user found"
                 },
                 {
                     "code" : "Z001",

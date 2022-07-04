@@ -12,9 +12,9 @@ router.post('/', async (req, res) => {
     const { userid } = req.headers;
     
     const lookupRequest = await interactVerifyRequests.findOne({ _id: userid });
-    if (lookupRequest) return res.status(403).send({ "error" : "User already has a request pending."});
+    if (lookupRequest) return res.status(403).send(searchError("J001"));
     
-    if (!content) return res.status(400).send({ "error" : "No content provided."});
+    if (!content) return res.status(400).send(searchError("J002"));
 
     await interactVerifyRequests.findOneAndUpdate( 
         { _id: userid },
@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
     );
 
     const NewRequest = await interactVerifyRequests.findOne({ _id: userid });
-    if (!NewRequest) return res.status(404).send({"error" : "an error occured while saving request, please try again."});
+    if (!NewRequest) return res.status(404).send(searchError("J003"));
     else return res.status(200).send({NewRequest});
 });
 

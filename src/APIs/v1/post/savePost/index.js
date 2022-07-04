@@ -13,10 +13,10 @@ router.post('/', async (req, res) => {
     const { userid } = req.headers;
     const userID = userid;
 
-    if (!postID) return res.status(400).send({ error: 'postID is required' });
+    if (!postID) return res.status(400).send(searchError("K001"));
 
     const postCheck = await interactPostSchema.findOne({ _id: postID});
-    if (!postCheck) return res.status(403).send({ "error" : "no post with that id"} );//("E004"))
+    if (!postCheck) return res.status(403).send(searchError("K002"));//("E004"))
 
     const savedTimestamp = checktime();
     var userbookmarks = await interactPostBookmarks.findOne({ _id: userID }) 
@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
 
     if (userbookmarks && userbookmarks.saves)  {
         for (const save of userbookmarks.saves) {
-            if (save._id == postID) return res.status(403).send({ "error" : "Post was already saved."})
+            if (save._id == postID) return res.status(403).send(searchError("K003"))
         }
     }
     if (!foundMain) await setupMainBookmark()
@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
     );
 
     const Bookmarks = await interactPostBookmarks.findOne({ _id: userID });
-    if (!Bookmarks) return res.status(404).send({"error" : "no bookmarks for this user found"});
+    if (!Bookmarks) return res.status(404).send(searchError("K004"));
     else return res.status(200).send({Bookmarks});
 
     async function setupMainBookmark() {

@@ -16,7 +16,7 @@ router.get('/:postID', async (req, res) => {
         peopleLiked: []
     };
 
-    if (!foundPost) return res.status(404).send({"error" : "post not found or no likes"});
+    if (!foundPost) return res.status(404).send(searchError("D005"));
 
     for (const people of foundPost.peopleLiked) {
         const user = await interactUserSchema.findOne({_id: people._id});

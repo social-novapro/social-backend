@@ -11,7 +11,7 @@ router.get('/:postID', async (req, res) => {
     
     const PostData = await interactPostEditSchema.findOne({_id: postID});
 
-    if (!PostData) return res.status(404).send({ "error" : "no edits found for post" });
+    if (!PostData) return res.status(404).send(searchError("D004"));
     else return res.status(200).send(PostData);
 })
 
