@@ -18,7 +18,7 @@ async function checkUsername(username) {
         };
     };
 
-    if (foundArgs.join("") != username) return { "allowed" : false, "error" : "Username does not reach rules"};
+    if (foundArgs.join("") != username) return { "allowed" : false, "error" : searchError("C012")};
     else return { "allowed" : true};
 }
 

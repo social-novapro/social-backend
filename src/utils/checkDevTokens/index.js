@@ -14,7 +14,7 @@ async function checkDevTokens(devToken, appToken) {
     else if (!checkDevToken) return { "authorized": false, "error" : searchError("A002")};
     else if (!checkAppToken) return { "authorized": false, "error" : searchError("A003")};
    
-    if (checkAppToken.devToken != checkDevToken._id) return { "authorized": false, "error" : "Provided App token is not matched with provided Dev token"};
+    if (checkAppToken.devToken != checkDevToken._id) return { "authorized": false, "error" : searchError("A010")};
 
     var APIUsesDev;
     var APIUsesApp;

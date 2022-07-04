@@ -2,6 +2,7 @@ const router = require('express').Router();
 const interactPostLikeSchema = require('../../../../schemas/postSchemas/interactPostLikeSchema');
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const { checkRequestTokens } = require('./../../../../utils/checkRequestTokens');
+const { searchError } = require('../../../../utils/searchError');
 
 function checktime() {
     var d = new Date();
@@ -16,7 +17,7 @@ router.put('/:postID', async (req, res) => {
 
     const { postID } = req.params;
     const postFound = await interactPostSchema.findOne({ _id: postID});
-    if (!postFound) return res.status(404).send({ error: "post not found" });
+    if (!postFound) return res.status(404).send(searchError("K002"));
 
     // look if user has liked the post
    // //const userLiked = await interactPostLikeSchema.findOne({ _id: postID, peopleLiked: { $elemMatch: { _id: tokenData.userID } } });
@@ -30,15 +31,15 @@ router.put('/:postID', async (req, res) => {
 
     if (postLikes)  {
         for (const like of postLikes.peopleLiked) {
-            if (like._id == userID) return res.status(400).send({ error: "user has already liked the post" });
+            if (like._id == userID) return res.status(400).send(searchError("D010"));
             //operation = "sub";
         };
     };
 
-    console.log(operation)
+    // console.log(operation)
    
     // if (userAlreadyLiked) return res.status(400).send({ error: "user has already liked the post" });
-    var totalLikes = postFound.totalLikes ? postFound.totalLikes : 0
+    // var totalLikes = postFound.totalLikes ? postFound.totalLikes : 0
 
     // if (operation == "add") {
     await interactPostLikeSchema.findOneAndUpdate(
@@ -50,9 +51,9 @@ router.put('/:postID', async (req, res) => {
     var newTotalLikes = 0
     if (!postFound.totalLikes) newTotalLikes = 1
     else newTotalLikes = postFound.totalLikes + 1;
-    console.log(postFound.totalLikes)
+    // console.log(postFound.totalLikes)
 
-    console.log(newTotalLikes)
+    // console.log(newTotalLikes)
 
     await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
     
@@ -78,8 +79,8 @@ router.put('/:postID', async (req, res) => {
     // await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
 
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
-console.log(postFoundNew)
-console.log(postFound)
+// console.log(postFoundNew)
+// console.log(postFound)
     return res.status(200).send(postFoundNew);
 })
 

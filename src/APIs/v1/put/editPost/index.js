@@ -16,7 +16,7 @@ router.put('/', async (req, res) => {
 
     const { userid , usertoken } = req.headers
     const userID = userid 
-    const userToken = usertoken
+    // const userToken = usertoken
     
     if (!content && !postID) return res.status(400).send({ error: 'Missing content and postID' });
     else if (!content) return res.status(400).send({ error: 'content is required' });
@@ -26,17 +26,17 @@ router.put('/', async (req, res) => {
     const checkedContent = await checkPostContent(content);
     if (checkedContent) return res.status(400).send(checkedContent.error);
 
-    const userIDCheck = await interactUserSchema.findOne({ _id: userID});
-    if (!userIDCheck) return res.status(403).send("no user found");//searchError("E004"))
+    // const userIDCheck = await interactUserSchema.findOne({ _id: userID});
+    // if (!userIDCheck) return res.status(403).send(searchError("C009"));//searchError("E004"))
 
-    const userTokenCheck = await interactUserPrivSchema.findOne({_id: userID}) ;
-    if (userTokenCheck.userToken != userToken) return res.status(403).send("that user token is incorrect.");
+    // const userTokenCheck = await interactUserPrivSchema.findOne({_id: userID}) ;
+    // if (userTokenCheck.userToken != userToken) return res.status(403).send("that user token is incorrect.");
 
     const postCheck = await interactPostSchema.findOne({ _id: postID});
 
-    if (!postCheck) return res.status(403).send("no post with that id");//("E004"))
-    else if (postCheck.userID != userID) return res.status(403).send("that userid and post's userid doesnt match");//("E004"))
-    else if (postCheck.content == content) return res.status(403).send("content is the same");//("E004"))
+    if (!postCheck) return res.status(403).send(searchError("K002"));//("E004"))
+    else if (postCheck.userID != userID) return res.status(403).send(searchError("D008"));//("E004"))
+    else if (postCheck.content == content) return res.status(403).send(searchError("D009"));//("E004"))
 
     const editedTimestamp = checktime();
     var editedAmount;
@@ -58,8 +58,8 @@ router.put('/', async (req, res) => {
         }}},
         { upsert: true }
     )
-    const editPost = interactPostEditSchema.findOne({_id: postID})
-        console.log(editPost)
+    // const editPost = await interactPostEditSchema.findOne({_id: postID})
+    // console.log(editPost)
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));
     else return res.status(200).send({"new" : PostData, "before" : postCheck});

@@ -19,10 +19,10 @@ async function analytics(req) {
     }
     */
 
-    console.log(req.baseUrl)
-    console.log(req.headers.userid)
-    console.log(req.originalUrl)
-    console.log(req.headers)
+    // console.log(req.baseUrl)
+    // console.log(req.headers.userid)
+    // console.log(req.originalUrl)
+    // console.log(req.headers)
     await interactUserAnalyticSchema.findOneAndUpdate(
         { _id: req.headers.userid }, 
         { $push : { "userConnections" : { _id: uuidv4(), timestamp: getTime(), api_urlbase: req.baseUrl, api_url: req.originalUrl  } }

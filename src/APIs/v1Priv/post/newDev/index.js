@@ -3,6 +3,7 @@ const { newDeveloperToken } = require('../../../../utils/developer/create/devTok
 const developerToken = require('../../../../schemas/developer/developerToken');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
+const { searchError } = require('../../../../utils/searchError');
 
 router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -12,13 +13,13 @@ router.post('/', async (req, res) => {
     const userID = userid;
     // const { userID } = req.params;
 
-    if (!userID) return res.status(400).send("No userID provided");
+    if (!userID) return res.status(400).send(searchError("B009"));
 
     const userData = await interactUserSchema.findOne({_id: userID});
-    if (!userData) return res.status(400).send("no user found");
+    if (!userData) return res.status(400).send(searchError("C009"));
 
     const tokenSearch = await developerToken.findOne({userID});
-    if (tokenSearch) return res.status(400).send("Token already exists for this user.");
+    if (tokenSearch) return res.status(400).send(searchError("A009"));
 
     const newDevToken = await newDeveloperToken(userID);
     const newTokenData = await developerToken.findOne({ _id: newDevToken }); 

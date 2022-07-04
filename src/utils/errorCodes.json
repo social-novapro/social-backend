@@ -46,7 +46,7 @@
                 {
                     "code" : "K",
                     "msg" : "Error with bookmarks."
-                }
+                },
                 {
                     "code" : "Z",
                     "msg" : "Unknown errors."
@@ -76,6 +76,22 @@
                 {
                     "code" : "A006",
                     "msg" : "There was no provided application token."
+                },
+                {
+                    "code" : "A007",
+                    "msg" : "You must include userdevtoken inside your headers to create a new token."
+                },
+                {
+                    "code" : "A008",
+                    "msg" : "Could not find created app token."
+                },
+                {
+                    "code" : "A009",
+                    "msg" : "Token already exists for this user."
+                },
+                {
+                    "code" : "A010",
+                    "msg" : "Provided App token is not matched with provided Dev token"
                 },
                 {
                     "code" : "B001",
@@ -151,7 +167,31 @@
                 },
                 {
                     "code" : "C006",
-                    "msg": "you must insert a password"
+                    "msg" : "you must insert a password"
+                },
+                {
+                    "code" : "C007",
+                    "msg" : "No displayname and userID provided."
+                },
+                {
+                    "code" : "C008",
+                    "msg" : "No displayname provided."
+                },
+                { 
+                    "code" : "C009",
+                    "msg" : "No user found."
+                },
+                {
+                    "code" : "C010",
+                    "msg" : "No username and userID provided."
+                },
+                {
+                    "code" : "C011",
+                    "msg" : "No accepted headers found for editable user attributes."
+                },
+                {
+                    "code" : "C012",
+                    "msg" : "Username does not reach rules"
                 },
                 {
                     "code" : "D001",
@@ -171,7 +211,31 @@
                 },
                 {
                     "code" : "D005",
-                    "msg" : "Post not found or no likes"
+                    "msg" : "Post not found or no likes."
+                },
+                {
+                    "code" : "D006",
+                    "msg" : "No postid provided."
+                },
+                {
+                    "code" : "D007",
+                    "msg" : "You are not the owner of this post"
+                },
+                {
+                    "code" : "D008",
+                    "msg" : "Provided postID does not match the post's userID."
+                },
+                {
+                    "code" : "D009",
+                    "msg" : "Post content remained the same."
+                },
+                {
+                    "code" : "D010",
+                    "msg" : "user has already liked the post."
+                },
+                {
+                    "code" : "D011",
+                    "msg" : "Requested change was not accepted."
                 },
                 {
                     "code" : "E001",
@@ -267,7 +331,7 @@
                 },
                 {
                     "code" : "K002",
-                    "msg" : "no post with that id"
+                    "msg" : "no post found with that id"
                 },
                 {
                     "code" : "K003",

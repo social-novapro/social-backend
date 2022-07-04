@@ -31,7 +31,7 @@ router.put('/', async (req, res) => {
         // return res.status(400).send(searchError("E010"));
     }
 
-    if (!foundHeader) return res.status(400).send({"error" : "not found"});// searchError("E010")
+    if (!foundHeader) return res.status(400).send(searchError("C011"));// searchError("E010")
 
     var lastEdited = 0;
     if (!userIDCheck.lastEdit) lastEdited = 0;
@@ -63,7 +63,7 @@ router.put('/', async (req, res) => {
         acceptedChange = true;
     };
 
-    if (!acceptedChange) res.status(400).send({error: "Not accepted change."})
+    if (!acceptedChange) res.status(400).send(searchError("D011"));
 
     // if (timediff < 1800000) return res.status(400).send({"error" : `You must wait ${timeuntil} before changing again.`});//searchError("E004"))
 

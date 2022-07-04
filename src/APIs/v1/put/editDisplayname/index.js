@@ -10,9 +10,9 @@ router.put('/', async (req, res) => {
 
     const { newdisplayname, userid } = req.headers;
 
-    if (!newdisplayname && !userid) return res.status(400).send("no displayname and userID provided.");//searchError("E002"))
-    else if (!newdisplayname) return res.status(400).send("no displayname provided.");//searchError("E002"))
-    else if (!userid) return res.status(400).send("no userid");//searchError("E003"))
+    if (!newdisplayname && !userid) return res.status(400).send(searchError("C007"));//searchError("E002"))
+    else if (!newdisplayname) return res.status(400).send(searchError("C008"));//searchError("E002"))
+    else if (!userid) return res.status(400).send(searchError("B009"));//searchError("E003"))
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userid});
     if (!userIDCheck) return res.status(403).send(searchError("E004"));
@@ -34,7 +34,7 @@ router.put('/', async (req, res) => {
     if (!minutes) timeuntil = `${seconds} seconds`;
     else timeuntil = `${minutes} minutes and ${seconds} seconds`;
 
-    if (timediff < 1800000) return res.status(400).send(`You must wait ${timeuntil} before changing again.`);//searchError("E004"))
+    if (timediff < 1800000) return res.status(400).send({"error" : `You must wait ${timeuntil} before changing again.`});//searchError("E004"))
 
     const UserData = await interactUserSchema.findOneAndUpdate(
         { _id: userid }, 
@@ -42,7 +42,7 @@ router.put('/', async (req, res) => {
         { new: true, upsert: true }
     );
 
-    if (!UserData) return res.status(404).send("no user found");//searchError("D002"))
+    if (!UserData) return res.status(404).send(searchError("C009"));//searchError("D002"))
     else return res.status(200).send({"new" : UserData, "before" : userIDCheck, "warning": "deprecated–use /put/userEdit instead."});
 })
 
