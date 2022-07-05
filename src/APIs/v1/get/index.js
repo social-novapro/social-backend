@@ -11,6 +11,7 @@ const userByID = require('./userByID');
 const postEditHistory = require('./postEditHistory');
 const bookmarks = require('./bookmarks');
 const postLikedBy = require('./postLikedBy');
+const developer = require('./developer');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -24,5 +25,6 @@ router.use('/userByID', userByID);
 router.use('/postEditHistory', postEditHistory);
 router.use('/bookmarks', bookmarks);
 router.use('/postLikedBy', postLikedBy);
+router.use('/developer', developer);
 
 module.exports = router;

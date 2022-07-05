@@ -20,7 +20,7 @@ const developerToken = mongoose.Schema({
    userID: reqString,
    premium: reqBool,
    APIUses: reqNum,
-   createdTimestamp: reqString,
+   creationTimestamp: reqString,
    apps: [ reqString ]
 });
 

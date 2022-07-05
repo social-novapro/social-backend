@@ -34,7 +34,7 @@ async function newDeveloperToken(userID) {
 
     await interactUserPrivSchema.findOneAndUpdate({
         _id: userID
-    }, { devToken });
+    }, { devToken }, {upsert: true});
     
     return devToken;
 };

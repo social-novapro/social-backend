@@ -15,7 +15,7 @@ const developerAppToken = mongoose.Schema({
    userID: reqString,
    devToken: reqString,
    APIUses: reqNum,
-   createdTimestamp: reqString,
+   creationTimestamp: reqString,
 });
 
 module.exports = mongoose.model('developer-app-token', developerAppToken);

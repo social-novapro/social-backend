@@ -8,6 +8,9 @@ function getTime() {
 }
 
 async function analytics(req) {
+    console.log(`action taken\n${req.originalUrl}\n---`)
+
+    
     /*
     if (req.url==='live-chat') {
         await interactUserAnalyticSchema.findOneAndUpdate(
