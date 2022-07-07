@@ -94,6 +94,10 @@
                     "msg" : "Provided App token is not matched with provided Dev token"
                 },
                 {
+                    "code" : "A011",
+                    "msg" : "You did not input an appname in the request to create an application."
+                },
+                {
                     "code" : "B001",
                     "msg" : "The userID provided was not found."
                 },

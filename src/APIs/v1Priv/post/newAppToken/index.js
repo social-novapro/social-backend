@@ -10,14 +10,15 @@ router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { userid, userdevtoken } = req.headers;
-    if (!userdevtoken) return res.status(401).send(searchError("A007"))
-
+    const { userid, userdevtoken, appname } = req.headers;
+    if (!userdevtoken) return res.status(401).send(searchError("A011"));
+    if (!appname) return res.status(401).send(searchError("A011"));
+    
     const foundDevtoken = await developerToken.findOne({_id: userdevtoken })
     if (!foundDevtoken) return res.status(401).send(searchError("A002"))
 
     if (foundDevtoken.userID != userid) return res.status(401).send(searchError("B003"))
-    const newAppToken = await newDeveloperAppToken(userid, userdevtoken);
+    const newAppToken = await newDeveloperAppToken(userid, userdevtoken, appname);
     
     const newTokenData = await developerAppToken.findOne({ _id: newAppToken });
     if (!newTokenData) return res.status(404).send(searchError("A008"))

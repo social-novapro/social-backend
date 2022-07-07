@@ -1,6 +1,7 @@
 const interactUserAccessSchema = require('../../../schemas/interactUserAccessSchema')
 const { SCHEMA_VERSIONS } = require('../../../../config.json');
 const {v4 : uuidv4} = require('uuid');
+const { checktime } = require('../../checktime');
 
 async function createAccessToken(userID, userToken, appToken) {
     const foundAppAccess = await interactUserAccessSchema.findOne({ appToken, userID, userToken });
@@ -8,14 +9,15 @@ async function createAccessToken(userID, userToken, appToken) {
     if (foundAppAccess) return foundAppAccess;
     else {
         const accessToken = uuidv4();
-    
+
         await interactUserAccessSchema.findOneAndUpdate({
             _id: accessToken
         }, { 
             __v: SCHEMA_VERSIONS.interactUserAccessSchema,
             userToken,
             userID,
-            appToken
+            appToken,
+            creationTimestamp: checktime()
         }, {
             upsert: true
         });

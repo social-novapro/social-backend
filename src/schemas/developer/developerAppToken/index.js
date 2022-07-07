@@ -14,6 +14,7 @@ const developerAppToken = mongoose.Schema({
    _id: reqString,
    userID: reqString,
    devToken: reqString,
+   appName: reqString,
    APIUses: reqNum,
    creationTimestamp: reqString,
 });
