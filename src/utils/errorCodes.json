@@ -48,6 +48,10 @@
                     "msg" : "Error with bookmarks."
                 },
                 {
+                    "code" : "L",
+                    "msg" : "Error with notifications"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -344,6 +348,10 @@
                 {
                     "code" : "K004",
                     "msg" : "no bookmarks for this user found"
+                },
+                {
+                    "code" : "L001",
+                    "msg" : "No found notifications for user."
                 },
                 {
                     "code" : "Z001",
