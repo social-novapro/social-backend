@@ -8,11 +8,13 @@ router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
+    const { userid } = req.headers 
+    
     const foundNotifications = await interactUserNotifications.findOne({ _id: userid});
     if (!foundNotifications || !foundNotifications.notifications) return res.status(404).send(searchError("L001"));
 
     var returnData = {
-        amountFound: interactUserNotifications.notifications.length,
+        amountFound: foundNotifications.notifications.length ? foundNotifications.notifications.length : 0,
         notifications: []
     };
 

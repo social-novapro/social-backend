@@ -5,6 +5,7 @@ const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { searchError } = require('../../../../utils/searchError');
 const { checkPostContent } = require('../../../../utils/checks');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
+const { pushNewPost } = require('../../../../utils/notifications/pushNewPost'); 
 
 router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -30,7 +31,9 @@ router.post('/', async (req, res) => {
 
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));
-    else return res.status(200).send(PostData);
+
+    await pushNewPost(userID, postID)
+    return res.status(200).send(PostData);
 })
 
 module.exports = router;

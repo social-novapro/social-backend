@@ -4,10 +4,19 @@ const reqString = {
     type: String,
     required: true
 };
+const reqNum = {
+    type: Number,
+    required: true
+};
+
+const userSub = mongoose.Schema({
+    _id: reqString, // userID (of person who subbed)
+    timestamp: reqNum // time subscribed
+});
 
 const interactSubscribeNotification = mongoose.Schema({
     _id: reqString, // userID (of person who posts)
-    subscribed: [reqString] // userID (of person who subbed)
+    subscribed: [userSub] 
 });
 
 
