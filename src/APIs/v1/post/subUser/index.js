@@ -41,7 +41,7 @@ router.post('/:subUserID', async (req, res) => {
             sending.found=true
         }
     }
-    if (!sending.found) return res.status(404).send(searchError("K004"));
+    if (!sending.found) return res.status(404).send(searchError("L002"));
     else return res.status(200).send(sending);
 });
 
