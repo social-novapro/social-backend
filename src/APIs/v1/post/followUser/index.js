@@ -18,8 +18,10 @@ router.post('/:followUserID', async (req, res) => {
     const postCheck = await interactUserSchema.findOne({ _id: followUserID});
     if (!postCheck) return res.status(403).send({"error" : "No user found for follow"});//("E004"))
 
+    var checkIfFollowed = await lookForFollow(followUserID, userID)
+    if (checkIfFollowed.found) return res.status(400).send({ 'error' : "Client was already following user."});
+
     const savedTimestamp = checktime();
-    
     await interactFollowSchema.findOneAndUpdate( 
         { _id: followUserID },
         { $push : { "follow" : { 
@@ -28,39 +30,28 @@ router.post('/:followUserID', async (req, res) => {
         }}},
         { upsert: true }
     );
-
-    const Followers = await interactFollowSchema.findOne({ _id: followUserID });
-    var sending = {
-        found: false,
-        obj: {}
-    };
-    if (!Followers)  return res.status(404).send({"error" : "Requested was not found."}); 
-
-    for (const fol of Followers.follow) {
-        if (fol._id==userID) {
-            sending.obj=fol
-            sending.found=true
-        }
-    }
-
-    if (!sending.found) return res.status(404).send({ 'error' : "User was not found to be subsribed. Error while saving."});
+    
+    var sending = await lookForFollow(followUserID, userID)
+    if (!sending.found) return res.status(404).send({ 'error' : "User was not found to be followed. Error while saving."});
     else return res.status(200).send(sending);
 });
 
 module.exports = router;
 
-function lookForFollow(followUserID, userID) {
+async function lookForFollow(followUserID, userID) {
     const Followers = await interactFollowSchema.findOne({ _id: followUserID });
     var sending = {
         found: false,
         obj: {}
     };
-    if (!Followers)  return res.status(404).send({"error" : "Requested was not found."}); 
 
-    for (const fol of Followers.follow) {
-        if (fol._id==userID) {
-            sending.obj=fol
-            sending.found=true
-        }
-    }
-}
+    if (Followers) {
+        for (const fol of Followers.follow) {
+            if (fol._id==userID) {
+                sending.obj=fol;
+                sending.found=true;
+            };
+        };
+    };
+    return sending;
+};

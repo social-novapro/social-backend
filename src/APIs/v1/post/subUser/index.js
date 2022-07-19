@@ -17,9 +17,11 @@ router.post('/:subUserID', async (req, res) => {
 
     const postCheck = await interactUserSchema.findOne({ _id: subUserID});
     if (!postCheck) return res.status(403).send({"error" : "No user found for sub"});//("E004"))
+    
+    var checkIfSubbed = await lookForSub(subUserID, userID)
+    if (checkIfSubbed.found) return res.status(400).send({ 'error' : "Client was already subscribed to the user."});
 
     const savedTimestamp = checktime();
-    
     await interactSubscribeNotification.findOneAndUpdate( 
         { _id: subUserID },
         { $push : { "subscribed" : { 
@@ -29,20 +31,28 @@ router.post('/:subUserID', async (req, res) => {
         { upsert: true }
     );
 
-    const Subsribers = await interactSubscribeNotification.findOne({ _id: userID });
-    var sending = {
-        found: false,
-        obj: {}
-    };
-
-    for (const sub of Subsribers.subscribed) {
-        if (sub._id==userID) {
-            sending.obj=sub
-            sending.found=true
-        }
-    }
+    var sending = await lookForSub(subUserID, userID)
     if (!sending.found) return res.status(404).send(searchError("L002"));
     else return res.status(200).send(sending);
 });
 
 module.exports = router;
+
+async function lookForSub(subUser, userID) {
+    const Subscribers = await interactSubscribeNotification.findOne({ _id: subUser });
+    var sending = {
+        found: false,
+        obj: {}
+    };
+
+    if (Subscribers) {
+        for (const sub of Subscribers.subscribed) {
+            if (sub._id==userID) {
+                sending.obj=sub;
+                sending.found=true;
+            };
+        };
+    }
+
+    return sending 
+};
