@@ -13,6 +13,8 @@ const bookmarks = require('./bookmarks');
 const postLikedBy = require('./postLikedBy');
 const developer = require('./developer');
 const notifications = require('./notifications');
+const followers = require('./followers');
+const following = require('./following');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -28,5 +30,7 @@ router.use('/bookmarks', bookmarks);
 router.use('/postLikedBy', postLikedBy);
 router.use('/developer', developer);
 router.use('/notifications', notifications);
+router.use('/followers', followers);
+router.use('/following', following);
 
 module.exports = router;
