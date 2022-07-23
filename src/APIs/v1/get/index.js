@@ -15,6 +15,7 @@ const developer = require('./developer');
 const notifications = require('./notifications');
 const followers = require('./followers');
 const following = require('./following');
+const subscriptions = require('./subscriptions');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -32,5 +33,6 @@ router.use('/developer', developer);
 router.use('/notifications', notifications);
 router.use('/followers', followers);
 router.use('/following', following);
+router.use('/subscriptions', subscriptions);
 
 module.exports = router;
