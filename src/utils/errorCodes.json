@@ -52,6 +52,10 @@
                     "msg" : "Error with notifications"
                 },
                 {
+                    "code": "M",
+                    "msg": "Error with end-to-end-encryption."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -356,6 +360,18 @@
                 {
                     "code" : "L002",
                     "msg" : "Error while saving notification sub."
+                },
+                {
+                    "code" : "M001",
+                    "msg" : "Invalid Key (stepone)"
+                },
+                {
+                    "code" : "M002",
+                    "msg" : "Given algorithm did not match algorithm of key (stepone)"
+                },
+                {
+                    "code" : "M003",
+                    "msg" : "Given algorithm was of an unsupported or unsafe type."
                 },
                 {
                     "code" : "Z001",
