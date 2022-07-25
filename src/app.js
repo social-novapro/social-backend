@@ -154,6 +154,7 @@ var totalUsers = 0;
 const wsUtils = require('./WS/v1/utils');
 const interactUserSchema = require('./schemas/interactUserSchema');
 const liveChatSchema = require('./schemas/liveChatSchema');
+const { checkRequestTokens } = require('./utils/checkRequestTokens');
 // const { checkRequestTokens } = require('./utils/checkRequestTokens');
 
 function sendEveryone(sendMessage) {
@@ -471,51 +472,73 @@ wss.on('connection', async (ws, req) => {
 */
 
 // /*
+function checkURLParams(url) {
+    const params = new URLSearchParams(url);
+    const userID = params.has('/?userID');
+
+    if (userID) {
+        const userIDSearch = params.get('/?userID');
+        return {"param":true, paramTypes: [ {"paramName":"userID", "userID":userIDSearch}]};
+    };
+
+    return {"param":false};
+};
+
+function checkUserID(req) {
+    const paramsData = checkURLParams(req.url);
+    var userIDFound;
+
+    if (paramsData.param) {
+        for (const currentParam of paramsData.paramTypes) {
+            userIDFound = currentParam.userID;
+            if (currentParam.userID) return userIDFound;
+        };
+    };
+    if (!defaultUserID) return {"param" : "false"};
+    return defaultUserID;
+};
+
+
+var connections = {
+    connectedUsers: [],
+    users: {}
+    /*
+    connectedUsers: ["userID", "userID2"],
+    users: {
+        "userID" : {
+            username: "username",
+            userID: "userID",
+            displayName: "display name",
+            tokensCorrect: true,
+            timestamp: 1434,
+            typing : false,
+            typingSince : 0
+        },
+        "userID2" : {
+            tokensCorrect: true,
+            timestamp: 245,
+            typing: true,
+            typingSince: 246
+        }
+    }
+    */
+}
+
+function updateCurrentUser(currentUser) {
+    connections.users[`${currentUser.userID}`] = currentUser
+}
+
 wss.on('connection', async (ws, req) => {
     totalUsers = totalUsers + 1;
     
-    var userTyping = {
-        typingSince: getTime(),
-        typing: false
-    }
-
-   // const paramsData = checkURLParams(req.url)
-    const userID = checkUserID();
-    
+    const userID = checkUserID(req);
     const newJoinID = uuidv4();
 
     const userData = await interactUserSchema.findOne({ _id: userID });
     if (!userData) return ws.close()
 
-    function checkURLParams(url) {
-        const params = new URLSearchParams(url);
-        const userID = params.has('/?userID');
-    
-        if (userID) {
-            const userIDSearch = params.get('/?userID');
-            return {"param":true, paramTypes: [ {"paramName":"userID", "userID":userIDSearch}]};
-        };
-    
-        return {"param":false};
-    };
+    console.log(`user has connected, ${totalUsers} total connected.`);
 
-    function checkUserID() {
-        const paramsData = checkURLParams(req.url);
-        var userIDFound;
-
-        if (paramsData.param) {
-            for (const currentParam of paramsData.paramTypes) {
-                userIDFound = currentParam.userID;
-                if (currentParam.userID) return userIDFound;
-            };
-        };
-        if (!defaultUserID) return {"param" : "false"};
-        return defaultUserID;
-    };
-
-   // console.log(w/s.isAlive)
-    console.log(totalUsers);
-    console.log("user has connected");
 
     const data = await wsUtils.sendAllChatData();
 
@@ -523,11 +546,39 @@ wss.on('connection', async (ws, req) => {
         ws.send(JSON.stringify(chat));
     };
         
+    /*
+        getPrevious
+    */
     const user = {
         _id: userID,
         username: userData.username,
         displayName: userData.displayName,
     };
+
+    var currentUser = {
+        userID: userData._id,
+        username: userData.username,
+        displayName: userData.displayName,
+        timestampConnected: getTime(),
+        tokensCorrect: false,
+        // typing : false,
+    }
+    updateCurrentUser(currentUser)
+    // connections.users[`${userData._id}`] = currentUser
+    // console.log(connections)
+    
+    ws.send(JSON.stringify({
+        type: 10,
+        user,
+        message: "please connect",
+        mesType: 1
+        /*
+            1: please connect
+            2: token sending
+            3: error
+            4: success
+        */
+    }))
 
     var messageSend = {
         _id: newJoinID,
@@ -594,151 +645,221 @@ wss.on('connection', async (ws, req) => {
         catch {
             console.log(err)
             ws.send(JSON.stringify({"error": "Invalid JSON"}));
-        } 
-        const newID = uuidv4();
+        }
 
-        var messageSend;
+        if (!currentUser.tokensCorrect) {
+            if (data.type == 10 && data.mesType == 2) {
+                /*
+                headers
+                    userid
+                    devtoken
+                    apptoken
+                    usertoken
+                    accesstoken
+                */
+                const req = {
+                    baseUrl: "/websocket",
+                    originalUrl: "/ws",
+                    headers: data.tokens 
+                };
 
-        switch (data.type) {
-            case 2:
-                messageSend = {
-                    _id: newID,
+                if (!data.tokens) return;
+                if (data.tokens.userid != userID) return ws.close();
+
+                const tokenData = await checkRequestTokens(req);
+                if (tokenData.authorized == false) {
+                    messageError = {
+                        // _id: newID,
+                        type: 10,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        success: false,
+                    };
+                    return ws.send(JSON.stringify(messageError))
+                } else {
+                    messageGood = {
+                        // _id: newID,
+                        type: 10,
+                        user,
+                        success: true
+                    };
+
+                    ws.send(JSON.stringify(messageGood));
+
+                    currentUser.tokensCorrect = true;
+                    updateCurrentUser(currentUser);
+                }
+            }
+            else {
+                messageError = {
+                    // _id: newID,
                     type: 02,
                     user,
                     apiVersion: config.LATEST_API,
                     message: {
                         userID,
                         currentUsers: totalUsers,
-                        content: data.message.content,
+                        content: "No tokens has been sent.",
                         timeStamp: getTime(),
-                        replyTo: data.message.replyTo? data.message.replyTo : null,
                         edited: false
                     }
                 };
-
-                wsUtils.saveChat(messageSend);
-                break;
-            case 3:
-                const messageDeleteCheck = await liveChatSchema.findOne({ _id: data.messageToDelete });
-
-                if (!messageDeleteCheck) {
-                    return ws.send(JSON.stringify({ "error" : `no message`}));
-                } else if (!messageDeleteCheck.user) { 
-                    return ws.send(JSON.stringify({ "error" : `no user`}));
-                } else if (messageDeleteCheck.user._id != userID) {
-                    return ws.send(JSON.stringify(searchError("H001")));
-                } else if (messageDeleteCheck.user._id == userID) {
+                return ws.send(JSON.stringify(messageError))
+            }
+            return
+        }
+        else {
+            var messageSend;
+        
+            const newID = uuidv4();
+            switch (data.type) {
+                case 2:
                     messageSend = {
-                        _id: data.messageToDelete,
-                        type: 03,
+                        _id: newID,
+                        type: 02,
                         user,
                         apiVersion: config.LATEST_API,
-                        deleteMessage: {
-                            content: messageDeleteCheck.content,
-                            timeStamp: getTime()
-                        }
-                    }
-
-                    wsUtils.saveChat(messageSend)
-                };
-                break;
-            case 05: 
-                if (!data.editMessage) return ws.send(JSON.stringify({'error' : "you must have a editMessage object included in your message"}))
-                if (!data.editMessage.postID) return ws.send(JSON.stringify({"error" : "you must have a postID inside your editMessage object"}))
-                const messageOld = await liveChatSchema.findOne({ _id: data.editMessage.postID });
-
-                if (!messageOld) {
-                    return ws.send(JSON.stringify({"error" : `no message`}));
-                } else if (!messageOld.user) {
-                    return ws.send(JSON.stringify({"error" : `no user`}));
-                } else if (messageOld.user._id != userID) {
-                    return ws.send(JSON.stringify(searchError("H001")));
-                } else if (messageOld.user._id == userID) {
-                    const newEdit = data.editMessage.content
-                    messageSend = {
-                        _id: messageOld._id,
-                        type: 05,
-                        user,
-                        apiVersion: config.LATEST_API,
-                        // message (same content) 
-                        /*
-                        message
-                            postID
-                            replyTo
-                            timeStamp
-                            editedTimestamp
-
-                        newContent: newEdit
-                        
-                        originalContent: content
-                        
-                        
-                        
-                        save new mongo soon
-                        */
-                        newMessage: {
-                            postID: messageOld._id, // dont need after
-                            currentUsers: totalUsers, // dont need
-                            content: newEdit,
-                            editedTimeStamp: getTime()
-                            // add replying
-                        },
-                        oldMessage: {
-                            postID: messageOld._id, // dont need after
-                            content: messageOld.message.content,
-                            timeStamp: messageOld.message.timeStamp//dont need after
-                            // add replying
+                        message: {
+                            userID,
+                            currentUsers: totalUsers,
+                            content: data.message.content,
+                            timeStamp: getTime(),
+                            replyTo: data.message.replyTo? data.message.replyTo : null,
+                            edited: false
                         }
                     };
-                    wsUtils.saveChat(messageSend)
-                };
-                break;
-            case 08:
-                //if (userTyping.typing == true) return 
-                messageSend = {
-                    type: 08,
-                    user,
-                    apiVersion: config.LATEST_API,
-                    userTyping: true
-                };
-                //userTyping.typing = true
-                break;
-            case 09:
-                //if (userTyping.typing == false) return
-                messageSend = {
-                    type: 09,
-                    user,
-                    apiVersion: config.LATEST_API,
-                    userTyping: false
-                };
-                //userTyping.typing = true
-                break;
-            case 101:
-                errorMessage = {
-                    type: 101,
-                    user,
-                    apiVersion: config.LATEST_API,
-                    error: "no messageID included"
-                }
-                if (!data.messageID) {
-                    messageSend = errorMessage
-                }
-                else {
-                    const messageFound = wsUtils.getMessage(data?.postID)
-                    if (!messageFound) messageSend = errorMessage
-                    else messageSend = messageFound
-                }
-                break;
-            default:
-                return ws.send(JSON.stringify({ "error" : "invalid message type"}));
-                break;
+
+                    wsUtils.saveChat(messageSend);
+                    break;
+                case 3:
+                    const messageDeleteCheck = await liveChatSchema.findOne({ _id: data.messageToDelete });
+
+                    if (!messageDeleteCheck) {
+                        return ws.send(JSON.stringify({ "error" : `no message`}));
+                    } else if (!messageDeleteCheck.user) { 
+                        return ws.send(JSON.stringify({ "error" : `no user`}));
+                    } else if (messageDeleteCheck.user._id != userID) {
+                        return ws.send(JSON.stringify(searchError("H001")));
+                    } else if (messageDeleteCheck.user._id == userID) {
+                        messageSend = {
+                            _id: data.messageToDelete,
+                            type: 03,
+                            user,
+                            apiVersion: config.LATEST_API,
+                            deleteMessage: {
+                                content: messageDeleteCheck.content,
+                                timeStamp: getTime()
+                            }
+                        }
+
+                        wsUtils.saveChat(messageSend)
+                    };
+                    break;
+                case 05: 
+                    if (!data.editMessage) return ws.send(JSON.stringify({'error' : "you must have a editMessage object included in your message"}))
+                    if (!data.editMessage.postID) return ws.send(JSON.stringify({"error" : "you must have a postID inside your editMessage object"}))
+                    const messageOld = await liveChatSchema.findOne({ _id: data.editMessage.postID });
+
+                    if (!messageOld) {
+                        return ws.send(JSON.stringify({"error" : `no message`}));
+                    } else if (!messageOld.user) {
+                        return ws.send(JSON.stringify({"error" : `no user`}));
+                    } else if (messageOld.user._id != userID) {
+                        return ws.send(JSON.stringify(searchError("H001")));
+                    } else if (messageOld.user._id == userID) {
+                        const newEdit = data.editMessage.content
+                        messageSend = {
+                            _id: messageOld._id,
+                            type: 05,
+                            user,
+                            apiVersion: config.LATEST_API,
+                            // message (same content) 
+                            /*
+                            message
+                                postID
+                                replyTo
+                                timeStamp
+                                editedTimestamp
+
+                            newContent: newEdit
+                            
+                            originalContent: content
+                            
+                            save new mongo soon
+                            */
+                            newMessage: {
+                                postID: messageOld._id, // dont need after
+                                currentUsers: totalUsers, // dont need
+                                content: newEdit,
+                                editedTimeStamp: getTime()
+                                // add replying
+                            },
+                            oldMessage: {
+                                postID: messageOld._id, // dont need after
+                                content: messageOld.message.content,
+                                timeStamp: messageOld.message.timeStamp//dont need after
+                                // add replying
+                            }
+                        };
+                        wsUtils.saveChat(messageSend)
+                    };
+                    break;
+                case 08:
+                    //if (userTyping.typing == true) return 
+                    messageSend = {
+                        type: 08,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        userTyping: true
+                    };
+                    //userTyping.typing = true
+                    break;
+                case 09:
+                    //if (userTyping.typing == false) return
+                    messageSend = {
+                        type: 09,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        userTyping: false
+                    };
+                    //userTyping.typing = true
+                    break;
+                case 10: 
+                    errorMessage = {
+                        type: 10,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        success: false,
+                        error: "already connected"
+                    }
+                    break;
+                case 101:
+                    errorMessage = {
+                        type: 101,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        error: "no messageID included"
+                    }
+                    if (!data.messageID) {
+                        messageSend = errorMessage
+                    }
+                    else {
+                        const messageFound = wsUtils.getMessage(data?.postID)
+                        if (!messageFound) messageSend = errorMessage
+                        else messageSend = messageFound
+                    }
+                    break;
+                default:
+                    return ws.send(JSON.stringify({ "error" : "invalid message type"}));
+                    break;
+            };
+
+            // if (!messageSend) return ws.send(JSON.stringify(searchError("H002")));
+
+            wss.clients.forEach(client => {
+                client.send(JSON.stringify(messageSend))
+            });
         };
-
-        if (!messageSend) return ws.send(JSON.stringify(searchError("H002")));
-
-        wss.clients.forEach(client => {
-            client.send(JSON.stringify(messageSend))
-        });
     });
 });
 
