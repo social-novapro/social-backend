@@ -1,0 +1,33 @@
+
+
+const mongoose = require('mongoose');
+
+const reqString = {
+    type: String,
+    required: true
+};
+
+const reqNum = {
+    type: Number,
+    required: true
+};
+
+const userObj = mongoose.Schema({
+    _id: reqString, //userID
+    timestampJoined: reqNum
+    
+});
+
+const interactDmsGroupsSchema = mongoose.Schema({
+    _id: reqString, // 
+    users: [userObj],
+    owner: reqString,
+    created: reqNum,
+});
+
+/*
+    _id: String
+    users: [{userID, timestamp}]
+*/
+
+module.exports = mongoose.model('interact-dms-groups-schema', interactDmsGroupsSchema);
