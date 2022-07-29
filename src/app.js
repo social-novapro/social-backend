@@ -212,8 +212,10 @@ var connections = {
             displayName: "display name",
             tokensCorrect: true,
             timestamp: 1434,
-            typing : false,
+            typing: false,
             typingSince : 0
+            groupOpened: false
+            groupID: "324rj"
         },
         "userID2" : {
             tokensCorrect: true,
@@ -568,17 +570,54 @@ wss.on('connection', async (ws, req) => {
                     }
                     break;
                 // dms
-                case 200: // send message
+                case 200: // connect
+                    /*
+
+                    */
                     // content, groupID
                     var privateMessage = {
-
+                        
                     }
 
                     break;
-                case 201: 
-                    
+                case 201: // get groups
+                    const userGroups = await dmUtils.getGroups({ "userID": userData._id })
+                    if (!userGroups) return ws.send(JSON.stringify({ "error" : "no groups found"}));
+                    ws.send(JSON.stringify(
+                        {
+                            type: 201,
+                            userGroups
+                        }
+                    ));
                     break;
-               
+                case 202: // create group
+                    if (!data.addUsers) return
+                    const newGroup = await dmUtils.newGroup({ "userID": userData._id, "members" : data.addUsers, "groupName" : data.groupName })
+                    console.log(newGroup)
+                    ws.send(JSON.stringify({
+                        type: 202,
+                        newGroup
+                    }))
+                    break;
+                case 203: // get group data
+                    if (!data.groupID) return
+                    const groupData = await dmUtils.getGroupData({ "userID" : userData._id, "groupID" : data.grouPID})
+                    if (groupData.success == false) return 
+
+                    ws.send(JSON.stringify({
+                        type: 203,
+                        groupData: groupData.foundGroup
+                    }))
+
+                    break;
+                case 204: // delete group
+                    if (!data.groupID) return
+                    await dmUtils.deleteGroup({ "userID" : userData._id, "groupID":  data.groupID})
+                    ws.send(JSON.stringify({
+                        type: 204,
+                        deleted: true,
+                        groupID: data.groupID
+                    }))
                 default:
                     return ws.send(JSON.stringify({ "error" : "invalid message type"}));
                     break;

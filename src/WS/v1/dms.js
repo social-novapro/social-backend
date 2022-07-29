@@ -4,19 +4,25 @@ const interactDmsMessagesSchema = require('../../schemas/websocket/dms/interactD
 const interactDmsUserGroupsSchema = require('../../schemas/websocket/dms/interactDmsUserGroupsSchema');
 const interactUserSchema = require('../../schemas/interactUserSchema');
 const {v4 : uuidv4} = require('uuid');
-const checktime = require('../../utils/checktime');
+const {checktime} = require('../../utils/checktime');
 
 async function getNewGroupID() {
     const newGroupID = uuidv4()
-    const foundGroup = interactDmsGroupsSchema.findOne({ _id: newGroupID }) 
+    const foundGroup = await interactDmsGroupsSchema.findOne({ _id: newGroupID }) 
     if (foundGroup) return getNewGroupID()
     else return newGroupID
 }
 
-async function newGroup({ userID, members }) {
+async function newGroup({ userID, members, groupName}) {
     const newGroupID = await getNewGroupID()
+    var newGroupName
+    if (!groupName) newGroupName = "New Group."
+    else newGroupName = groupName
+    // console.log(newGroupName)
 
-    await createNewGroupWithOwner({ userID, "groupID" : newGroupID });
+    await createNewGroupWithOwner({ "userID": userID, "groupID" : newGroupID, "groupName" : newGroupName });
+
+    members.push(userID)
 
     var errors = []
     for (const memberID of members) {
@@ -33,20 +39,70 @@ async function newGroup({ userID, members }) {
     return { "success": true, "groupID": newGroupID, "group": newGroup, errors}
 }
 
-async function createNewGroupWithOwner({ userID, groupID }) {
-    await interactDmsGroupsSchema.create(
+async function removeUserFromGroup({ memberID, groupID }) {
+    await interactDmsGroupsSchema.findOneAndUpdate(
+        { _id: groupID },
+        { $pull : { "users" : {
+            _id: memberID
+        }}}
+    );
+
+    await interactDmsUserGroupsSchema.findOneAndUpdate(
+        { _id: memberID },
+        { $pull : { "groups" : {
+            _id: groupID
+        }}}
+    );
+
+    return true
+}
+
+async function deleteGroup({ userID, groupID }) {
+    const groupData = await interactDmsGroupsSchema.findOne({ _id: groupID }) 
+
+    if (groupData.owner == userID) {
+        for (const member of groupData.users) {
+            await removeUserFromGroup({"memberID": member, groupID})
+        }
+
+        await interactDmsGroupsSchema.deleteOne({ _id: groupID })
+    }
+}
+async function findUserInGroup({ groupID, userID }) {
+    const find = await interactDmsGroupsSchema.findOne({ _id: groupID, _id : { $in : userID }})
+    console.log(find)
+}
+
+async function createNewGroupWithOwner({ userID, groupID, groupName}) {
+    // console.log("1")
+    // console.log(userID)
+    // console.log(groupName)
+    await interactDmsGroupsSchema.findOneAndUpdate(
         { _id: groupID },
         {
             owner: userID,
+            groupName,
             created: checktime()
-        }
+        }, { upsert: true }
     );
 
-    await addUserToGroupDatabase({ "memberID" : userID, groupID});
+    // await addUserToGroupDatabase({ "memberID" : userID, groupID});
     return true;
 }
 
 async function addUserToGroupDatabase({ memberID, groupID}) {
+    // console.log("2")
+
+    // const userGroupData = await interactDmsUserGroupsSchema.findOne({_id: memberID}) 
+
+    // for (const group of userGroupData?.groups) {
+    //     if (group._id == groupID){
+    //         console.log('already in group.')
+    //         return false;
+    //     }
+    // }
+    await findUserInGroup({ groupID, "userID" : memberID})
+    
     await interactDmsUserGroupsSchema.findOneAndUpdate(
         { _id: memberID },
         { $push : { "groups": {
@@ -68,9 +124,28 @@ async function addUserToGroupDatabase({ memberID, groupID}) {
 }
 
 async function checkUserExists({ userID }) {
-    const foundUser = interactUserSchema.findOne({_id: userID});
-    if (!foundUser) return { 'found': false }
-    else return { 'found': true}
+    const foundUser = await interactUserSchema.findOne({_id: userID});
+    if (!foundUser) return { 'found' : false }
+    else return { 'found' : true}
+}
+async function changeGroupName({ userID, groupName }) {
+    // check if in group
+    // later: check if user has perms
+    // then add name 
+    // save the last groupname + who changed the name (later)
+}
+
+async function getGroupData({ userID, groupID }) {
+    const foundGroup = await interactDmsGroupsSchema.findOne({ _id: groupID })
+    if (!foundGroup) return { "success" : false, "error" : "Group not found." }
+    var userIsMember = false
+
+    for (const member of foundGroup.users) {
+        if (member._id==userID) userIsMember=true;
+    }
+
+    if (!userIsMember) return { "success" : false, "error" : "User not found inside group." }
+    return { "success" : true, groupData: foundGroup}
 }
 
 async function newMessage({ userID, groupID }) {
@@ -110,12 +185,19 @@ async function getIndex({ indexID, action }) {
     return
 }
 
-async function getGroups() {
+async function getGroups({userID}) {
+    const foundUser = checkUserExists({userID})
+    if (foundUser.found == false) return {"error" : "user not found"}
 
-    return
+    const data = interactDmsUserGroupsSchema.findOne({_id: userID})
+    if (!data) return {"error" : "no groups found"}
+
+    return data
 }
 
 module.exports = {
-
-
+    newGroup,
+    getGroups,
+    getGroupData,
+    deleteGroup
 }

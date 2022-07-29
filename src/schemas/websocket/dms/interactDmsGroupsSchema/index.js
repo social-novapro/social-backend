@@ -20,6 +20,7 @@ const userObj = mongoose.Schema({
 
 const interactDmsGroupsSchema = mongoose.Schema({
     _id: reqString, // 
+    groupName: reqString,
     users: [userObj],
     owner: reqString,
     created: reqNum,
