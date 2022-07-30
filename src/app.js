@@ -618,6 +618,11 @@ wss.on('connection', async (ws, req) => {
                         deleted: true,
                         groupID: data.groupID
                     }))
+                case 210: // send message
+                    if (!data.content) return
+                    if (!data.groupID) return
+                    dmUtils.sendMessage({ content: data.content, groupID: data.groupID })
+                    break;
                 default:
                     return ws.send(JSON.stringify({ "error" : "invalid message type"}));
                     break;

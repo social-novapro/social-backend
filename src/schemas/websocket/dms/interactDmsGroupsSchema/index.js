@@ -15,15 +15,15 @@ const reqNum = {
 const userObj = mongoose.Schema({
     _id: reqString, //userID
     timestampJoined: reqNum
-    
 });
 
 const interactDmsGroupsSchema = mongoose.Schema({
-    _id: reqString, // 
-    groupName: reqString,
-    users: [userObj],
-    owner: reqString,
+    _id: reqString, // groupID
+    groupName: reqString, 
+    users: [userObj], 
+    owner: reqString, // userID
     created: reqNum,
+    currentIndex: reqString // indexID
 });
 
 /*

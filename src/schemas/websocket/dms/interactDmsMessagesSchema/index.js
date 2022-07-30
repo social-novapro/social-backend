@@ -19,7 +19,9 @@ const editsObj = mongoose.Schema({
 
 const interactDmsMessagesSchema = mongoose.Schema({
     _id: reqString,
+    indexID: reqString,
     userID: reqString,
+    groupID: reqString,
     content: reqString,
     timestamp: reqNum,
     edits: [editsObj] 
