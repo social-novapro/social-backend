@@ -101,16 +101,6 @@ async function createNewGroupWithOwner({ userID, groupID, groupName }) {
 };
 
 async function addUserToGroupDatabase({ memberID, groupID }) {
-    // console.log("2")
-
-    // const userGroupData = await interactDmsUserGroupsSchema.findOne({_id: memberID}) 
-
-    // for (const group of userGroupData?.groups) {
-    //     if (group._id == groupID){
-    //         console.log('already in group.')
-    //         return false;
-    //     }
-    // }
     await findUserInGroup({ groupID, "userID" : memberID });
     
     await interactDmsUserGroupsSchema.findOneAndUpdate(
@@ -192,16 +182,35 @@ async function getIndex({ indexID, action }) {
 
     return false;
 };
+async function checkGroupExistsAndUser({ userID, groupID }) {
+    if (!userID) return { "success" : false, "error" : "No userID provided."}
+    if (!groupID) return { "success" : false, "error" : "No groupID provided."}
+    
+    const groupData = await interactDmsGroupsSchema.findOne({ _id: groupID });
+    if (!groupData) return {  "success" : false, "error" : "Group not found." };
+    console.log(userID)
+    console.log(groupData)
+    const foundUser = groupData.users.find(({ _id }) => _id==userID);
+    if (!foundUser) return {  "success" : false, "error" : "User not found in group." };
+
+    return { "success" : true, groupData, foundUser }
+}
 
 async function sendMessage({ content, userID, groupID }) {
     /*
         check if userid in group
     */
    
-    const groupData = await interactDmsGroupsSchema.findOne({ _id: groupID });
-    if (!groupData) return { "error" : "Group not found." };
-    const foundUser = groupData.users.find(({ user }) => user == userID);
-    if (!foundUser) return { "error" : "User not found in group." };
+    const confirm = await checkGroupExistsAndUser({ userID, groupID })
+    if (confirm.success == false) return confirm
+    const { groupData, foundUser } = confirm
+    
+    if (!content || !userID || !groupID) return { "error" : "missing required data" }
+
+    // const groupData = await interactDmsGroupsSchema.findOne({ _id: groupID });
+    // if (!groupData) return { "error" : "Group not found." };
+    // const foundUser = groupData.users.find(({ user }) => user == userID);
+    // if (!foundUser) return { "error" : "User not found in group." };
 
     // var indexID;
     // const GroupIndexes = await interactDmsIndexSchema.findOne({ _id: groupID });
@@ -227,25 +236,70 @@ async function sendMessage({ content, userID, groupID }) {
             currentIndex: indexID
         })
     } else {
-        const IndexData = await interactDmsIndexSchema.findOne({_id: indexID})
-        if (!IndexData) {
-            indexID = uuidv4()
-            await interactDmsGroupsSchema.findOneAndUpdate({
-                _id: groupID,
-            }, {
-                currentIndex: indexID
-            })
-        } else if (!IndexData.messageID) {
-            indexID = IndexData._id
-        } else if (IndexData.messageIDs.length > 100) {
-            indexID = uuidv4()
-            await interactDmsGroupsSchema.findOneAndUpdate({
-                _id: groupID,
-            }, {
-                currentIndex: indexID
-            })
-        };
+        indexID = groupData.currentIndex
+    }
+    
+    // if(e) {
+    const IndexData = await interactDmsIndexSchema.findOne({_id: indexID})
+    // console.log("2")
+    // console.log(indexID)
+    // console.log(IndexData)
+    if (!IndexData) {
+        indexID = uuidv4();
+
+        // update group data
+        await interactDmsGroupsSchema.findOneAndUpdate(
+            { _id: groupID },
+            { currentIndex: indexID },
+            { upsert: true }
+        );
+        // update previous to point to new
+        await interactDmsIndexSchema.findOneAndUpdate(
+            { _id: groupData.currentIndex }, 
+            { nextID: indexID }, 
+            { upsert: true}
+        );
+        // update new to point to previous
+        await interactDmsIndexSchema.findOneAndUpdate(
+            { _id: indexID },
+            { previousID: groupData.currentIndex },
+            { upsert: true }
+        );
+
+    } else if (!IndexData.messageIDs) {
+        indexID = IndexData._id
+    } else if (IndexData.messageIDs.length > 50) {
+        indexID = uuidv4()
+        // update group data
+        await interactDmsGroupsSchema.findOneAndUpdate(
+            { _id: groupID },
+            { currentIndex: indexID },
+            { upsert: true }
+        );
+        // update previous to point to new
+        await interactDmsIndexSchema.findOneAndUpdate(
+            { _id: groupData.currentIndex }, 
+            { nextID: indexID }, 
+            { upsert: true}
+        );
+        // update new to point to previous
+        await interactDmsIndexSchema.findOneAndUpdate(
+            { _id: indexID },
+            { previousID: groupData.currentIndex },
+            { upsert: true }
+        );
+        // await interactDmsGroupsSchema.findOneAndUpdate(
+        //     { _id: groupID },
+        //     { currentIndex: indexID }
+        // );
+
+        // await interactDmsIndexSchema.findOneAndUpdate(
+        //     { _id: indexID },
+        //     { previousID: groupData.currentIndex},
+        //     { upsert: true }
+        // );
     };
+    // };
 
     // var indexID;
     // const GroupIndexes = await interactDmsIndexSchema.findOne({ _id: groupID });
@@ -266,23 +320,22 @@ async function sendMessage({ content, userID, groupID }) {
         { _id: messageID },
         {
             _id: messageID,
-            userID: messageID,
+            userID,
             indexID,
             groupID,
             content,
             timestamp: checktime()
         }, { upsert: true }
     );
-
-    await interactDmsIndexSchema.findOneAndReplace(
+    await interactDmsIndexSchema.findOneAndUpdate(
         { _id: indexID },
         { $push : { "messageIDs" : messageID }},
-        { upsert: true}
+        { upsert: true }
     );
 
     const newMessageData = await interactDmsMessagesSchema.findOne({ _id: messageID })
     if (!newMessageData) return { "error" : "message was not found" }
-    else return newMessageData
+    else return { groupData, messageData: newMessageData }
 };
 
 async function getGroups({userID}) {
@@ -295,10 +348,70 @@ async function getGroups({userID}) {
     return data;
 };
 
+async function requestGroupMessages({ userID, groupID }) {
+    const confirm = await checkGroupExistsAndUser({ userID, groupID });
+    if (confirm.success == false) return confirm;
+    const { groupData, foundUser } = confirm;
+
+    var response = {
+        groupData,
+        index: {},
+        messages: []
+    };
+
+    if (!groupData.currentIndex) return { "error" : "no current index for group."};
+    const foundIndex = await interactDmsIndexSchema.findOne({ _id: groupData.currentIndex });
+    // console.log("---3")
+    // console.log(foundIndex)
+    if (!foundIndex) return { "error" : "no found index" };
+
+    response.index = foundIndex;
+
+    var cacheUsers = {};
+    for (const messageID of foundIndex.messageIDs) {
+        const foundMessage = await interactDmsMessagesSchema.findOne({ _id: messageID });
+        if (foundMessage) {
+            var currentMessageUser = null;
+            var searchUserID = foundMessage.userID
+
+            if (cacheUsers[searchUserID]) {
+                currentMessageUser = cacheUsers[searchUserID]
+            } else {
+                const userForMessage = await interactUserSchema.findOne({ _id: searchUserID });
+                cacheUsers[searchUserID] = userForMessage
+                currentMessageUser = userForMessage
+            }
+
+            // var messageUser = null;
+            // if (!foundUsers[foundMessage.userID]) {
+            //     const userForMessage = await interactUserSchema.findOne({ _id: foundMessage.userID });
+                
+            // console.log(messageUser)
+
+            //     foundUsers[foundMessage.userID] = userForMessage;
+            //     messageUser = userForMessage;
+            // } else {
+            //     console.log(foundUser[foundUser.userID])
+            //     messageUser = foundUser[foundMessage.userID]
+            // };
+            
+            const messageSend = {
+                user: currentMessageUser,
+                message: foundMessage
+            };
+
+            response.messages.push(messageSend);
+        };
+    };
+
+    return response
+};
+
 module.exports = {
     newGroup,
     getGroups,
     getGroupData,
     deleteGroup,
-    sendMessage
+    sendMessage,
+    requestGroupMessages
 };

@@ -202,7 +202,8 @@ function checkUserID(req) {
 
 var connections = {
     connectedUsers: [],
-    users: {}
+    users: {},
+    websockets: {}
     /*
     connectedUsers: ["userID", "userID2"],
     users: {
@@ -227,8 +228,10 @@ var connections = {
     */
 }
 
-function updateCurrentUser(currentUser) {
+function updateCurrentUser(currentUser, ws) {
     connections.users[`${currentUser.userID}`] = currentUser
+    connections.websockets[`${currentUser.userID}`] = ws
+
 }
 
 wss.on('connection', async (ws, req) => {
@@ -280,7 +283,7 @@ wss.on('connection', async (ws, req) => {
         // typing : false,
     }
 
-    updateCurrentUser(currentUser)
+    // updateCurrentUser(currentUser)
     // connections.users[`${userData._id}`] = currentUser
     // console.log(connections)
     
@@ -355,9 +358,10 @@ wss.on('connection', async (ws, req) => {
     //connection is up, let's add a simple simple event
     ws.on('message', async (message) => {
         var data
-
+        
         try {
             data = JSON.parse(message);
+            console.log(data)
         }
         catch {
             console.log(err)
@@ -406,7 +410,7 @@ wss.on('connection', async (ws, req) => {
                     ws.send(JSON.stringify(messageGood));
 
                     currentUser.tokensCorrect = true;
-                    updateCurrentUser(currentUser);
+                    updateCurrentUser(currentUser, ws);
                 }
             }
             else {
@@ -618,10 +622,56 @@ wss.on('connection', async (ws, req) => {
                         deleted: true,
                         groupID: data.groupID
                     }))
-                case 210: // send message
-                    if (!data.content) return
-                    if (!data.groupID) return
-                    dmUtils.sendMessage({ content: data.content, groupID: data.groupID })
+                    break;
+                case 205: // add user
+                break;
+                case 206: // remove user
+                break;
+                case 207: // change group name
+                break;
+                case 210: // send message / new message
+                    if (!data.content) return false;
+                    if (!data.groupID) return false;
+                    const newMessage = await dmUtils.sendMessage({ "userID" : userData._id, content: data.content, groupID: data.groupID });
+                    if (newMessage.error) return false;
+                    else {
+                        var sendNewMessage = {
+                            type: 210,
+                            user,
+                            message: newMessage.messageData,
+                            group: newMessage.groupData
+                        };
+
+                        var onlineMembers = [];
+                        for (const user of newMessage.groupData.users) {
+                            if (connections.users[user._id]) onlineMembers.push(user._id);
+                        };
+
+                        // console.log(sendNewMessage)
+
+                        for (const memberID of onlineMembers) {
+                            const memberWS = connections.websockets[memberID];
+                            memberWS.send(JSON.stringify(sendNewMessage));
+                        };
+                    };
+                    break;
+                case 211: // request Group messages
+                    if (!data.groupID) return false;
+                    const responseData = await dmUtils.requestGroupMessages({ "userID" : userData._id, groupID: data.groupID });
+                    // console.log(responseData)
+
+                    if (responseData.error) return false;
+                    const sendRequestData = {
+                        type: 211,
+                        user,
+                        index: responseData.index,
+                        messages: responseData.messages,
+                        groupData: responseData.groupData
+                    }
+                    // console.log(sendRequestData)
+
+                    ws.send(JSON.stringify(sendRequestData));
+
                     break;
                 default:
                     return ws.send(JSON.stringify({ "error" : "invalid message type"}));
@@ -632,7 +682,7 @@ wss.on('connection', async (ws, req) => {
                 wss.clients.forEach(client => {
                     client.send(JSON.stringify(messageSend))
                 });
-            }
+            };
             // return ws.send(JSON.stringify(searchError("H002")));
         };
     });
