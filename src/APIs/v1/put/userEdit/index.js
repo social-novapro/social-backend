@@ -17,7 +17,8 @@ router.put('/', async (req, res) => {
         "newDisplayname",
         "newDescription",
         "newPronouns",
-        "newStatus"
+        "newStatus",
+        "isBrandAccount"
         // more?
     ]
 

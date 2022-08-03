@@ -79,8 +79,13 @@ async function deleteGroup({ userID, groupID }) {
 };
 
 async function findUserInGroup({ groupID, userID }) {
-    const find = await interactDmsGroupsSchema.findOne({ _id: groupID, _id : { $in : userID }});
+    const find = await interactDmsGroupsSchema.findOne({ _id: groupID });
+    // const find = await interactDmsGroupsSchema.findOne({ _id: groupID, _id : { $in : userID }});
+    const foundUser = find.users.find(({ _id }) => _id==userID);
+// see if fixed
+    console.log("3")
     console.log(find);
+    console.log(foundUser)
 };
 
 async function createNewGroupWithOwner({ userID, groupID, groupName }) {
@@ -182,6 +187,7 @@ async function getIndex({ indexID, action }) {
 
     return false;
 };
+
 async function checkGroupExistsAndUser({ userID, groupID }) {
     if (!userID) return { "success" : false, "error" : "No userID provided."}
     if (!groupID) return { "success" : false, "error" : "No groupID provided."}
