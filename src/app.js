@@ -10,6 +10,7 @@ const app = express();
 const RootSchema = require('./graphql');
 const APIv1 = require('./APIs/v1');
 const PrivAPIv1 = require('./APIs/v1Priv');
+const APIdata = require('./APIs/API');
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
 
@@ -117,6 +118,7 @@ app.get('/apiDocs', (req, res) => {
 app.get('/apiDocsJS', (req, res) => {
     res.sendFile(__dirname + '/APIs/apidocs.js');
 });
+app.use('/API', APIdata)
 app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
 
