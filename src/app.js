@@ -3,11 +3,9 @@ const mongoose = require('mongoose');
 const WebSocket = require('ws');
 const http = require('http');
 const cors = require('cors');
-const { graphqlHTTP } = require('express-graphql');
 const config = require('../config.json');
 const PORT = config.PORT;
 const app = express();
-const RootSchema = require('./graphql');
 const APIv1 = require('./APIs/v1');
 const PrivAPIv1 = require('./APIs/v1Priv');
 const APIdata = require('./APIs/API');
@@ -95,11 +93,6 @@ app.use(cors({
         'https://interact-analytics.novapro.net'
     ],
     credentials: true
-}));
-
-app.use('/graphql', graphqlHTTP({
-    graphiql: true,
-    schema: RootSchema,
 }));
 
 /*
@@ -233,7 +226,6 @@ var connections = {
 function updateCurrentUser(currentUser, ws) {
     connections.users[`${currentUser.userID}`] = currentUser
     connections.websockets[`${currentUser.userID}`] = ws
-
 }
 
 wss.on('connection', async (ws, req) => {
@@ -261,12 +253,10 @@ wss.on('connection', async (ws, req) => {
     console.log(`user has connected, ${totalUsers} total connected.`);
 
 
-    const data = await wsUtils.sendAllChatData();
-
-    for (const chat of data ) {
+    const previousMessages = await wsUtils.sendAllChatData();
+    for (const chat of previousMessages) {
         ws.send(JSON.stringify(chat));
-    };
-        
+    };  
     /*
         getPrevious
     */
@@ -369,6 +359,7 @@ wss.on('connection', async (ws, req) => {
             console.log(err)
             ws.send(JSON.stringify({"error": "Invalid JSON"}));
         }
+        console.log(data)
 
         if (!currentUser.tokensCorrect) {
             if (data.type == 10 && data.mesType == 2) {
@@ -558,6 +549,11 @@ wss.on('connection', async (ws, req) => {
                         error: "already connected"
                     }
                     break;
+                // case 11:
+                //     for (const chat of previousMessages) {
+                //         ws.send(JSON.stringify(chat));
+                //     };
+                //     break;
                 // errors
                 case 101:
                     errorMessage = {
