@@ -236,11 +236,11 @@ async function sendMessage({ content, userID, groupID }) {
 
     if (!groupData.currentIndex) {
         indexID = uuidv4()
-        await interactDmsGroupsSchema.findOneAndUpdate({
-            _id: groupID,
-        }, {
-            currentIndex: indexID
-        })
+        await interactDmsGroupsSchema.findOneAndUpdate(
+            { _id: groupID,}, 
+            { currentIndex: indexID },
+            { upsert: true }
+        );
     } else {
         indexID = groupData.currentIndex
     }

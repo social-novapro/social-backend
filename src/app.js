@@ -83,17 +83,18 @@ async function createTokens() {
 }
 */
 
-app.use(cors({
-    origin: [ 
-        'https://interact.novapro.net', 
-        'http://localhost:5500', 
-        'https://interact.dkravec.repl.co',
-        'http://localhost:3000',
-        'http://127.0.0.1:5500',
-        'https://interact-analytics.novapro.net'
-    ],
-    credentials: true
-}));
+// app.use(cors({
+//     origin: [ 
+//         'https://interact.novapro.net', 
+//         'http://localhost:5500', 
+//         'https://interact.dkravec.repl.co',
+//         'http://localhost:3000',
+//         'http://127.0.0.1:5500',
+//         'https://interact-analytics.novapro.net'
+//     ],
+//     credentials: true
+// }));
+app.use(cors())
 
 /*
 app.get('/', (req, res) => {
