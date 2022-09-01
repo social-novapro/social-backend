@@ -628,6 +628,8 @@ wss.on('connection', async (ws, req) => {
                 break;
                 case 207: // change group name
                 break;
+                case 208: // change default notifications
+                break;
                 case 210: // send message / new message
                     if (!data.content) return false;
                     if (!data.groupID) return false;
@@ -645,8 +647,6 @@ wss.on('connection', async (ws, req) => {
                         for (const user of newMessage.groupData.users) {
                             if (connections.users[user._id]) onlineMembers.push(user._id);
                         };
-
-                        // console.log(sendNewMessage)
 
                         for (const memberID of onlineMembers) {
                             const memberWS = connections.websockets[memberID];
@@ -671,6 +671,28 @@ wss.on('connection', async (ws, req) => {
 
                     ws.send(JSON.stringify(sendRequestData));
 
+                    break;
+                case 220: // notifications off/on (per user)
+                    /*
+                        option: 
+                            on, off, mentions, default
+                    */
+                    
+                    break;
+                case 221: // change/get lastopened group
+                if (!data.method) return ws.send(JSON.stringify({ "error" : "invalid message type"}));
+                else if (data.method == "change" && !data.groupID) return ws.send(JSON.stringify({ "error" : "invalid message type"}));
+
+                    if (data.method == "change" || data.method == "get") {
+                        const returnData = await dmUtils.changeLastOpened({ user, method: data.method, groupID: data.groupID || null })
+                        if (returnData.error) return ws.send(JSON.stringify({ "error" : "invalid message type"}));
+                        ws.send(JSON.stringify({
+                            type: 221,
+                            user,
+                            data: returnData.found
+                        }));
+                    } else return ws.send(JSON.stringify({ "error" : "invalid message type"}));
+                    
                     break;
                 default:
                     return ws.send(JSON.stringify({ "error" : "invalid message type"}));

@@ -23,7 +23,8 @@ const interactDmsGroupsSchema = mongoose.Schema({
     users: [userObj], 
     owner: reqString, // userID
     created: reqNum,
-    currentIndex: reqString // indexID
+    currentIndex: reqString, // indexID
+    notifications: reqNum // 1: on, 2: off, 3: mentions
 });
 
 /*

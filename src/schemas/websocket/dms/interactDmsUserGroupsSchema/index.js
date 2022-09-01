@@ -17,13 +17,15 @@ const nonreqNum = {
 const groupObj = mongoose.Schema({
     _id: reqString, //group id
     timestamp: reqNum, // time entered
+    notifications: reqNum, // 1: on, 2: off, 3: mentions, 4: default
     timeLeft: nonreqNum
 });
 
 const interactDmsUserGroupsSchema = mongoose.Schema({
     _id: reqString,
     groups: [groupObj],
-    rooms: [groupObj]
+    rooms: [groupObj],
+    lastOpened: reqString
 });
 
 /*

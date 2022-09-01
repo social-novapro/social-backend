@@ -413,11 +413,50 @@ async function requestGroupMessages({ userID, groupID }) {
     return response
 };
 
+async function changeNotificationsUser() {
+
+}
+
+async function changeNotificationsGroup() {
+    
+}
+
+async function changeLastOpened({ user, method, groupID}) {
+    const foundUser = await interactDmsUserGroupsSchema.findOne({ _id: user._id})
+    if (method == "change") {
+
+        var foundGroupSearch = false
+        for (const group of foundUser.groups) {
+            if (group._id== groupID) foundGroupSearch = true
+        }
+
+        if (foundGroupSearch === false) {
+            return { "success" : false, "error" : "User was not found in group."}
+        }
+
+        await interactDmsUserGroupsSchema.findOneAndUpdate(
+            { _id: user._id },
+            { lastOpened: groupID },
+            { upsert: true}
+        )
+
+        const foundUserNew = await interactDmsUserGroupsSchema.findOne({ _id: user._id});
+        if (foundUserNew.lastOpened != groupID) return { "success" : false, "error" : "Data was not saved." };
+        else return { "success" : true, "data" : { "groupID_old" : foundUser.lastOpened, "groupID" : foundUserNew.foundGroup }};
+    } else {
+        if (!foundUser.lastOpened) return { "success" : false, "error" : "There was no last group opened." }
+        else return { "success" : true, "data" : { "groupID" : foundUser.lastOpened }}
+    };
+}
+
 module.exports = {
     newGroup,
     getGroups,
     getGroupData,
     deleteGroup,
     sendMessage,
-    requestGroupMessages
+    requestGroupMessages,
+    changeNotificationsUser,
+    changeNotificationsGroup,
+    changeLastOpened
 };
