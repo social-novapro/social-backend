@@ -413,12 +413,55 @@ async function requestGroupMessages({ userID, groupID }) {
     return response
 };
 
-async function changeNotificationsUser() {
-
+async function changeNotificationsUser({ user, groupID, change }) { // not done
+    const foundUser = await interactDmsUserGroupsSchema.findOne({ _id: user._id})
+    var foundGroupSearch = false
+    for (const group of foundUser.groups) {
+        if (group._id== groupID) foundGroupSearch = true
+    }
+    
+    if (foundGroupSearch === false) return { "success" : false, "error" : "User was not found in group."};
+    // else {
+    //     await interactDmsUserGroupsSchema.findOneAndUpdate({
+    //         _id: user._id
+    //     })
+    // }
 }
 
-async function changeNotificationsGroup() {
-    
+async function changeNotificationsGroup({ user, groupID, change }) {
+    if (!groupID) {
+        return { "success" : false, "error" : "There was no groupID to change." };
+    } else if (!change) {
+        return { "success" : false, "error" : "There was no change inputed." };
+    };
+
+    const foundGroup = await interactDmsGroupsSchema.findOne({ _id: groupID });
+    const possibleChange = [ 1, 2, 3 ];
+
+    var toChange = null
+    for (const changeCheck of possibleChange) {
+        if (changeCheck == change) toChange = changeCheck
+    }
+    if (!toChange) {
+        return { "success" : false, "error" : "change was not a valid choice." };
+    }
+
+    if (foundGroup.owner==user._id) {
+        await interactDmsGroupsSchema.findOneAndUpdate({ _id: groupID },
+            {
+                notifications: toChange
+            }, 
+            { upsert: true }
+        )
+    }
+
+    const foundGroupCheck = await interactDmsGroupsSchema.findOne({ _id: groupID })
+    if (foundGroupCheck.notifications != toChange) {
+        return { "success" : false, "error" : "data was not saved properly, please try again." };
+
+    }
+
+    return { "success" : true, "data" : { "group_old" : foundGroup, "group_new" : foundGroupCheck }}
 }
 
 async function changeLastOpened({ user, method, groupID}) {
