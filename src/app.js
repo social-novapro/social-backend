@@ -685,11 +685,11 @@ wss.on('connection', async (ws, req) => {
 
                     if (data.method == "change" || data.method == "get") {
                         const returnData = await dmUtils.changeLastOpened({ user, method: data.method, groupID: data.groupID || null })
-                        if (returnData.error) return ws.send(JSON.stringify({ "error" : "invalid message type"}));
+                        if (returnData.error) return ws.send(JSON.stringify({ "error" : returnData.error}));
                         ws.send(JSON.stringify({
                             type: 221,
                             user,
-                            data: returnData.found
+                            data: returnData.data
                         }));
                     } else return ws.send(JSON.stringify({ "error" : "invalid message type"}));
                     
