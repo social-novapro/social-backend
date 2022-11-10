@@ -334,6 +334,10 @@
                     "msg" : "an error occured while saving request, please try again."
                 },
                 {
+                    "code" : "J004",
+                    "msg" : "User is already verified."
+                },
+                {
                     "code" : "K001",
                     "msg" : "postID is required"
                 },

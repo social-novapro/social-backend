@@ -13,14 +13,14 @@ const interactAdminSchema = mongoose.Schema({
     _id: reqString, // userid
     adminType: reqNum, // rank of admin
     /*
-        0 | owner
-        1 | Super Admin | Can do anything
+        3 | owner
+        2 | Super Admin | Can do anything
             can put admin under review
         2 | Admin | Can do anything except delete other admins
             can delete users 
-        3 | Moderator 
+        1 | Moderator 
             can delete posts, comments, and can put users on probation for admin review
-            
+        0 | nothing (shouldnt be saved) 
         Can do anything except delete other admins and moderators
     */
     timestamp: reqString, // time of acceptance into admin

@@ -3,6 +3,7 @@ const interactPostSchema = require('../../../schemas/interactPostSchema');
 const { SCHEMA_VERSIONS } = require('../../../../config.json');
 const { checktime } = require('../../checktime');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
+const {pushQuotePost} = require('../../../utils/notifications/pustQuotePost');
 
 async function newPostID() {
     const newID = uuidv4();
@@ -37,19 +38,20 @@ async function newPostIndex(userID, data) {
 
     if (quoteReplyPostID) {
         const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
-        if (quotingPost) return quotingPostSetup(quotingPost, postID)
+        if (quotingPost) return quotingPostSetup(quotingPost, postID, userID);
     }
     if (replyingPostID) {
         const replyingPost = await interactPostSchema.findOne({_id: replyingPostID});
-        if (replyingPost) await replyingPostSetup(replyingPost, postID);
+        if (replyingPost) await replyingPostSetup(replyingPost, postID, userID);
     }
     
     return postID;
 };
 
-async function quotingPostSetup(quotingPost, postID) {
+async function quotingPostSetup(quotingPost, postID, userID) {
+    // console.log(quotingPost)
     const quotingUser = await interactUserSchema.findOne({_id: quotingPost.userID})
-
+    
     await interactPostSchema.findOneAndUpdate({
         _id: postID
     }, {
@@ -58,11 +60,14 @@ async function quotingPostSetup(quotingPost, postID) {
         quotedUser: quotingUser
     }, {
         upsert: true
-    })
+    });
+
+    await pushQuotePost(userID, postID, quotingUser._id);
+
     return postID;
 }
 
-async function replyingPostSetup(replyingPost, postID) {
+async function replyingPostSetup(replyingPost, postID, userID) {
     await interactPostSchema.findOneAndUpdate({
         _id: postID
     }, {

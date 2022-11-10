@@ -25,6 +25,7 @@ const interactNotifications = mongoose.Schema({
             4: someone unliked post
             5: someone posted
             6: someone mentioned you
+            7: someone quoted your post
         type1: Object
             userID
         type2: Object

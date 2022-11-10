@@ -23,30 +23,17 @@ router.put('/:userid', async (req, res) => {
 
     const alreadyAccepted = await interactVerificationSchema.findOne({_id: userid});
     if (alreadyAccepted) return res.status(400).send({error: "This user has already been verified."});
+    
 
-    await interactVerificationSchema.findOneAndUpdate({
+    await interactVerifyRequests.findOneAndUpdate({
         _id: userid
     }, {
-        _id: userid,
-        content: foundRequest.content,
-        timestamp: foundRequest.timestamp,
-        acceptedBy: req.headers.userid,
-        acceptedTimestamp: checktime()
-    }, {
-        upsert: true
+        status: "denied"
     });
     
-    await interactUserSchema.findOneAndUpdate({
-        _id: userid
-    }, {
-        verified: true
-    });
-
-    await interactVerifyRequests.findOneAndDelete({_id: userid});
-    
-    const newVerification = await interactVerificationSchema.findOne({_id: userid});
-    if (!newVerification) return res.status(404).send({"error": "error saving verification to database."});
-    return res.status(200).send(newVerification);
+    const deniedRequest = await interactVerifyRequests.findOne({_id: userid});
+    if (!deniedRequest?.status=='denied') return res.status(404).send({"error": "error saving status to database."});
+    return res.status(200).send(deniedRequest);
 });
 
 module.exports = router;

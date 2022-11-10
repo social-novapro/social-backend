@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const interactVerifyRequests = require('../../../../schemas/interactVerifyRequests')
+const interactVerificationSchema = require('../../../../schemas/interactVerificationSchema')
 const { searchError } = require('../../../../utils/searchError');
 const { checktime } = require('../../../../utils/checktime');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
@@ -14,6 +15,9 @@ router.post('/', async (req, res) => {
     const lookupRequest = await interactVerifyRequests.findOne({ _id: userid });
     if (lookupRequest) return res.status(403).send(searchError("J001"));
     
+    const lookupVerification = await interactVerificationSchema.findOne({ _id: userid });
+    if (lookupVerification) return res.status(403).send(searchError("J004"));
+
     if (!content) return res.status(400).send(searchError("J002"));
 
     await interactVerifyRequests.findOneAndUpdate( 

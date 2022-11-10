@@ -7,19 +7,17 @@ const {checktime} = require('../../checktime')
 async function pushNotification(notification) {
     const newID = uuidv4();
 
-    await interactNotifications.findOneAndUpdate(
-        {
-            _id: newID
-        }, {
-            _id: newID,
-            timestamp: checktime(),
-            type: notification.type,
-            userID: notification.userID ? notification.userID : null,
-            postID: notification.postID ? notification.postID : null
-        }, {
-            upsert: true
-        }
-    )
+    await interactNotifications.findOneAndUpdate({
+        _id: newID
+    }, {
+        _id: newID,
+        timestamp: checktime(),
+        type: notification.type,
+        userID: notification.userID ? notification.userID : null,
+        postID: notification.postID ? notification.postID : null
+    }, {
+        upsert: true
+    })
 
     const notfi = await interactNotifications.findOne({_id: newID})
 
