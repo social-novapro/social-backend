@@ -38,7 +38,15 @@ router.post('/', async (req, res) => {
     // const markdownContent = sanitizeHtml(marked.parse(content))
     // console.log(markdownContent)
     const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID});
-
+    if (replyingPostID) {
+        const replyingPost = await interactPostSchema.findOne({ _id: replyingPostID });
+        await interactPostSchema.findOneAndUpdate(
+            { _id: replyingPostID },
+            {
+                totalReplies: replyingPost.totalReplies ? replyingPost.totalReplies++ : 1,
+            }
+        );  
+    };
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));
 
