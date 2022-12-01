@@ -40,6 +40,7 @@ const interactUserSchema = mongoose.Schema({
     totalReplies: reqNum,
     isBrandAccount: reqBool,
     privacySetting: privacySettingSchema,
+    profileURL: reqString,
     verified: reqBool
 });
 

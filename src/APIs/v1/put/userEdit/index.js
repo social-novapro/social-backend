@@ -4,6 +4,7 @@ const { searchError } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { checktime } = require('../../../../utils/checktime');
 const { checkUsername } = require('../../../../utils/checks');
+const { checkSafeURL } = require('../../../../utils/checkSafeURL');
 
 router.put('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -18,7 +19,8 @@ router.put('/', async (req, res) => {
         "newDescription",
         "newPronouns",
         "newStatus",
-        "isBrandAccount"
+        "isBrandAccount",
+        "newProfileImage"
         // more?
     ]
 
@@ -38,7 +40,8 @@ router.put('/', async (req, res) => {
     if (!userIDCheck.lastEdit) lastEdited = 0;
     else lastEdited = userIDCheck.lastEdit;
 
-    const currenttime = checktime();
+    // const currenttime = checktime();
+    const currenttime = 0;
     const timediff = currenttime - lastEdited;
     const firstMinutes = Math.floor(timediff / 60000) % 60;
     const firstSeconds = Math.floor(timediff / 1000) % 60;
@@ -59,8 +62,15 @@ router.put('/', async (req, res) => {
     if (headers.newusername) {
         const checkedUser = await checkUsername(headers.newusername);
         if (checkedUser.error) return res.status(400).send(checkedUser.error);
-    }
-    else {
+    } else if (headers.newprofileimage) {
+        console.log(headers)
+        if (headers.newprofileimage.startsWith('dataurl://')) {
+            console.log('dataurl');
+        } else {
+            const checkedProfile = await checkSafeURL(headers.newprofileimage);
+            if (checkedProfile.safe==true) acceptedChange=true;
+        }
+    }else {
         acceptedChange = true;
     };
 
@@ -76,6 +86,7 @@ router.put('/', async (req, res) => {
             pronouns: headers.newpronouns || userIDCheck.pronouns, 
             description: headers.newdescription || userIDCheck.description,
             statusTitle: headers.newstatus || userIDCheck.statusTitle,
+            profileURL: headers.newprofileimage || userIDCheck.profileURL,
             lastEdit: currenttime,
         }, 
         { upsert: true }
