@@ -33,4 +33,4 @@ const interactAdminSchema = mongoose.Schema({
     */
 });
 
-module.exports = mongoose.model('interact-admin-requests', interactAdminSchema);
+module.exports = mongoose.model('interact-admin-schema', interactAdminSchema);

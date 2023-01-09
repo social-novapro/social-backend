@@ -338,6 +338,10 @@
                     "msg" : "User is already verified."
                 },
                 {
+                    "code" : "J005",
+                    "msg" : "User is already an admin."
+                },
+                {
                     "code" : "K001",
                     "msg" : "postID is required"
                 },

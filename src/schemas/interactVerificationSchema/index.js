@@ -5,10 +5,16 @@ const reqString = {
     required: true
 };
 
+const reqNum = {
+    type: Number,
+    required: true
+};
+
 const interactVerificationSchema = mongoose.Schema({
     _id: reqString, // userid
     content: reqString, // description of request
     timestamp: reqString, // time requested
+    dismissed: reqNum, // 0 = not dismissed, 1 = dismissed
     acceptedBy: reqString, // id of admin who accepted request
     acceptedTimestamp: reqString, // time request was accepted
 });

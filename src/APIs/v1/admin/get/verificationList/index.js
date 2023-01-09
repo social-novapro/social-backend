@@ -2,7 +2,7 @@ const router = require('express').Router();
 const {checkRequestTokens} = require('../../../../../utils/checkRequestTokens');
 const {checkUserPerms} = require('../../../../../utils/checkUserPerms');
 const { searchError } = require('../../../../../utils/searchError');
-const interactVerifyRequests = require('../../../../../schemas/interactVerifyRequests');
+const interactVerificationSchema = require('../../../../../schemas/interactVerificationSchema');
 
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -12,9 +12,9 @@ router.get('/', async (req, res) => {
     if (userPerms.admin == false) return res.status(401).send({error: "You do not have permission to access this resource."});
     else if (userPerms.adminType < 2) return res.status(401).send({error: "You do not have permission to access this resource."});
 
-    const requests = await interactVerifyRequests.find();
-    if (!requests) return res.status(404).send({"error": "No requests found"});
-    return res.status(200).send(requests);
+    const verified = await interactVerificationSchema.find();
+    if (!verified) return res.status(404).send({"error": "No requests found"});
+    return res.status(200).send(verified);
 });
 
 module.exports = router;

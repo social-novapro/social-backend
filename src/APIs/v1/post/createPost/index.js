@@ -47,6 +47,16 @@ router.post('/', async (req, res) => {
             }
         );  
     };
+    // if (quoteReplyPostID) {
+    //     const quoteReplyPost = await interactPostSchema.findOne({ _id: quoteReplyPostID });
+    //     await interactPostSchema.findOneAndUpdate(
+    //         { _id: quoteReplyPostID },
+    //         {
+    //             totalQuotes: quoteReplyPost.totalQuotes ? quoteReplyPost.totalQuotes++ : 1,
+    //         }
+    //     );
+    // };
+
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));
 

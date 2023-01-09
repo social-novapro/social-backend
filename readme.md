@@ -1,7 +1,7 @@
 This is Interact API Backend created by Daniel Kravec
 
 ```
-docker build -t novapro/interact_api . && docker tag novapro/interact_api registry.xnet.com:5000/novapro/interact_api:latest && sudo docker push registry.xnet.com:5000/novapro/interact_api
+docker build -t novapro/interact_api . && docker tag novapro/interact_api registry.xnet.com:5000/novapro/interact_api:latest && docker push registry.xnet.com:5000/novapro/interact_api
 ```
 
 To build Docker Image:
