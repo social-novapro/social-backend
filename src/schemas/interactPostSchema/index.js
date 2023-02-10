@@ -12,6 +12,7 @@ const reqBool = {
     type: Boolean,
     required: true
 };
+
 const interactPostSchemaForQuote = mongoose.Schema({
     _id: reqString,
     userID: reqString,
@@ -25,12 +26,14 @@ const interactPostSchemaForQuote = mongoose.Schema({
     // quoteReplyPostID: reqString,
     // quotedPost: interactPostSchema
 });
+
 // type 06
 const privacySettingSchema = mongoose.Schema({
     discoverSetting: reqNum,
     postVisiblityDefault: reqNum,
     postReplyDefault: reqNum,
 });
+
 const interactUserSchemaForQuote = mongoose.Schema({
     _id: reqString,
     username: reqString,
@@ -57,13 +60,15 @@ const interactPostSchema = mongoose.Schema({
     content: reqString,
     totalLikes: reqNum,
     totalReplies: reqNum,
+    privacySetting: privacySettingSchema,
     edited: reqBool,
     editedTimestamp: reqString,
     editedAmount: reqNum,
     quoteReplyPostID: reqString,
     quotedPost: interactPostSchemaForQuote,
     quotedUser: interactUserSchemaForQuote,
-    replyingPostID: reqString
+    replyingPostID: reqString,
+    replyIndexID: reqString
 });
 
 

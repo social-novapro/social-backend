@@ -18,6 +18,7 @@ const following = require('./following');
 const subscriptions = require('./subscriptions');
 const taguserSearch = require('./taguserSearch');
 const groupData = require('./groupData');
+const postReplies = require('./postReplies');
 
 router.use('/user', user);
 router.use('/username', username);
@@ -38,5 +39,6 @@ router.use('/following', following);
 router.use('/subscriptions', subscriptions);
 router.use('/taguserSearch', taguserSearch);
 router.use('/groupData', groupData);
+router.use('/postReplies', postReplies);
 
 module.exports = router;

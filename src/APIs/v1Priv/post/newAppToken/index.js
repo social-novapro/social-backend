@@ -10,7 +10,9 @@ router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { userid, userdevtoken, appname } = req.headers;
+    const { userid } = req.headers;
+    const { userdevtoken, appname } = req.body;
+    
     if (!userdevtoken) return res.status(401).send(searchError("A011"));
     if (!appname) return res.status(401).send(searchError("A011"));
     
