@@ -1,5 +1,5 @@
 {
-    "current" : "dev",
+    "current" : "prod",
     "dev" : {
         "mongo_url" : "mongodb://localhost:27017/Kate"
     },
@@ -9,6 +9,18 @@
     "PORT" : 5002,
     "LATEST_API" : "v1",
     "SCHEMA_VERSIONS": {
+        "posts" : {
+
+        },
+        "users" : {
+
+        },
+        "userPrivs" : {
+
+        },
+        "notifications" : {
+                
+        },
         "interactPostSchema" : "1.000",
         "interactUserSchema" : "1.000",
         "interactUserPrivSchema" : "1.000",
@@ -17,6 +29,7 @@
         "developerToken" : "1.000",
         "developerAppToken" : "1.000",
         "liveChatSchema" : "1.000",
-        "interactUserAccessSchema" : "1.000"
+        "interactUserAccessSchema" : "1.000",
+        "interactRepliesSchema" : "1.000"
     }
 }

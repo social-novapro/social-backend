@@ -7,6 +7,7 @@ const config = require('../config.json');
 const PORT = config.PORT;
 const app = express();
 const APIv1 = require('./APIs/v1');
+// const APIv2 = require('./APIs/v2');
 const PrivAPIv1 = require('./APIs/v1Priv');
 const APIdata = require('./APIs/API');
 const {v4 : uuidv4} = require('uuid');
@@ -106,16 +107,35 @@ app.get('/', (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
+
 app.get('/apiDocs', (req, res) => {
     res.sendFile(__dirname + '/APIs/apidocs.json');
 });
+
 app.get('/apiDocsJS', (req, res) => {
     res.sendFile(__dirname + '/APIs/apidocs.js');
 });
+
 app.use('/API', APIdata)
 app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
+// app.use('/v2', APIv2);
 
+// app._router.stack.forEach(function (layer) {
+//     checksublayer(layer)
+// });
+// function checksublayer(layer) {
+//     console.log(layer.keys)
+
+//     if (layer.route) {
+//         console.log(layer.route.path);
+
+//     } else if (layer.handle.stack) {
+//         layer.handle.stack.forEach(function (sublayer) {
+//             checksublayer(sublayer)
+//         });
+//     }
+// }
 
 // START API SITE
 // app.listen(PORT, () => console.log(`API server started on port ${PORT}`))
@@ -555,6 +575,26 @@ wss.on('connection', async (ws, req) => {
                 //         ws.send(JSON.stringify(chat));
                 //     };
                 //     break;
+                case 11: // get message
+                    const messageFound = await wsUtils.getMessage(data?.messageID)
+
+                    if (!messageFound) ws.send(JSON.stringify({
+                        type: 11,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        success: false,
+                        messageID: data.messageID,
+                        error: "no message found"
+                    }))
+                    else ws.send(JSON.stringify({
+                        type: 11,
+                        user,
+                        apiVersion: config.LATEST_API,
+                        success: true,
+                        messageID: data.messageID,
+                        messageData: messageFound
+                    }))
+                    break;
                 // errors
                 case 101:
                     errorMessage = {

@@ -5,6 +5,11 @@ const reqString = {
     required: true
 };
 
+const reqNum = {
+    type: Number,
+    required: true
+};
+
 /*
 postSchema
     -> indexSchema
@@ -14,6 +19,7 @@ postSchema
 const interactRepliesSchema = mongoose.Schema({
     _id: reqString, // indexID
     postID: reqString, // main post
+    amount: reqNum,
     previousIndex: reqString,
     nextIndex: reqString, 
     postIDs: [reqString], //postID of reply

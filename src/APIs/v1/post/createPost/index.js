@@ -6,9 +6,8 @@ const { searchError } = require('../../../../utils/searchError');
 const { checkPostContent } = require('../../../../utils/checks');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { pushNewPost } = require('../../../../utils/notifications/pushNewPost'); 
-const { marked } = require("marked");
-const sanitizeHtml = require("sanitize-html");
-
+// const { marked } = require("marked");
+// const sanitizeHtml = require("sanitize-html");
 
 router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -16,8 +15,9 @@ router.post('/', async (req, res) => {
     
     const { content, userID } = req.body
     if (userID != req.headers.userid) return res.status(400).send(searchError("E009"));
-    var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : null;
-    var replyingPostID = req.body.replyingPostID ? req.body.replyingPostID : null;
+    var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : undefined;
+    var replyingPostID = req.body.replyingPostID ? req.body.replyingPostID : undefined;
+
     // marked.setOptions({
     //     gfm: true,
     //     breaks: true,
@@ -34,12 +34,16 @@ router.post('/', async (req, res) => {
     const userIDCheck = await interactUserSchema.findOne({ _id: userID});
   
     if (!userIDCheck) return res.status(403).send(searchError("E004"));
+
     // const markdownContent = marked.parse(content)
     // const markdownContent = sanitizeHtml(marked.parse(content))
     // console.log(markdownContent)
+
     const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID});
     if (replyingPostID) {
         const replyingPost = await interactPostSchema.findOne({ _id: replyingPostID });
+        if (!replyingPost) return res.status(404).send(searchError("D002"));
+
         await interactPostSchema.findOneAndUpdate(
             { _id: replyingPostID },
             {
@@ -47,15 +51,18 @@ router.post('/', async (req, res) => {
             }
         );  
     };
-    // if (quoteReplyPostID) {
-    //     const quoteReplyPost = await interactPostSchema.findOne({ _id: quoteReplyPostID });
-    //     await interactPostSchema.findOneAndUpdate(
-    //         { _id: quoteReplyPostID },
-    //         {
-    //             totalQuotes: quoteReplyPost.totalQuotes ? quoteReplyPost.totalQuotes++ : 1,
-    //         }
-    //     );
-    // };
+
+    if (quoteReplyPostID) {
+        const quoteReplyPost = await interactPostSchema.findOne({ _id: quoteReplyPostID });
+        if (!quoteReplyPost) return res.status(404).send(searchError("D002"));
+
+        await interactPostSchema.findOneAndUpdate(
+            { _id: quoteReplyPostID },
+            {
+                totalQuotes: quoteReplyPost.totalQuotes ? quoteReplyPost.totalQuotes++ : 1,
+            }
+        );
+    };
 
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));

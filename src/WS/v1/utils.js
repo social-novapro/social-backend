@@ -96,13 +96,13 @@ async function saveChat(chatData) {
 
 async function sendAllChatData() {
     const all = await liveChatSchema.find();
-    const send = all.slice((all.length - 5), all.length);
+    // const send = all.slice((all.length - 5), all.length);
 
   //  console.log(all.slice(- 5))
     return all.slice(- 5);
 };
 async function getMessage(messageID) {
-    const message = await liveChatSchema.find({ _id: messageID });
+    const message = await liveChatSchema.findOne({ _id: messageID });
 
     return message;
 };

@@ -53,6 +53,19 @@ const interactUserSchemaForQuote = mongoose.Schema({
     privacySetting: privacySettingSchema
 });
 
+const postReplySchema = mongoose.Schema({
+    // _id: reqString,
+    indexID: reqString,
+    postID: reqString,
+    userID: reqString
+});
+
+const postQuoteSchema = mongoose.Schema({
+    // _id: reqString,
+    postID: reqString,
+    userID: reqString
+});
+
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
     userID: reqString,
@@ -60,15 +73,27 @@ const interactPostSchema = mongoose.Schema({
     content: reqString,
     totalLikes: reqNum,
     totalReplies: reqNum,
+    totalQuotes: reqNum,
+
     privacySetting: privacySettingSchema,
     edited: reqBool,
     editedTimestamp: reqString,
     editedAmount: reqNum,
-    quoteReplyPostID: reqString,
-    quotedPost: interactPostSchemaForQuote,
-    quotedUser: interactUserSchemaForQuote,
-    replyingPostID: reqString,
-    replyIndexID: reqString
+    
+    quoteReplyPostID: reqString, // legacy
+    quotedPost: interactPostSchemaForQuote, // legacy
+    quotedUser: interactUserSchemaForQuote, // legacy
+
+    isQuote: reqBool,
+    quoteData: postQuoteSchema,
+
+    isReply: reqBool,
+    replyData: postReplySchema,
+    replyIndexID: reqString,
+    
+    deleted: reqBool,
+
+    replyingPostID: reqString // legacy
 });
 
 

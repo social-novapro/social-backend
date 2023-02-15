@@ -246,6 +246,10 @@
                     "msg" : "Requested change was not accepted."
                 },
                 {
+                    "code" : "D012",
+                    "msg" : "Post has no replies"
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
