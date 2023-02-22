@@ -22,6 +22,8 @@ async function newPostIndex(userID, data) {
     const postID = await newPostID();
     const currentTime = checktime();
     // const newIndex = await newReplyIndex(postID);
+    // const mentionData = await checkForMentions(content);
+    // console.log(mentionData);
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -51,6 +53,39 @@ async function newPostIndex(userID, data) {
     
     return postID;
 };
+
+async function checkForMentions(content) {
+    const foundTags = [];
+    var foundUsers = {};
+    // lookFor("@", content)
+
+    const tagRegex = /@\\?(?:[a-zA-Z]+)/g;
+    console.log(content.matchAll(tagRegex))
+
+    for (const word of content.matchAll(tagRegex)) {
+        // if (foundUsers[word.input]) break;
+        // else foundUsers[`${word.input}`] = true;
+        console.log(word)
+        const mentionUser = word.input.replace("@", "")
+        const wasTag = await interactUserSchema.findOne({ username: mentionUser })
+        console.log(word.input.replace("@", ""))
+        console.log(mentionUser)
+        if (wasTag) {
+            mentionData = {
+                "userID" : wasTag._id,
+                "username" : wasTag.username,
+                "index": word.input.index,
+                "end" : word.index+word.input.length
+            }
+            console.log(mentionData)
+            foundTags.push(mentionData);
+        };
+        
+        console.log(`"${word[0]}" starts at index ${word.index}.`);
+    }
+
+    return foundTags;
+}
 
 async function quotingPostSetup(quotingPost, postID, userID) {
     // console.log(quotingPost)

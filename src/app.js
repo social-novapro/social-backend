@@ -10,6 +10,7 @@ const APIv1 = require('./APIs/v1');
 // const APIv2 = require('./APIs/v2');
 const PrivAPIv1 = require('./APIs/v1Priv');
 const APIdata = require('./APIs/API');
+const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
 
@@ -103,6 +104,9 @@ app.get('/', (req, res) => {
     // res.redirect('http://192.168.0.122:3000/api')
     res.redirect('http://localhost:3000/api')
 })*/
+
+app.use(AuthVersions.authV1);
+
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');

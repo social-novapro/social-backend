@@ -66,6 +66,13 @@ const postQuoteSchema = mongoose.Schema({
     userID: reqString
 });
 
+const mentionDataSchema = mongoose.Schema({
+    // _id: reqString,
+    userID: reqString,
+    username: reqString,
+    index: reqNum
+});
+
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
     userID: reqString,
@@ -92,6 +99,9 @@ const interactPostSchema = mongoose.Schema({
     replyIndexID: reqString,
     
     deleted: reqBool,
+
+    hasMentions: reqBool,
+    mentionData: [mentionDataSchema], // max 10 ideally
 
     replyingPostID: reqString // legacy
 });
