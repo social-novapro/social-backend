@@ -20,7 +20,8 @@ router.put('/', async (req, res) => {
         "newPronouns",
         "newStatus",
         "isBrandAccount",
-        "newProfileImage"
+        "newProfileImage",
+        "userAge"
         // more?
     ]
 
@@ -58,23 +59,43 @@ router.put('/', async (req, res) => {
         reason: {},
         types: []
     }
+    var forcenonaccept = false;
 
     if (headers.newusername) {
         const checkedUser = await checkUsername(headers.newusername);
         if (checkedUser.error) return res.status(400).send(checkedUser.error);
-    } else if (headers.newprofileimage) {
+    } 
+    
+    if (headers.newprofileimage) {
         console.log(headers)
         if (headers.newprofileimage.startsWith('dataurl://')) {
             console.log('dataurl');
         } else {
             const checkedProfile = await checkSafeURL(headers.newprofileimage);
             if (checkedProfile.safe==true) acceptedChange=true;
+            else forcenonaccept=true;
         }
-    }else {
-        acceptedChange = true;
-    };
+    } 
+    if (headers.userage) {
+        // if (headers.us)
+        acceptedChange=true;
+    }
+    if (headers.isbrandaccount) {
+        if (headers.isbrandaccount == "true" || headers.isbrandaccount == "false") {
+            acceptedChange=true;
+        } else {
+            forcenonaccept=true;
+        }
+    }
 
-    if (!acceptedChange) res.status(400).send(searchError("D011"));
+    if (headers.newdisplayname || headers.newdescription || headers.newpronouns || headers.newstatus || headers.isbrandaccount) {
+        acceptedChange=true;
+    }
+
+    
+    // if (headers.userage)  
+
+    if (acceptedChange!=true) res.status(400).send(searchError("D011"));
 
     // if (timediff < 1800000) return res.status(400).send({"error" : `You must wait ${timeuntil} before changing again.`});//searchError("E004"))
 
@@ -87,6 +108,7 @@ router.put('/', async (req, res) => {
             description: headers.newdescription || userIDCheck.description,
             statusTitle: headers.newstatus || userIDCheck.statusTitle,
             profileURL: headers.newprofileimage || userIDCheck.profileURL,
+            userAge: headers.userage || userIDCheck.userAge,
             lastEdit: currenttime,
         }, 
         { upsert: true }

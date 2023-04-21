@@ -41,6 +41,7 @@ const interactUserSchema = mongoose.Schema({
     isBrandAccount: reqBool,
     privacySetting: privacySettingSchema,
     profileURL: reqString,
+    userAge: reqNum, //yyyy-mm-dd
     verified: reqBool
 });
 
