@@ -51,6 +51,10 @@
                     "code" : "L",
                     "msg" : "Error with notifications"
                 },
+                {                        
+                    "code" : "M",
+                    "msg" : "Error with Alert System"
+                },
                 {
                     "code" : "Z",
                     "msg" : "Unknown errors."
@@ -368,6 +372,30 @@
                 {
                     "code" : "L002",
                     "msg" : "Error while saving notification sub."
+                },
+                {
+                    "code" : "M001",
+                    "msg" : "No content for alert was provided, and no user was provided."
+                },
+                {
+                    "code" : "M002",
+                    "msg" : "No content for alert was provided."
+                },
+                {
+                    "code" : "M003",
+                    "msg" : "No user was provided."
+                },
+                {
+                    "code" : "M004",
+                    "msg" : "The provided user is not admin."
+                },
+                {
+                    "code" : "M005",
+                    "msg" : "The provided user was not able to create an alert. Insufficient permissions."
+                },
+                {
+                    "code" : "M006",
+                    "msg" : "The provided alertID was not found in the database."
                 },
                 {
                     "code" : "Z001",
