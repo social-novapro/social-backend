@@ -20,9 +20,9 @@ const reqBool = {
 const interactAlertSystem = mongoose.Schema({
     _id: reqString, // "main"
     timestamp: reqNum, // time of last alert
-    currentAlert: reqString, // check if it should be removed
-    currentIndex: reqString,
-    previousIndex: nonReqstring,
+    currentAlert: nonReqstring, // could have been removed
+    currentIndex: reqString, // always will have index
+    previousIndex: nonReqstring, // could be first index
 });
 
 module.exports = mongoose.model('interact-alert-system', interactAlertSystem);

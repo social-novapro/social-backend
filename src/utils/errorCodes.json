@@ -402,6 +402,22 @@
                     "msg" : "The provided indexID was not found in the database"
                 },
                 {
+                    "code" : "M008",
+                    "msg" : "You can not delete an alert that is not yours."
+                },
+                {
+                    "code" : "M009",
+                    "msg" : "You can not delete an alert that was uploaded over 30 minutes ago, please archive instead."
+                },
+                {
+                    "code" : "M010",
+                    "msg" : "The provided systemID was not found in the database."
+                },
+                {
+                    "code" : "M011",
+                    "msg" : "The system does not have any current alerts."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 }

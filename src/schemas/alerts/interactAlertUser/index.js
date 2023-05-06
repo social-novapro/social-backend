@@ -17,14 +17,15 @@ const reqBool = {
     required: true
 };
 
+const dismissedAlerts = mongoose.Schema({
+    _id: reqString, // alertID
+    dismissedAlerts: reqString, 
+    timeDismissed: reqNum,
+});
+
 const interactAlertUser = mongoose.Schema({
-    _id: reqString,
-    lastSeenAlert: reqString,
-    dismissed: reqBool,
-    timestamp: reqNum,
-    type: reqNum,
-    userID: reqString,
-    postID: nonReqstring
+    _id: reqString, // userID
+    dismissedAlerts: [dismissedAlerts],
 });
 
 module.exports = mongoose.model('interact-alert-user', interactAlertUser);
