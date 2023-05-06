@@ -398,6 +398,10 @@
                     "msg" : "The provided alertID was not found in the database."
                 },
                 {
+                    "code" : "M007",
+                    "msg" : "The provided indexID was not found in the database"
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 }

@@ -14,7 +14,7 @@ const reqNum = {
 };
 const reqBool = {
     type: Boolean,
-    required: strue
+    required: true
 };
 
 const interactAlertUser = mongoose.Schema({

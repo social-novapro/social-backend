@@ -12,16 +12,21 @@ const reqNum = {
     type: Number,
     required: true
 };
+const reqBool = {
+    type: Boolean,
+    required: true
+};
 
 const interactAlertPost = mongoose.Schema({
     _id: reqString,
     type: reqNum, // wont be used yet, but could be used for unqiue styling
-    title: reqString,
-    body: reqString,
+    title: nonReqstring,
+    content: reqString,
     publish_timestamp: reqNum,
     ending_timestamp: reqNum, // +1 day default
     userID: reqString, // who posted alert
-    postID: nonReqstring // linked post?
+    postID: nonReqstring, // linked post?
+    isDeleted: reqBool
 });
 
 module.exports = mongoose.model('interact-alert-post', interactAlertPost);

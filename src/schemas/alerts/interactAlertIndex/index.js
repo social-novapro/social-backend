@@ -13,11 +13,15 @@ const reqNum = {
     required: true
 };
 
+const indexAdd = mongoose.Schema({
+    _id: reqString
+})
+
 const interactAlertIndex = mongoose.Schema({
     _id: reqString,
-    previousIndex: reqString,
-    nextIndex: reqString,
-    alerts: [reqString]
+    previousIndex: nonReqstring,
+    nextIndex: nonReqstring,
+    alerts: [indexAdd]
 });
 
 module.exports = mongoose.model('interact-alert-index', interactAlertIndex);

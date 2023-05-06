@@ -5,7 +5,7 @@ const authAPI = require('./auth');
 const deleteAPI = require('./delete');
 const putAPI = require('./put');
 const adminAPI = require('./admin');
-const alert = require('alert');
+const alert = require('./alert');
 
 router.use('/get', getAPI);
 router.use('/post', postAPI);
