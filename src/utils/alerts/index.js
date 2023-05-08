@@ -59,16 +59,17 @@ async function createAlert({userID, alertTitle, alertContent, timeToLive, postID
     // systemID could be changed to work with like groups in the future
     // change to "main" until feature is created
     // check if alert system exists (it should, unless database reset)
-    const alertSystem = await interactAlertSystem.findOne({ _id: systemID });
+
+    const alertSystem = await interactAlertSystem.findOne({ _id: systemID || mainSystemID });
     if (!alertSystem) {
         await interactAlertSystem.create({
-            _id: systemID,
+            _id: systemID || mainSystemID,
             timestamp: checktime(),
             currentAlert: newAlertID,
             currentIndex: currentIndexID
         });
     } else {
-        await interactAlertSystem.updateOne({ _id: systemID }, { currentAlert: newAlertID });
+        await interactAlertSystem.updateOne({ _id: systemID || mainSystemID}, { currentAlert: newAlertID });
     }
 
     // create index

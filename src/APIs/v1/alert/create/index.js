@@ -7,13 +7,14 @@ router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { alertContent, alertTitle, timeToLive, postID, type } = req.body
-    if (!alertContent) return res.status(400).send(searchError("M002"));
+    const { content, title, timeToLive, postID, type } = req.body
+    console.log(req.body)
+    if (!content) return res.status(400).send(searchError("M002"));
 
     const newAlert = await alertFunctions.createAlert({
         userID: req?.headers?.userid,
-        alertContent,
-        alertTitle: alertTitle ? alertTitle : null,
+        alertContent: content,
+        alertTitle: title ? alertTitle : null,
         timeToLive: timeToLive ? timeToLive : null,
         postID: postID ? postID : null,
         type: type ? type : null
