@@ -14,13 +14,13 @@ router.post('/', async (req, res) => {
     const newAlert = await alertFunctions.createAlert({
         userID: req?.headers?.userid,
         alertContent: content,
-        alertTitle: title ? alertTitle : null,
+        alertTitle: title ? title : null,
         timeToLive: timeToLive ? timeToLive : null,
         postID: postID ? postID : null,
         type: type ? type : null
     })
 
-    if (!newAlert.sucess) return res.status(400).send(newAlert);
+    if (!newAlert.success) return res.status(400).send(newAlert);
     else return res.status(200).send(newAlert);
 });
 

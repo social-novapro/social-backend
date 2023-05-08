@@ -9,10 +9,10 @@ router.put('/:alertID', async (req, res) => {
     const { alertID } = req.params;
     const userID = req.headers.userid
 
-    const dimissAlertReturn = await alertFunctions.dismissAlert({ alertID, userID})
+    const archiveAlert = await alertFunctions.archiveAlert({ alertID, userID})
 
-    if (!dimissAlertReturn.success) return res.status(400).send(dimissAlertReturn)
-    else return res.status(200).send(dimissAlertReturn)
+    if (!archiveAlert.success) return res.status(400).send(archiveAlert)
+    else return res.status(200).send(archiveAlert)
 });
 
 module.exports = router;

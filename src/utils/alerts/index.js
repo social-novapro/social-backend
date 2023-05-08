@@ -118,8 +118,15 @@ async function editAlert({alertID }) {
     };
 };
 
-// can be done by any admin
 async function dismissAlert({ alertID, userID }) {
+    const alertExists = await checkIfAlertExists({ alertID })
+    if (!alertExists.found) return alertExists;
+
+    // not done
+}
+
+// can be done by any admin
+async function archiveAlert({ alertID, userID }) {
     const isAdmin = await isUserAdimin({userID});
     // if (isAdmin != true) return isAdmin;
 
@@ -145,6 +152,14 @@ async function dismissAlert({ alertID, userID }) {
     }, {
         upsert: true
     });
+
+    const newAlert = await interactAlertPost.findOne({ _id: alertID })
+
+    return {
+        sucess: true,
+        before: alertExists.alert,
+        after: newAlert
+    }
 };
 
 // can only be done within 30 minutes of creation
@@ -165,25 +180,6 @@ async function deleteAlert({ alertID, userID }) {
         _id: alertID
     });
 
-    return alertExists.alert;
-};
-
-// can be done by any admin
-async function archiveAlert({ alertID, userID }) { 
-    const isAdmin = await isUserAdimin({userID});
-    // if (isAdmin != true) return isAdmin;
-
-    const alertExists = await checkIfAlertExists({alertID})
-    if (!alertExists.found) return alertExists;
-
-    await interactAlertPost.findOneAndUpdate({
-        _id: alertID 
-    },{ 
-        isArchived: true
-    }, { 
-        upsert: true 
-    }); 
-    
     return alertExists.alert;
 };
 
