@@ -3,6 +3,7 @@ require('dotenv').config();
 const { checktime } = require('../../checktime');
 const { v4: uuidv4 } = require('uuid');
 const interactEmailSchema = require('../../../schemas/interactEmailSchema');
+const interactUserSchema = require('../../../schemas/interactUserSchema');
 const { email_user, email_pass } = process.env;
 
 const auth = {
@@ -21,42 +22,65 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-async function emailSender({ userID, sendTo, subject, content, htmlElement }) {
+// users is an array of objects with userID and email or just userID
+async function emailSender({ users, subject, content, htmlElement }) {
     if (!htmlElement.ahref && htmlElement.a) htmlElement.ahref = htmlElement.a
-    if (!userID || !sendTo || !subject || !content) return { "status": "error", "error": "Missing required fields "}
-    const { h1, p, a, ahref} = htmlElement
-
+    if (!htmlElement.a && htmlElement.ahref) htmlElement.a = htmlElement.ahref
+    if (!users || !subject || !content ) return { "status": "error", "error": "Missing required fields "}
+    
+    const { h1, p, a, ahref } = htmlElement;
     const emailID = uuidv4();
 
-    var email = {
-        userID,
+    const mailOptions = {
+        from: email_user,
+        to: [],
+        bcc: [],
+        subject,
+        text: content,
+        html: `
+            ${h1 ? `<h1>${h1}</h1>` : ''}
+            ${p ? `<p>${p}</p>` : ''}
+            ${a ? `<a target="_blank" href="${ahref}">${a}</a>` : ''}
+        `
+    };
+
+    const email = {
         emailID,
-        sendTo,
+        sendTo: [],
         subject,
         content,
         htmlElement,
         timestamp: checktime(),
     }
-
-    const mailOptions = {
-        from: email_user,
-        to: email.sendTo,
-        subject: email.subject,
-        text: email.content,
-        html: `
-            ${h1 ? `<h1>${h1}</h1>` : ``}
-            ${p ? `<p>${p}</p>` : ``}
-            ${a ? `<a target="_blank" href="${ahref}">${a}</a>` : ``}
-        `
-    };
     
+    for (let i = 0; i < users.length; i++) {
+        const user = users[i];
+        if (!user.userID) break;
+
+        // const userFound = true; // testing
+        const userFound = await interactUserSchema.findOne({ _id: user.userID })
+        if (userFound) {
+            if (user.email) {
+                if (user.bcc) mailOptions.bcc.push(user.email)
+                else mailOptions.to.push(user.email)
+
+                email.sendTo.push({ 
+                    userID: user.userID,
+                    email: user.email,
+                    failed: false,
+                    isBCC: user.bcc || false,
+                });
+            }
+        }
+    }
+  
+
     transporter.sendMail(mailOptions, async (error, info) => {
         if (error) {
             console.error(error);
-
             const savedEmail = await saveEmail(email, true);
 
-            return {
+            returnData = {
                 "status": "error",
                 "error": "Email not sent",
                 "db": savedEmail
@@ -64,50 +88,78 @@ async function emailSender({ userID, sendTo, subject, content, htmlElement }) {
         } else {
             const savedEmail = await saveEmail(email, false)
 
-            return {
+            returnData =  {
                 "status": "success",
                 "message": "Email sent",
                 "db": savedEmail
             }
         }
-    }); 
+    })
+
+    return {
+        "status": "completed",
+        "emailID": emailID
+    };
 }
 
-async function saveEmail(email, status) {
-    const emailData = await interactEmailSchema.create(
-        { 
-            _id: email.emailID,
-            timestamp: email.timestamp,
-            failed: status,
-            userID: email.userID,
-            email: email.sendTo,
-            subject: email.subject,
-            content: email.content,
-            html: {
-                h1: email.htmlElement.h1 || null,
-                p: email.htmlElement.p || null,
-                a: email.htmlElement.a || null,
-            },
 
+async function saveEmail(email, status) {
+    const emailData = await interactEmailSchema.create({ 
+        _id: email.emailID,
+        timestamp: email.timestamp,
+        failed: status,
+        subject: email.subject,
+        content: email.content,
+        html: {
+            h1: email.htmlElement.h1 || null,
+            p: email.htmlElement.p || null,
+            a: email.htmlElement.a || null,
         }
-    )
+    })
+
+    for (let i = 0; i < email.sendTo.length; i++) {
+        const user = email.sendTo[i];
+        await emailData.users.push({
+            _id: user.userID,
+            failed: status,
+            email: user.email,
+            isBCC: user.isBCC,
+        })
+    }
+
+    await emailData.save()
 
     return emailData;
 }
 
-async function sendTest() {
+async function testing() {
     const emailSend = await emailSender({
-        userID: "test",
-        sendTo: "daniel@novapro.net",
-        subject: "Emails Work!",
-        content: "Sending a test email with HTML",
+        users: [
+            {
+                userID: "test",
+                email: "daniel@novapro.net",
+                bbc: true
+            },
+            {
+                userID: "test2",
+                email: "daniel@dkravec.net",
+                bbc: false
+            }
+        ],
+        subject: "Multiple senders! BCC",
+        content: "Sending a test email with multiple senders",
         htmlElement: {
-            h1: "Test with HTML",
-            p: "Sending a test email with HTML",
+            h1: "Test with Senders",
+            p: "Sending a test email with multiple senders",
             a: "https://interact.novapro.net/"
         }
     })
-    return;
+    console.log(emailSend)
+    return ;
+}
+
+async function sendTest() {
+    await testing()
 }
 
 module.exports = { emailSender, sendTest }

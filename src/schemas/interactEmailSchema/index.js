@@ -16,6 +16,7 @@ const reqBool = {
     type: Boolean,
     required: true
 };
+
 const htmlElement = mongoose.Schema({
     h1: nonreqString,
     p: nonreqString,
@@ -23,12 +24,18 @@ const htmlElement = mongoose.Schema({
     ahref: nonreqString
 })
 
+const userSend = mongoose.Schema({
+    _id: nonreqString,
+    email: nonreqString,
+    failed: reqBool,
+    isBCC: reqBool,
+});
+
 const interactEmailSchema = mongoose.Schema({
     _id: reqString,
     timestamp: reqNum,
     failed: reqBool,
-    userID: reqString,
-    email: reqString,
+    users: [userSend],
     subject: reqString,
     content: reqString,
     html: htmlElement,
