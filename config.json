@@ -1,5 +1,5 @@
 {
-    "current" : "prod",
+    "current" : "dev",
     "dev" : {
         "mongo_url" : "mongodb://localhost:27017/Kate"
     },
