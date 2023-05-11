@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 const { checktime } = require('../../checktime');
 const { v4: uuidv4 } = require('uuid');
-const interactEmailSchema = require('../../../schemas/interactEmailSchema');
+const interactEmailSchema = require('../../../schemas/emails/interactEmailSchema');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const { email_user, email_pass } = process.env;
 
@@ -146,6 +146,7 @@ async function testing() {
                 bbc: false
             }
         ],
+        type: 00,
         subject: "Multiple senders! BCC",
         content: "Sending a test email with multiple senders",
         htmlElement: {
@@ -154,12 +155,12 @@ async function testing() {
             a: "https://interact.novapro.net/"
         }
     })
-    console.log(emailSend)
+
     return ;
 }
 
 async function sendTest() {
-    await testing()
+    // await testing()
 }
 
 module.exports = { emailSender, sendTest }
