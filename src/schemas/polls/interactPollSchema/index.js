@@ -16,14 +16,16 @@ const reqNum = {
     type: Number,
     required: false
 };
+const nonreqNum = {
+    type: Number,
+    required: false
+};
 
 const pollOptions = mongoose.Schema({
-    _id: reqString, // pollOptionID
-    pollName: reqString,
-    pollOptions: [reqString],
-    pollVotes: [reqString], // userID
-    pollVotesCount: [reqString], // userID
-    currentIndexID: reqString // pollVoteIndexID (changes)
+    _id: nonreqString, // pollOptionID
+    optionTitle: nonreqString,
+    timestamp: nonreqNum, // time added option (maybe can add option later)
+    currentIndexID: nonreqString // pollVoteIndexID (changes)
 });
 
 /*
@@ -32,7 +34,8 @@ const pollOptions = mongoose.Schema({
 const interactPollSchema = mongoose.Schema({
     _id: reqString, // pollID
     timestamp: reqNum, // time posted
-    postID: reqString, // main linked PostID (can be linked to other posts)
+    userID: reqString, // userID of original
+    postID: nonreqString, // main linked PostID (can be linked to other posts)
     timestampEnding: reqNum, // time poll ends
     pollName: reqString,
     pollOptions: [pollOptions] 
