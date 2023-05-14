@@ -19,9 +19,10 @@ const reqNum = {
 
 /*
     votes which are linked to indexIDs
+    you can search for a certian user by userID, and pollID
 */
 const interactPollVoteSchema = mongoose.Schema({
-    _id: reqString, // pollVoteID
+    _id: reqString, // pollVoteID, linked inside pollVoteIndex
     pollID: reqString, // pollID
     userID: reqString, // userID
     timestamp: reqNum, // time voted

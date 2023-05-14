@@ -25,7 +25,8 @@ const pollOptions = mongoose.Schema({
     _id: nonreqString, // pollOptionID
     optionTitle: nonreqString,
     timestamp: nonreqNum, // time added option (maybe can add option later)
-    currentIndexID: nonreqString // pollVoteIndexID (changes)
+    currentIndexID: nonreqString, // pollVoteIndexID (changes)
+    amountVoted: nonreqNum // amount of votes
 });
 
 /*

@@ -58,6 +58,20 @@ async function createPollOptionDB({ pollID, optionTitle }) {
     return newPollOption;
 }
 
+// untested
+async function createPollVoteIndex({ pollID, userID }) {
+    const pollVoteIndexID = uuidv4();
+
+    const newPollVoteIndex = await interactPollVoteIndexSchema.create({
+        _id: pollVoteIndexID,
+        pollID,
+        userID,
+        timestamp: checktime(),
+    });
+
+    return newPollVoteIndex;
+}
+
 async function createPollVote({ pollID, userID, pollOptionID }) {
     // const pollVoteID = uuidv4();
     // const timestamp = Date.now();
