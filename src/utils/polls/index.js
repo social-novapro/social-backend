@@ -6,10 +6,13 @@ const interactPollSchema = require('../../schemas/polls/interactPollSchema');
 const interactPollVoteSchema = require('../../schemas/polls/interactPollVoteSchema');
 const interactPollVoteIndexSchema = require('../../schemas/polls/interactPollVoteIndexSchema');
 
+// logic behind creating polls
 async function createPoll({ userID, pollOptions }) {
     const { pollName, timeLive, options } = pollOptions;
+    if (!pollName) return { error: "no poll name" }
+    if (!options) return { error: "no options" }
 
-    const pollData = await createPollDB({ userID, pollName, timeLive });
+    const pollData = await createPollDB({ userID, pollName, timeLive: timeLive || 86400000 });
     if (!pollData) return { error: "no new poll data"}
 
     var pollOptionsData = [];
@@ -26,6 +29,7 @@ async function createPoll({ userID, pollOptions }) {
     return { pollFound };
 }
 
+// adds poll to database
 async function createPollDB({ userID, pollName, timeLive }) {
     const pollID = uuidv4();
 
@@ -40,6 +44,7 @@ async function createPollDB({ userID, pollName, timeLive }) {
     return newPoll;
 };
 
+// adds poll option to poll
 async function createPollOptionDB({ pollID, optionTitle }) {
     const pollOptionID = uuidv4();
 
@@ -56,6 +61,24 @@ async function createPollOptionDB({ pollID, optionTitle }) {
     });
 
     return newPollOption;
+}
+
+// change title of poll
+async function editPollTitle({ userID, pollID, pollName }) {
+    const pollFound = await interactPollSchema.findOne({ _id: pollID });
+    if (!pollFound) return { error: "no poll found" };
+    if (pollFound.userID != userID) return { error: "user not authorized" };
+
+    await interactPollSchema.findOneAndUpdate({ 
+        _id: pollID 
+    }, { 
+        pollName 
+    }, { 
+        upsert: true,
+    });
+
+    const newPoll = await interactPollSchema.findOne({ _id: pollID });
+    return { updatedPoll: newPoll, oldPoll: pollFound };
 }
 
 // untested
@@ -79,5 +102,6 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
 }
 
 module.exports = {
-    createPoll
+    createPoll,
+    editPollTitle
 }
