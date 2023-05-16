@@ -67,12 +67,17 @@ async function createPollOptionDB({ pollID, optionTitle }) {
 async function editPollTitle({ userID, pollID, pollName }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
     if (!pollFound) return { error: "no poll found" };
+    if (pollFound.timestampEnding < checktime()) return { error: "poll has ended" };
+    if (pollFound.lastEdited) {
+        if (pollFound.lastEdited + 1800000 > checktime()) return { error: "poll has been edited too recently" };
+    }
     if (pollFound.userID != userID) return { error: "user not authorized" };
 
     await interactPollSchema.findOneAndUpdate({ 
         _id: pollID 
     }, { 
-        pollName 
+        pollName,
+        lastEdited: checktime(), 
     }, { 
         upsert: true,
     });
@@ -101,7 +106,15 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     // const currentIndexID = uuidv4();
 }
 
+// findPoll
+async function findPoll({ pollID }) {
+    const pollFound = await interactPollSchema.findOne({ _id: pollID });
+    if (!pollFound) return { error: "no poll found" };
+    return pollFound;
+}
+
 module.exports = {
     createPoll,
-    editPollTitle
+    editPollTitle,
+    findPoll,
 }

@@ -38,6 +38,7 @@ const interactPollSchema = mongoose.Schema({
     userID: reqString, // userID of original
     postID: nonreqString, // main linked PostID (can be linked to other posts)
     timestampEnding: reqNum, // time poll ends
+    lastEdited: nonreqNum, // time last edited
     pollName: reqString,
     pollOptions: [pollOptions] 
 });

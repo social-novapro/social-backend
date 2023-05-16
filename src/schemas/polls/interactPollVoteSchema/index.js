@@ -14,6 +14,10 @@ const reqBool = {
 };
 const reqNum = {
     type: Number,
+    required: true
+};
+const nonreqNum = {
+    type: Number,
     required: false
 };
 
@@ -25,6 +29,7 @@ const interactPollVoteSchema = mongoose.Schema({
     _id: reqString, // pollVoteID, linked inside pollVoteIndex
     pollID: reqString, // pollID
     userID: reqString, // userID
+    lastEdited: nonreqNum, // time last changed
     timestamp: reqNum, // time voted
     pollOptionID: reqString // pollOptionID
 });
