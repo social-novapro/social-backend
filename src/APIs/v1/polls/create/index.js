@@ -12,7 +12,6 @@ router.post('/', async (req, res) => {
     // optionAmount = number of options
     // option_#num = option title
     const { pollName, timeLive, optionAmount } = req.body;
-
     var options = [];
     for (var i = 0; i < optionAmount; i++) {
         if (!req.body[`option_${i+1}`]) return res.status(400).send(searchError("option title not found"));
@@ -22,7 +21,7 @@ router.post('/', async (req, res) => {
     const newPoll = await createPoll({ userID, pollOptions: { pollName, timeLive, options }});
 
     if (!newPoll) return res.status(404).send(searchError(""));
-    else return res.status(200).send({newPoll});
+    else return res.status(200).send(newPoll);
 });
 
 module.exports = router;

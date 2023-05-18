@@ -12,6 +12,9 @@ async function createPoll({ userID, pollOptions }) {
     if (!pollName) return { error: "no poll name" }
     if (!options) return { error: "no options" }
 
+    // must have more than 2 options
+    if (options.length < 2) return { error: "not enough options" }
+
     const pollData = await createPollDB({ userID, pollName, timeLive: timeLive || 86400000 });
     if (!pollData) return { error: "no new poll data"}
 
@@ -61,6 +64,49 @@ async function createPollOptionDB({ pollID, optionTitle }) {
     });
 
     return newPollOption;
+}
+
+// delete poll
+async function deletePoll({ userID, pollID }) {
+    const pollFound = await interactPollSchema.findOne({ _id: pollID });
+    if (!pollFound) return { error: "no poll found" };
+
+    if (pollFound.userID != userID) return { error: "You are not the owner of this poll." }
+
+    // finding each option
+    for (const option of pollFound.pollOptions) {
+        if (option.currentIndexID) {
+            await deletePollIndex({ indexID: option.currentIndexID });
+        }
+    }
+
+    await interactPollSchema.findOneAndDelete({ _id: pollID });
+}
+
+// delete poll indexes
+async function deletePollIndex({ indexID }) {
+    const voteIndex = await interactPollVoteIndexSchema.findOne({ _id: indexID })
+    if (voteIndex.previousIndexID) {
+        await deletePollIndex({ indexID: voteIndex.previousIndexID })
+    } 
+    if (voteIndex.nextIndexID) {
+        await deletePollIndex({ indexID: voteIndex.previousIndexID })
+    }
+    if (voteIndex.index && voteIndex.index[0]._id) {
+        for (const vote of voteIndex.index) {
+            console.log("delete vote")
+            console.log(vote)
+            await deleteVote({ voteID: voteIndex.index })
+        }
+    }
+}
+
+// delete assoicated votes
+async function deleteVote({ voteID }) {
+    const voteData = await interactPollVoteSchema.findOne({ _id: voteID });
+    if (!voteData) return { error: "vote data not found"}
+
+    await interactPollVoteSchema.findOneAndDelete({ _id: voteID });
 }
 
 // change title of poll
@@ -117,4 +163,5 @@ module.exports = {
     createPoll,
     editPollTitle,
     findPoll,
+    deletePoll
 }

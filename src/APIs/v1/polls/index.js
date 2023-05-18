@@ -3,10 +3,12 @@ const create = require('./create');
 const get = require('./get');
 const vote = require('./voteOption');
 const edit = require('./edit');
+const deleteRoute = require('./delete');
 
 router.use('/create', create);
 router.use('/get', get);
 router.use('/vote', vote);
 router.use('/edit', edit);
+router.use('/delete', deleteRoute);
 
 module.exports = router;
