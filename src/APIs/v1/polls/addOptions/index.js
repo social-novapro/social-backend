@@ -15,7 +15,6 @@ router.post('/', async (req, res) => {
     if (!pollID) return res.status(400).send({ "error" : "Please insert a pollID"})
 
     const pollExists = await findPoll({ pollID });
-    console.log(pollExists)
     if (pollExists.error) return res.status(404).send(pollExists)
 
     var options = [];
