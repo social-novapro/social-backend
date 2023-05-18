@@ -32,6 +32,32 @@ async function createPoll({ userID, pollOptions }) {
     return { pollFound };
 }
 
+// check if poll can be edited, true=can, false=cant
+function canEditPoll({ pollData, userID }) {
+    if (pollData.userID != userID) return { possible: false, error: "user not authorized" };
+    if (pollData.timestampEnding < checktime()) return { possible: false, error: "poll has ended" };
+    if (pollData.lastEdited) {
+        if (pollData.lastEdited + 1800000 > checktime()) return { possible: false, error: "poll has been edited too recently" };
+    }
+
+    return { possible: true }
+}
+
+// create poll option
+async function createNewPollOption({ userID, pollID, optionTitle }) {
+    if (!pollID) return { error: "Please provide pollID"}
+    if (!optionTitle) return { error: "no optiontitle"}
+
+    
+    const pollData = await interactPollSchema.findOne({ _id: pollID });
+    if (!pollData) return { error: "no poll found"}
+    const canEdit = canEditPoll({ pollData, userID })
+    if (canEdit.possible==false) return canEdit;
+    
+    const pollOption = await createPollOptionDB({ pollID, optionTitle })
+    return pollOption;
+}
+
 // adds poll to database
 async function createPollDB({ userID, pollName, timeLive }) {
     const pollID = uuidv4();
@@ -113,11 +139,9 @@ async function deleteVote({ voteID }) {
 async function editPollTitle({ userID, pollID, pollName }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
     if (!pollFound) return { error: "no poll found" };
-    if (pollFound.timestampEnding < checktime()) return { error: "poll has ended" };
-    if (pollFound.lastEdited) {
-        if (pollFound.lastEdited + 1800000 > checktime()) return { error: "poll has been edited too recently" };
-    }
-    if (pollFound.userID != userID) return { error: "user not authorized" };
+
+    const canEdit = canEditPoll({ pollData: pollFound, userID })
+    if (canEdit.possible==false) return canEdit;
 
     await interactPollSchema.findOneAndUpdate({ 
         _id: pollID 
@@ -163,5 +187,6 @@ module.exports = {
     createPoll,
     editPollTitle,
     findPoll,
-    deletePoll
+    deletePoll,
+    createNewPollOption
 }
