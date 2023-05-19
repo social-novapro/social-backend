@@ -52,6 +52,10 @@
                     "msg" : "Error with notifications"
                 },
                 {
+                    "code" : "O",
+                    "msg" : "Error with Polls"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -368,6 +372,47 @@
                 {
                     "code" : "L002",
                     "msg" : "Error while saving notification sub."
+                },
+                {
+                    "code" : "O001",
+                    "msg" : "Please insert a poll name."
+                },
+                {
+                    "code" : "O002",
+                    "msg" : "Not enough options, min is %m.",
+                    "options" : [
+                        {
+                            "name" : "min",
+                            "replacement" : "%m",
+                            "default" : 2
+                        }
+                    ]
+                },
+                {
+                    "code" : "O003",
+                    "msg" : "To many options, limit to %m.",
+                    "options" : [
+                        {
+                            "name" : "max",
+                            "replacement" : "%m",
+                            "default" : 10
+                        }
+                    ]
+                },
+                {
+                    "code" : "O004",
+                    "msg" : "Please insert options"
+                },
+                {
+                    "code" : "O005",
+                    "msg" : "Option %o title not found.",
+                    "options" : [
+                        {
+                            "name" : "optionNum",
+                            "replacement" : "%o",
+                            "default" : ""
+                        }
+                    ]
                 },
                 {
                     "code" : "Z001",

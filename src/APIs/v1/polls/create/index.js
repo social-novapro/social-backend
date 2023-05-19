@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
     const { pollName, timeLive, optionAmount } = req.body;
     var options = [];
     for (var i = 0; i < optionAmount; i++) {
-        if (!req.body[`option_${i+1}`]) return res.status(400).send(searchError("option title not found"));
+        if (!req.body[`option_${i+1}`]) return res.status(400).send(searchError("O005", [{ name: "optionNum", data: `#${i+1}`}]));
         options.push({ optionTitle: req.body[`option_${i+1}`] });
     }
 

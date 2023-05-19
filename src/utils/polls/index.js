@@ -6,6 +6,7 @@ const interactPollSchema = require('../../schemas/polls/interactPollSchema');
 const interactPollVoteSchema = require('../../schemas/polls/interactPollVoteSchema');
 const interactPollVoteIndexSchema = require('../../schemas/polls/interactPollVoteIndexSchema');
 
+const MIN_AMOUNT_OPTIONS = 2;
 const MAX_AMOUNT_OPTIONS = 10;
 const MAX_POLL_TITLE_LENGTH = 150;
 const MAX_POLL_OPTION_LENGTH = 50;
@@ -18,11 +19,11 @@ const MAX_POLL_OPTION_LENGTH = 50;
 // logic behind creating polls
 async function createPoll({ userID, pollOptions }) {
     const { pollName, timeLive, options } = pollOptions;
-    if (!pollName) return { error: "no poll name" }
-    if (!options) return { error: "no options" }
+    if (!pollName) return searchError("D001");
+    if (!options) return searchError("D002", [{ name: "min", data: MIN_AMOUNT_OPTIONS }]);
 
     // must have more than 2 options
-    if (options.length < 2) return { error: "not enough options" };
+    if (options.length < 2) return searchError("D002")
     if (options.length > MAX_AMOUNT_OPTIONS) return { error: "to many options" };
 
     const validateTitle = validTitle({ type: "poll", title: pollName})
