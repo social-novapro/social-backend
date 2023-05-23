@@ -12,7 +12,7 @@ router.delete('/:pollID', async (req, res) => {
     const { pollID } = req.params;
 
     const newPoll = await deletePoll({ userID, pollID });
-    if (!newPoll) return res.status(404).send({what: "unexpected error"});
+    if (!newPoll) return res.status(404).send(searchError("O014"));
     else if (newPoll.error) return res.status(400).send(newPoll.error);
     else return res.status(200).send(newPoll);
 });

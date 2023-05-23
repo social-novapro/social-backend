@@ -379,12 +379,16 @@
                 },
                 {
                     "code" : "O002",
-                    "msg" : "Not enough options, min is %m.",
+                    "msg" : "Not enough options, min is %m, max is %ma",
                     "options" : [
                         {
                             "name" : "min",
                             "replacement" : "%m",
                             "default" : 2
+                        }, {
+                            "name" : "max",
+                            "replacement" : "%ma",
+                            "default" : 10
                         }
                     ]
                 },
@@ -413,6 +417,93 @@
                             "default" : ""
                         }
                     ]
+                },
+                {
+                    "code" : "O006",
+                    "msg" : "Not enough valid options, min is %m",
+                    "options" : [
+                        {
+                            "name" : "min",
+                            "replacement" : "%m",
+                            "default" : 2
+                        }
+                    ]
+                },
+                {
+                    "code" : "O007",
+                    "msg" : "An error accured while saving Poll Option %title",
+                    "options" : [
+                        {
+                            "name" : "title",
+                            "replacement" : "%title",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "O008",
+                    "msg" : "User not authorized to make changes to poll."
+                },
+                {
+                    "code" : "O009",
+                    "msg" : "The poll has ended."
+                },
+                {
+                    "code" : "O010",
+                    "msg" : "poll has been edited too recently"
+                },
+                {
+                    "code" : "O011",
+                    "msg" : "There was no poll found with the pollID"
+                },
+                {
+                    "code" : "O012",
+                    "msg" : "Please provide pollID"
+                },
+                {
+                    "code" : "O013",
+                    "msg" : "There was no option title provided"
+                },
+                {
+                    "code" : "O014",
+                    "msg" : "Unexpected Error"
+                },
+                {
+                    "code" : "O015",
+                    "msg" : "The new pollName not found"
+                },
+                {
+                    "code" : "O016",
+                    "msg" : "Title was not sent to validation"
+                },
+                {
+                    "code" : "O017",
+                    "msg" : "%type is to long, please be under %max_poll characters, message was: %title_l characters.",
+                    "options" : [
+                        {
+                            "name" : "type",
+                            "replacement" : "%type",
+                            "default" : "Poll title"
+                        },
+                        {
+                            "name" : "max_poll",
+                            "replacement" : "%max_poll",
+                            "default" : "Unknown"
+                        },
+                        {
+                            "name" : "title_length",
+                            "replacement" : "%title_l",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "O018",
+                    "msg" : "An unknown eror from validating titles. possibly the type name."
+                },
+                {
+                    "code" : "O019",
+                    "msg" : "The poll was not found."
                 },
                 {
                     "code" : "Z001",

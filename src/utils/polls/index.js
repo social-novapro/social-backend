@@ -19,11 +19,11 @@ const MAX_POLL_OPTION_LENGTH = 50;
 // logic behind creating polls
 async function createPoll({ userID, pollOptions }) {
     const { pollName, timeLive, options } = pollOptions;
-    if (!pollName) return searchError("D001");
-    if (!options) return searchError("D002", [{ name: "min", data: MIN_AMOUNT_OPTIONS }]);
+    if (!pollName) return searchError("O001");
+    if (!options) return searchError("O004");
 
     // must have more than 2 options
-    if (options.length < 2) return searchError("D002")
+    if (options.length < 2) return searchError("O002", [{ name: "min", data: MIN_AMOUNT_OPTIONS }, { name: "max", data: MAX_AMOUNT_OPTIONS }])
     if (options.length > MAX_AMOUNT_OPTIONS) return { error: "to many options" };
 
     const validateTitle = validTitle({ type: "poll", title: pollName})
@@ -46,8 +46,11 @@ async function createPoll({ userID, pollOptions }) {
     }
 
     // must have more than 2 options
-    if (validatedOptions.length < 2) return { error: "not enough valid options" };
-    if (validatedOptions.length > MAX_AMOUNT_OPTIONS) return { error: "to many valid options" };
+    if (validatedOptions.length < 2) return {
+        error: searchError("O006", [{ name: "min", data: MIN_AMOUNT_OPTIONS }]),
+        errors: foundErrors
+    }
+    if (validatedOptions.length > MAX_AMOUNT_OPTIONS) return searchError("O003", [{ name: "max", data: MAX_AMOUNT_OPTIONS }])
 
     const pollData = await createPollDB({ userID, pollName, timeLive: timeLive || 86400000 });
     if (!pollData) return { error: "no new poll data"}
@@ -59,7 +62,7 @@ async function createPoll({ userID, pollOptions }) {
         const { optionTitle } = option;
 
         const pollOption = await createPollOptionDB({ pollID: pollData._id, optionTitle });
-        if (!pollOption) return { error: "no new poll option data" }
+        if (!pollOption) return searchError("O007", [{ name : "title", data: optionTitle}])
         pollOptionsData.push(pollOption);
     }
 
@@ -70,10 +73,10 @@ async function createPoll({ userID, pollOptions }) {
 
 // check if poll can be edited, true=can, false=cant
 function canEditPoll({ pollData, userID }) {
-    if (pollData.userID != userID) return { possible: false, error: "user not authorized" };
-    if (pollData.timestampEnding < checktime()) return { possible: false, error: "poll has ended" };
+    if (pollData.userID != userID) return { possible: false, error: searchError("O008")};
+    if (pollData.timestampEnding < checktime()) return { possible: false, error: searchError("O009") };
     if (pollData.lastEdited) {
-        if (pollData.lastEdited + 1800000 > checktime()) return { possible: false, error: "poll has been edited too recently" };
+        if (pollData.lastEdited + 1800000 > checktime()) return { possible: false, error: searchError("0O10") };
     }
 
     return { possible: true }
@@ -81,12 +84,12 @@ function canEditPoll({ pollData, userID }) {
 
 // create poll option
 async function createNewPollOption({ userID, pollID, optionTitle }) {
-    if (!pollID) return { error: "Please provide pollID"}
-    if (!optionTitle) return { error: "no optiontitle"}
+    if (!pollID) return { error: searchError("O012") }
+    if (!optionTitle) return { error: searchError("O013")}
     
     const pollData = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollData) return { error: "no poll found" };
-    if (pollData.pollOptions.length > MAX_AMOUNT_OPTIONS) return { error: "To many options"}
+    if (!pollData) return { error: searchError("O011") };
+    if (pollData.pollOptions.length > MAX_AMOUNT_OPTIONS) return { error: searchError("O003", [ { name: "max", data: MAX_AMOUNT_OPTIONS }])}
 
     const canEdit = canEditPoll({ pollData, userID })
     if (canEdit.possible==false) return canEdit;
@@ -131,28 +134,29 @@ async function createPollOptionDB({ pollID, optionTitle }) {
 
 // validate titles
 function validTitle({ type, title }) {
-    if (!title) return { possible: false, error: "title was not sent to validation" };
+    if (!title) return { possible: false, error: searchError("O016") };
     const titleLength = title.length;
+
     if (!type || type == "option") {
-        if (titleLength > MAX_POLL_OPTION_LENGTH) return { 
+        if (titleLength >= MAX_POLL_OPTION_LENGTH) return { 
             possible: false, 
-            error: `option title is to long, please be under ${MAX_POLL_OPTION_LENGTH} characters, message was: ${titleLength} characters.`,
+            error: searchError("O017", [{"name" : "type", "data" : "Option title" }, { "name" : "max_poll", "data" : MAX_POLL_OPTION_LENGTH }, { "name" : "title_length", "data" : titleLength}]),
             relatedTo: title,
         }
         else return { possible: true }
 
     }
     else if (type == "poll") {
-        if (titleLength > MAX_POLL_TITLE_LENGTH) return { 
+        if (titleLength >= MAX_POLL_TITLE_LENGTH) return { 
             possible: false, 
-            error: `poll title is to long, please be under ${MAX_POLL_TITLE_LENGTH} characters, message was: ${titleLength} characters.`,
+            error: searchError("O017", [{"name" : "type", "data" : "Poll title" }, { "name" : "max_poll", "data" : MAX_POLL_TITLE_LENGTH }]),
             relatedTo: title,
         }
         else return { possible: true }
     }
     else return { 
         possible: false,
-        error: "an unknown eror from validating titles. possibly the type name.", 
+        error: searchError("O018"), 
         relatedTo: title
     }
 }
@@ -160,9 +164,9 @@ function validTitle({ type, title }) {
 // delete poll
 async function deletePoll({ userID, pollID }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return { error: "no poll found" };
+    if (!pollFound) return { error: searchError("O019")};
 
-    if (pollFound.userID != userID) return { error: "You are not the owner of this poll." }
+    if (pollFound.userID != userID) return { error: searchError("O008") }
 
     // finding each option
     for (const option of pollFound.pollOptions) {
@@ -203,7 +207,7 @@ async function deleteVote({ voteID }) {
 // change title of poll
 async function editPollTitle({ userID, pollID, pollName }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return { error: "no poll found" };
+    if (!pollFound) return { error: searchError("O019")};
 
     const canEdit = canEditPoll({ pollData: pollFound, userID })
     if (canEdit.possible==false) return canEdit;
@@ -247,7 +251,7 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
 // findPoll
 async function findPoll({ pollID }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return { error: "no poll found" };
+    if (!pollFound) return { error: searchError("O019")};
     return pollFound;
 }
 

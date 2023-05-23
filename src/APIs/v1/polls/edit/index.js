@@ -16,7 +16,7 @@ router.put('/', async (req, res) => {
         if (editPoll.error) return res.status(400).send(editPoll)
         else return res.status(200).send(editPoll);
     } else {
-        return res.status(400).send(searchError("new pollName not found"));
+        return res.status(400).send(searchError("O015"));
     }
 });
 

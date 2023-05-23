@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
 
     const newPoll = await createPoll({ userID, pollOptions: { pollName, timeLive, options }});
 
-    if (!newPoll) return res.status(404).send(searchError(""));
+    if (!newPoll) return res.status(404).send(searchError("O014"));
     else return res.status(200).send(newPoll);
 });
 
