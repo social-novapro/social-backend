@@ -17,7 +17,8 @@ router.post('/', async (req, res) => {
     if (userID != req.headers.userid) return res.status(400).send(searchError("E009"));
     var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : undefined;
     var replyingPostID = req.body.replyingPostID ? req.body.replyingPostID : undefined;
-
+    var linkedPollID = req.body.linkedPollID ? req.body.linkedPollID : undefined;
+   
     // marked.setOptions({
     //     gfm: true,
     //     breaks: true,
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
     // const markdownContent = sanitizeHtml(marked.parse(content))
     // console.log(markdownContent)
 
-    const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID});
+    const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID, linkedPollID});
     if (replyingPostID) {
         const replyingPost = await interactPostSchema.findOne({ _id: replyingPostID });
         if (!replyingPost) return res.status(404).send(searchError("D002"));
@@ -63,6 +64,20 @@ router.post('/', async (req, res) => {
             }
         );
     };
+
+    /*
+    if (linkedPollID) {
+        const linkedPoll = await interactPostSchema.findOne({ _id: linkedPollID });
+        if (!linkedPoll) return res.status(404).send(searchError("D002"));
+
+        await interactPostSchema.findOneAndUpdate(
+            { _id: linkedPollID },
+            {
+                // uh
+                totalQuotes: linkedPoll.totalQuotes ? linkedPoll.totalQuotes++ : 1,
+            }
+        );
+    }*/
 
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));

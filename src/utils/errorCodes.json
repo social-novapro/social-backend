@@ -514,8 +514,27 @@
                     "msg" : "User already voted for option."
                 },
                 {
+                    "code" : "O022",
+                    "msg" : "pollIndexID is not the same as the pollIndexID in the option ."
+                },
+                {
+                    "code" : "O023",
+                    "msg" : "AmountLike for option was lower than expected"
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
+                },
+                {
+                    "code" : "Z002",
+                    "msg" : "Incorrectly added error: %errormsg",
+                    "options" : [
+                        {
+                            "name" : "msg",
+                            "replacement" : "%errormsg",
+                            "default" : "Unknown"
+                        }
+                    ]
                 }
             ]
         }

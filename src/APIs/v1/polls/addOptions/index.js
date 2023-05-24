@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
     }
 
     const foundPoll = await findPoll({ pollID });
-    if (!options[0]) return res.status(404).send(searchError("O014"));
+    if (!options[0]) return res.status(400).send(searchError("O014"));
     else return res.status(200).send({ finalPoll: foundPoll, addedOptions: options, oldPoll: pollExists});
 });
 

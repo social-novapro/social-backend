@@ -5,6 +5,7 @@ const { checktime } = require('../../checktime');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const {pushQuotePost} = require('../../../utils/notifications/pustQuotePost');
 const interactRepliesSchema = require('../../../schemas/postSchemas/interactRepliesSchema');
+const { findPoll } = require('../../polls');
 
 async function newPostID() {
     const newID = uuidv4();
@@ -18,7 +19,7 @@ async function doubleCheckNewID(newID) {
 };
 
 async function newPostIndex(userID, data) {
-    const { content, quoteReplyPostID, replyingPostID } = data
+    const { content, quoteReplyPostID, replyingPostID, linkedPollID } = data
     const postID = await newPostID();
     const currentTime = checktime();
     // const newIndex = await newReplyIndex(postID);
@@ -49,6 +50,11 @@ async function newPostIndex(userID, data) {
         const replyingPost = await interactPostSchema.findOne({_id: replyingPostID});
         if (replyingPost) await replyingPostSetup(replyingPost, postID, userID);
         else return res.status(404).send(searchError("D002"));
+    }
+    if (linkedPollID) {
+        const foundPoll = await findPoll(linkedPollID);
+        if (foundPoll) await linkedPollSetup(linkedPollID, postID, userID);
+        else return res.status(404).send(searchError("O000"));
     }
     
     return postID;
@@ -145,6 +151,18 @@ async function replyingPostSetup(replyingPost, postID, userID) {
     }, {
         upsert: true
     })
+    return postID;
+}
+
+async function linkedPollSetup(linkedPollID, postID) {
+    // link the poll to the post
+    await interactPostSchema.findOneAndUpdate({
+        _id: postID
+    }, {     
+        hasPoll: true,   
+        pollID: linkedPollID
+    });
+
     return postID;
 }
 

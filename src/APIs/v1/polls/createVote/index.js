@@ -13,7 +13,7 @@ router.put('/', async (req, res) => {
 
     const newRequest = await createPollVote({ pollID, userID, pollOptionID });
 
-    if (newRequest.error) return res.status(404).send(newRequest);
+    if (newRequest.error) return res.status(400).send(newRequest);
     else return res.status(200).send(newRequest);
 });
 
