@@ -506,6 +506,14 @@
                     "msg" : "The poll was not found."
                 },
                 {
+                    "code" : "O020",
+                    "msg" : "Could not find provided optionID for poll."
+                },
+                {
+                    "code" : "O021",
+                    "msg" : "User already voted for option."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 }

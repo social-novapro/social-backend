@@ -17,15 +17,19 @@ const reqNum = {
     required: false
 };
 
+const voteSchema = mongoose.Schema({
+    _id: nonreqString,
+    // timestamp
+})
 /*
     votes which are linked to indexIDs
 */
 const interactPollVoteIndexSchema = mongoose.Schema({
     _id: reqString, // pollVoteIndexID
     timestamp: reqNum, // time created
-    index: [reqString], // [pollVoteID]
-    previousIndexID: reqString, // voteIndexID
-    nextIndexID: reqString, // pollVoteIndexID
+    votes: [voteSchema], // [pollVoteID]
+    previousIndexID: nonreqString, // voteIndexID
+    nextIndexID: nonreqString, // pollVoteIndexID
 });
 
 module.exports = mongoose.model('interact-poll-vote-index', interactPollVoteIndexSchema);

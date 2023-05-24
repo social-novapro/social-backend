@@ -12,10 +12,14 @@ const MAX_POLL_TITLE_LENGTH = 150;
 const MAX_POLL_OPTION_LENGTH = 50;
 
 /*
-    bugs:
-    if error occurs with each of the options, itll still make the poll DB, but with no options
-    *fixed
+ up next
+    - make amountVoted for pollOptions work  
+    - make currentIndexID for pollOptions work
+    - make it so it limits changing votes, 
+        - only allows changing votes if the poll is still live
+        - rate limit
 */
+
 // logic behind creating polls
 async function createPoll({ userID, pollOptions }) {
     const { pollName, timeLive, options } = pollOptions;
@@ -239,13 +243,107 @@ async function createPollVoteIndex({ pollID, userID }) {
         timestamp: checktime(),
     });
 
+    // add ID to currentIndexID !!!
+
     return newPollVoteIndex;
 }
 
 async function createPollVote({ pollID, userID, pollOptionID }) {
-    // const pollVoteID = uuidv4();
-    // const timestamp = Date.now();
-    // const currentIndexID = uuidv4();
+    // create a proper error
+    if (!pollID || !userID || !pollOptionID) return { error: searchError("O014") };
+
+    const foundPoll = await findPoll({ pollID });
+    if (foundPoll.error) return foundPoll;
+
+    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return { error: searchError("O020") };
+    
+    // makes sure its only within poll
+    const foundOption = foundPoll.pollOptions.find(option => option._id == pollOptionID);
+    if (!foundOption) return { error: searchError("O020") };
+
+    // check if user already voted (if so, change and done)
+    const userVoted = await checkUserVote({ userID, pollID });
+    if (userVoted.voted) {
+        // user already voted for same option
+        if (userVoted.foundVote.pollOptionID == pollOptionID) return { error: searchError("O021") };
+
+        const newVote = await changeVoteDB({ userID, pollID, pollOptionID})
+        return newVote;
+    }
+
+    // find if vote index exists
+    if (!foundOption.currentIndexID) {
+        const newVoteIndex = await createPollVoteIndex({ pollID, userID});
+        const newVote = await createNewVoteDB({ pollID, userID, pollIndexID: newVoteIndex._id, pollOptionID });
+        return newVote;
+    } else {
+        const newVote = await createNewVoteDB({ pollID, userID, pollIndexID: foundOption.currentINdexID, pollOptionID });
+        return newVote;
+    }
+}
+
+// check if user already voted, true or false.
+async function checkUserVote({ userID, pollID }) {
+    const foundVote = await interactPollVoteSchema.findOne({ userID, pollID });
+    if (foundVote) return {
+        voted: true,
+        foundVote
+    }
+    return {
+        voted: false
+    }
+}
+
+// change vote in DB
+async function changeVoteDB({ userID, pollID, pollOptionID }) {
+    const changedVote = await interactPollVoteSchema.findOneAndUpdate({ 
+        userID, pollID 
+    }, {
+        lastEdited: checktime(),
+        pollOptionID,
+    });
+
+    const { pollVoteID, pollIndexID } = changedVote._id;
+
+    await addVoteToIndexDB({ pollVoteID, pollIndexID});
+    await removeVoteToIndexDB({ pollVoteID, pollIndexID});
+
+    return changedVote;
+}
+
+// add vote to DB
+async function createNewVoteDB({ userID, pollID, pollIndexID, pollOptionID }) {
+    const pollVoteID = uuidv4();
+    
+    const newVote = await interactPollVoteSchema.create({
+        _id: pollVoteID,
+        pollID,
+        userID,
+        pollOptionID,
+        pollIndexID,
+        timestamp: checktime()
+    });
+    
+    await addVoteToIndexDB({ pollVoteID, pollIndexID});
+    return newVote;
+}
+
+// add vote to index
+async function addVoteToIndexDB({ pollVoteID, pollIndexID }) {
+    await interactPollVoteIndexSchema.findOneAndUpdate(
+        { _id: pollIndexID },
+        { $push : { "votes" : { _id: pollVoteID } } }
+    );
+    // change amountvoted (+1) !!!
+}
+
+// remove vote from index
+async function removeVoteToIndexDB({ pollVoteID, pollIndexID }) {
+    await interactPollVoteIndexSchema.findOneAndUpdate(
+        { _id: pollIndexID },
+        { $pull : { "votes" : { _id: pollVoteID } } }
+    );
+    // change amountvoted (-1) !!!
 }
 
 // findPoll
@@ -260,5 +358,6 @@ module.exports = {
     editPollTitle,
     findPoll,
     deletePoll,
-    createNewPollOption
+    createNewPollOption,
+    createPollVote
 }

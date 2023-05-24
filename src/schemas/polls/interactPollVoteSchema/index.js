@@ -31,6 +31,7 @@ const interactPollVoteSchema = mongoose.Schema({
     userID: reqString, // userID
     lastEdited: nonreqNum, // time last changed
     timestamp: reqNum, // time voted
+    pollIndexID: reqString, // indexID
     pollOptionID: reqString // pollOptionID
 });
 
