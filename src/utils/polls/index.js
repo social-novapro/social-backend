@@ -308,6 +308,30 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     }
 }
 
+// removes current user vote
+async function removeUserVote({ userID, pollID }) {
+    const foundPoll = await findPoll({ pollID });
+    if (foundPoll.error) return foundPoll;
+
+    const userVoted = await checkUserVote({ userID, pollID });
+    if (!userVoted.voted || !userVoted.foundVote) return { error: searchError("O022") };
+
+    if (userVoted.foundVote.pollID != pollID) return { error: "not correct" };
+
+    const removedVote = await removeVoteToIndexDB({ 
+        pollVoteID: userVoted.foundVote._id, 
+        pollIndexID: userVoted.foundVote.pollIndexID, 
+        pollID: pollID, 
+        pollOptionID: userVoted.foundVote.pollOptionID 
+    });
+    if (removedVote?.error) return { error: removedVote, msg: "removeUserVote() remove" }
+    
+    // deletes vote from user
+    const deleteUserVote = await interactPollVoteSchema.findOneAndDelete({ _id: userVoted.foundVote._id });
+
+    return { deleteUserVote };
+}
+
 // makes sure its only within poll
 function findOption({ pollData, pollOptionID }) {
     if (!pollData || !pollData.pollOptions || !pollData.pollOptions[0]) return { error: "what" };
@@ -360,7 +384,6 @@ async function changeVoteDB({ pollData, userID, pollID, pollOptionID, oldVote })
     const oldOption = findOption({ pollData, pollOptionID: oldVote.pollOptionID });
     if (oldOption.error) return { error: oldOption.error };
 
-    // create index !!
     const newVoteIndex = await createPollVoteIndex({ pollID, userID, pollOptionID });
 
     const addedVote = await addVoteToIndexDB({ pollVoteID, pollIndexID: newVoteIndex._id, pollID, pollOptionID });
@@ -409,8 +432,9 @@ async function addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID 
     );
 
     var amountVoted = 0;
+
     if (!foundOption.amountVoted) amountVoted = foundOption.amountVoted = 1;
-    else amountVoted = foundOption.amountVoted++;
+    else amountVoted = foundOption.amountVoted + 1;
 
     await interactPollSchema.findOneAndUpdate(
         { _id: pollID, "pollOptions._id": pollOptionID },
@@ -426,7 +450,6 @@ async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOption
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
     if (!foundOption) return foundOption;
 
-    
     if (foundOption.currentIndexID != pollIndexID) return { error: searchError("O022"), "where": "removing" };
 
     await interactPollVoteIndexSchema.findOneAndUpdate(
@@ -435,19 +458,15 @@ async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOption
     );
 
     var amountVoted = 0;
-
-    if (!foundOption.amountVoted) amountVoted = foundOption.amountVoted = 1;
-    else if (foundOption.amountVoted <= 0){
-        // console.log("amountVoted lower than 0")
-        return { error: searchError("O023") };
-    }
-    else amountVoted = foundOption.amountVoted--;
-
+    
+    if (!foundOption.amountVoted) amountVoted = foundOption.amountVoted = 0;
+    else if (foundOption.amountVoted == 0) return { error: searchError("O023") };
+    else amountVoted = foundOption.amountVoted - 1;
+    
     await interactPollSchema.findOneAndUpdate(
         { _id: pollID, "pollOptions._id": pollOptionID },
         { $set: { "pollOptions.$.amountVoted": amountVoted }}
     );
-    // change amountvoted (-1) !!!
 }
 
 // findPoll
@@ -464,5 +483,6 @@ module.exports = {
     deletePoll,
     createNewPollOption,
     createPollVote,
-    findUserVote
+    findUserVote,
+    // removeUserVote
 }
