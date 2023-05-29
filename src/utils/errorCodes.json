@@ -213,6 +213,11 @@
                     "code" : "D003",
                     "msg" : "There were no posts found."
                 },
+                
+                {
+                    "code" : "D004",
+                    "msg" : "Incorrect content type; use String."
+                },
                 {
                     "code" : "D004",
                     "msg" : "No edits found for post."
