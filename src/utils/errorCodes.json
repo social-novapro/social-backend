@@ -522,6 +522,10 @@
                     "msg" : "AmountLike for option was lower than expected"
                 },
                 {
+                    "code" : "O024",
+                    "msg" : "The user has not voted."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

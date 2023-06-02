@@ -204,8 +204,6 @@ async function deletePollIndex({ indexID }) {
     }
     if (voteIndex.index && voteIndex.index[0]._id) {
         for (const vote of voteIndex.index) {
-            console.log("delete vote")
-            console.log(vote)
             await deleteVote({ voteID: voteIndex.index })
         }
     }
@@ -313,8 +311,35 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     }
 }
 
+// api call to remove a vote
+async function removePollVote({ pollID, userID, pollOptionID }) {
+    const foundPoll = await findPoll({ pollID });
+    if (foundPoll.error) return foundPoll;
+
+    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return { error: searchError("O020") };
+
+    // makes sure its only within poll
+    const foundOption = findOption({ pollData: foundPoll, pollOptionID });
+    if (foundOption.error) return foundOption;
+
+    // check if user already voted (if so, change and done)
+    const userVoted = await checkUserVote({ userID, pollID });
+    if (userVoted.error) return userVoted.error;
+    if (userVoted.voted) {
+        if (userVoted.foundVote.pollOptionID != pollOptionID) return { error: searchError("O021") };
+
+        // remove vote
+        const removedVote = await removeVoteDB({ userVote: userVoted.foundVote });
+        if (removedVote.error) return removedVote.error ;
+
+        return { removedVote };
+    } else {
+        return userVoted.error;
+    }
+}
+
 // removes current user vote
-async function removeVoteDB({ userID, userVote, pollID }) {
+async function removeVoteDB({ userVote }) {
     if (!userVote) return { error: searchError("O022") };
 
     const removedVote = await removeVoteToIndexDB({ 
@@ -352,18 +377,15 @@ async function findUserVote({ userID, pollID }) {
 }
 
 // check if user already voted, true or false.
-
 async function checkUserVote({ userID, pollID }) {
-    // console.log("userID " + userID + " pollID " + pollID)
-
     const foundVote = await interactPollVoteSchema.findOne({ userID, pollID });
-
     if (foundVote) return {
         voted: true,
         foundVote
     }
     else return {
-        voted: false
+        voted: false,
+        error: searchError("O024")
     }
 }
 
@@ -486,6 +508,7 @@ module.exports = {
     deletePoll,
     createNewPollOption,
     createPollVote,
+    removePollVote,
     findUserVote,
     // removeUserVote
 }
