@@ -271,6 +271,7 @@ async function createPollVoteIndex({ pollID, userID, pollOptionID }) {
     return newPollVoteIndex;
 }
 
+// checks if theres already a vote index
 async function createPollVote({ pollID, userID, pollOptionID }) {
     // create a proper error
     if (!pollID || !userID || !pollOptionID) return { error: searchError("O014") };
@@ -298,7 +299,11 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
         // user already voted for same option
         if (userVoted.foundVote.pollOptionID == pollOptionID) return { error: searchError("O021") };
 
-        const newVote = await changeVoteDB({ pollData: foundPoll, userID, pollID, pollOptionID, oldVote: userVoted?.foundVote})
+        // change vote
+        const removedVote = await removeVoteDB({ userID, userVote: userVoted.foundVote });
+        if (removedVote.error) return { error: removedVote.error };
+        const newVote = await createNewVoteDB({ pollID, userID, pollIndexID: voteIndexID, pollOptionID });
+        // const newVote = await changeVoteDB({ pollData: foundPoll, userID, pollID, pollOptionID, oldVote: userVoted?.foundVote})
         if (newVote.error) return { error: newVote }; // error here
         return { newVote, oldVote: userVoted?.foundVote };
     }
@@ -309,25 +314,20 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
 }
 
 // removes current user vote
-async function removeUserVote({ userID, pollID }) {
-    const foundPoll = await findPoll({ pollID });
-    if (foundPoll.error) return foundPoll;
-
-    const userVoted = await checkUserVote({ userID, pollID });
-    if (!userVoted.voted || !userVoted.foundVote) return { error: searchError("O022") };
-
-    if (userVoted.foundVote.pollID != pollID) return { error: "not correct" };
+async function removeVoteDB({ userID, userVote, pollID }) {
+    if (!userVote) return { error: searchError("O022") };
 
     const removedVote = await removeVoteToIndexDB({ 
-        pollVoteID: userVoted.foundVote._id, 
-        pollIndexID: userVoted.foundVote.pollIndexID, 
-        pollID: pollID, 
-        pollOptionID: userVoted.foundVote.pollOptionID 
+        pollVoteID: userVote._id, 
+        pollIndexID: userVote.pollIndexID, 
+        pollID: userVote.pollID, 
+        pollOptionID: userVote.pollOptionID 
     });
+
     if (removedVote?.error) return { error: removedVote, msg: "removeUserVote() remove" }
     
     // deletes vote from user
-    const deleteUserVote = await interactPollVoteSchema.findOneAndDelete({ _id: userVoted.foundVote._id });
+    const deleteUserVote = await interactPollVoteSchema.findOneAndDelete({ _id: userVote._id });
 
     return { deleteUserVote };
 }
@@ -368,7 +368,10 @@ async function checkUserVote({ userID, pollID }) {
 }
 
 // change vote in DB
+// dont use, bug would create new index for new vote option
 async function changeVoteDB({ pollData, userID, pollID, pollOptionID, oldVote }) {
+    return { error: "changeVoteDB() should not be used, use removeVoteDB(), and use createNewVoteDB()" };
+    
     const changedVote = await interactPollVoteSchema.findOneAndUpdate({ 
         userID, pollID 
     }, {
