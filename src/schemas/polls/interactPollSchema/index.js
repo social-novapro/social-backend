@@ -34,6 +34,7 @@ const pollOptions = mongoose.Schema({
 */
 const interactPollSchema = mongoose.Schema({
     _id: reqString, // pollID
+    _version: reqNum,
     timestamp: reqNum, // time posted
     userID: reqString, // userID of original
     postID: nonreqString, // main linked PostID (can be linked to other posts)

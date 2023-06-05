@@ -26,6 +26,7 @@ const voteSchema = mongoose.Schema({
 */
 const interactPollVoteIndexSchema = mongoose.Schema({
     _id: reqString, // pollVoteIndexID
+    _version: reqNum,
     timestamp: reqNum, // time created
     votes: [voteSchema], // [pollVoteID]
     previousIndexID: nonreqString, // voteIndexID

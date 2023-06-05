@@ -2,6 +2,8 @@ const { checktime } = require('../checktime');
 const { searchError } = require('../searchError');
 const { v4: uuidv4 } = require('uuid');
 
+const { SCHEMA_VERSIONS } = require('../../../config.json');
+
 const interactPollSchema = require('../../schemas/polls/interactPollSchema');
 const interactPollVoteSchema = require('../../schemas/polls/interactPollVoteSchema');
 const interactPollVoteIndexSchema = require('../../schemas/polls/interactPollVoteIndexSchema');
@@ -12,23 +14,10 @@ const MAX_POLL_TITLE_LENGTH = 150;
 const MAX_POLL_OPTION_LENGTH = 50;
 
 /*
- up next
-    - make amountVoted for pollOptions work  
-    - make currentIndexID for pollOptions work
-    - make it so it limits changing votes, 
-        - only allows changing votes if the poll is still live
-        - rate limit
-        - unlink poll
-        - delete poll from frontned
-
-    bugs:
-        - voting for vote, but wrong option it says already voted
-        - if voting for a option that hasnt been voted for before, gives error to frontend: O022
-            - actually only if user hasnt voted for the option before?
-            - actually just kinda random?
-            - fixed (gonna keep in case)
-        - make sure that it removes prvious vote
-        - make sure it keeps same indexID for multiple votes : createPollVoteIndex()
+ up next, v1.1 polls
+    - rate limiting for changing votes
+    - unlink polls
+    - discover page for polls
 */
 
 // logic behind creating polls
@@ -128,6 +117,7 @@ async function createPollDB({ userID, pollName, timeLive }) {
 
     const newPoll = await interactPollSchema.create({
         _id: pollID,
+        _version: SCHEMA_VERSIONS.polls.interactPollSchema,
         userID: userID,
         timestamp: checktime(),
         timestampEnding: Number(checktime()) + Number(timeLive),
@@ -258,6 +248,7 @@ async function createPollVoteIndex({ pollID, userID, pollOptionID }) {
 
     const newPollVoteIndex = await interactPollVoteIndexSchema.create({
         _id: pollVoteIndexID,
+        _version: SCHEMA_VERSIONS.polls.interactPollVoteIndexSchema,
         pollID,
         userID,
         timestamp: checktime(),
@@ -313,7 +304,7 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
         const removedVote = await removeVoteDB({ userID, userVote: userVoted.foundVote });
         if (removedVote.error) return { error: removedVote.error };
         const newVote = await createNewVoteDB({ pollID, userID, pollIndexID: voteIndexID, pollOptionID });
-        // const newVote = await changeVoteDB({ pollData: foundPoll, userID, pollID, pollOptionID, oldVote: userVoted?.foundVote})
+
         if (newVote.error) return { error: newVote }; // error here
         return { newVote, oldVote: userVoted?.foundVote };
     }
@@ -404,43 +395,13 @@ async function checkUserVote({ userID, pollID }) {
     }
 }
 
-// change vote in DB
-// dont use, bug would create new index for new vote option
-async function changeVoteDB({ pollData, userID, pollID, pollOptionID, oldVote }) {
-    return { error: "changeVoteDB() should not be used, use removeVoteDB(), and use createNewVoteDB()" };
-    
-    const changedVote = await interactPollVoteSchema.findOneAndUpdate({ 
-        userID, pollID 
-    }, {
-        lastEdited: checktime(),
-        pollOptionID,
-    });
-
-    const { _id: pollVoteID, pollIndexID } = changedVote;
-
-    const newOption = findOption({ pollData, pollOptionID });
-    if (newOption.error) return { error: newOption.error };
-
-    const oldOption = findOption({ pollData, pollOptionID: oldVote.pollOptionID });
-    if (oldOption.error) return { error: oldOption.error };
-
-    const newVoteIndex = await createPollVoteIndex({ pollID, userID, pollOptionID });
-
-    const addedVote = await addVoteToIndexDB({ pollVoteID, pollIndexID: newVoteIndex._id, pollID, pollOptionID });
-    if (addedVote?.error) return { error: addedVote, msg: "changeVoteDB() add" }
-    
-    const removedVote = await removeVoteToIndexDB({ pollVoteID, pollIndexID: oldOption.currentIndexID, pollID, pollOptionID: oldOption._id });
-    if (removedVote?.error) return { error: removedVote, msg: "changeVoteDB() remove" }
-
-    return changedVote;
-}
-
 // add vote to DB
 async function createNewVoteDB({ userID, pollID, pollIndexID, pollOptionID }) {
     const pollVoteID = uuidv4();
     
     const newVote = await interactPollVoteSchema.create({
         _id: pollVoteID,
+        _version: SCHEMA_VERSIONS.polls.interactPollVoteSchema,
         pollID,
         userID,
         pollOptionID,
@@ -524,6 +485,5 @@ module.exports = {
     createNewPollOption,
     createPollVote,
     removePollVote,
-    findUserVote,
-    // removeUserVote
+    findUserVote
 }

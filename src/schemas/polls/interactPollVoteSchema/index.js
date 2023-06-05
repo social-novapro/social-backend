@@ -27,6 +27,7 @@ const nonreqNum = {
 */
 const interactPollVoteSchema = mongoose.Schema({
     _id: reqString, // pollVoteID, linked inside pollVoteIndex
+    _version: reqNum,
     pollID: reqString, // pollID
     userID: reqString, // userID
     lastEdited: nonreqNum, // time last changed
