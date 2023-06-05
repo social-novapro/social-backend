@@ -526,6 +526,10 @@
                     "msg" : "The user has not voted."
                 },
                 {
+                    "code" : "O025",
+                    "msg" : "The poll has ended, user can no longer vote."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

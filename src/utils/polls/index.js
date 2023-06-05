@@ -86,13 +86,22 @@ async function createPoll({ userID, pollOptions }) {
     return { pollData: pollFound, foundErrors };
 }
 
-// check if poll can be edited, true=can, false=cant
-function canEditPoll({ pollData, userID }) {
-    if (pollData.userID != userID) return { possible: false, error: searchError("O008")};
+// checks if the time is over, possible:false==over, possible:true==not over
+function timeOver({ pollData }) {
     if (pollData.timestampEnding < checktime()) return { possible: false, error: searchError("O009") };
     if (pollData.lastEdited) {
         if (pollData.lastEdited + 1800000 > checktime()) return { possible: false, error: searchError("0O10") };
     }
+    
+    return { possible: true }
+}
+
+// check if poll can be edited, possible:true=can, possible:false=cant
+function canEditPoll({ pollData, userID }) {
+    if (pollData.userID != userID) return { possible: false, error: searchError("O008")};
+
+    const isTimeOver = timeOver({ pollData });
+    if (isTimeOver.possible==false) return isTimeOver;
 
     return { possible: true }
 }
@@ -277,6 +286,9 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     const foundPoll = await findPoll({ pollID });
     if (foundPoll.error) return foundPoll;
 
+    const isTimeOver = timeOver({ pollData: foundPoll });
+    if (isTimeOver.possible == false) return isTimeOver;
+
     if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return { error: searchError("O020") };
     
     // makes sure its only within poll
@@ -315,6 +327,9 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
 async function removePollVote({ pollID, userID, pollOptionID }) {
     const foundPoll = await findPoll({ pollID });
     if (foundPoll.error) return foundPoll;
+
+    const isTimeOver = timeOver({ pollData: foundPoll });
+    if (isTimeOver.possible == false) return isTimeOver;
 
     if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return { error: searchError("O020") };
 
