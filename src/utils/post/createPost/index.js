@@ -44,17 +44,17 @@ async function newPostIndex(userID, data) {
     if (quoteReplyPostID) {
         const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
         if (quotingPost) return quotingPostSetup(quotingPost, postID, userID);
-        else return res.status(404).send(searchError("D002"));
+        // else return res.status(404).send(searchError("D002"));
     }
     if (replyingPostID) {
         const replyingPost = await interactPostSchema.findOne({_id: replyingPostID});
         if (replyingPost) await replyingPostSetup(replyingPost, postID, userID);
-        else return res.status(404).send(searchError("D002"));
+        // else return res.status(404).send(searchError("D002"));
     }
     if (linkedPollID) {
-        const foundPoll = await findPoll(linkedPollID);
-        if (foundPoll) await linkedPollSetup(linkedPollID, postID, userID);
-        else return res.status(404).send(searchError("O000"));
+        const foundPoll = await findPoll({pollID: linkedPollID});
+        if (!foundPoll.error) await linkedPollSetup(linkedPollID, postID, userID);
+        // else return res.status(404).send(searchError("O000"));
     }
     
     return postID;
