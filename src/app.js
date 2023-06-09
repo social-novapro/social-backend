@@ -14,6 +14,10 @@ const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
 
+// sending email
+const { sendTest } = require('./utils/email/send');
+sendTest();
+
 /* collect everything within a index
 const interactPostSchema = require('./database/posts-schema')
 

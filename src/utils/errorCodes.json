@@ -52,9 +52,14 @@
                     "msg" : "Error with notifications"
                 },
                 {
+                    "code" : "N",
+                    "msg" : "Error with emails"
+                },
+                {
                     "code" : "O",
                     "msg" : "Error with Polls"
                 },
+
                 {
                     "code" : "Z",
                     "msg" : "Unknown errors."
@@ -372,6 +377,38 @@
                 {
                     "code" : "L002",
                     "msg" : "Error while saving notification sub."
+                },
+                {
+                    "code" : "N001",
+                    "msg" : "Could not find request for verification of email."
+                },
+                {
+                    "code" : "N002",
+                    "msg" : "There was no email linked to this account."
+                },
+                {
+                    "code" : "N003",
+                    "msg" : "email is already verified."
+                },
+                {
+                    "code" : "N004",
+                    "msg" : "Please provide an email address."
+                },
+                {
+                    "code" : "N005",
+                    "msg" : "Not a valid email address, please try again."
+                },
+                {
+                    "code" : "N006",
+                    "msg" : "Email is already in use."
+                },
+                {
+                    "code" : "N007",
+                    "msg" : "User is already in verification process. Please cancel current request first."
+                }, 
+                {
+                    "code" : "N008",
+                    "msg" : "Email is already in verification process by another user."
                 },
                 {
                     "code" : "O001",
