@@ -41,6 +41,14 @@ router.post('/', async (req, res) => {
     // console.log(markdownContent)
 
     const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID, linkedPollID});
+    
+    const PostData = await interactPostSchema.findOne({_id: postID});
+    if (!PostData) return res.status(404).send(searchError("D002"));
+
+    await pushNewPost(userID, postID)
+    return res.status(200).send(PostData);
+
+    // old code, probably dont need
     if (replyingPostID) {
         const replyingPost = await interactPostSchema.findOne({ _id: replyingPostID });
         if (!replyingPost) return res.status(404).send(searchError("D002"));
@@ -79,7 +87,7 @@ router.post('/', async (req, res) => {
         );
     }*/
 
-    const PostData = await interactPostSchema.findOne({_id: postID});
+    // const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchError("D002"));
 
     await pushNewPost(userID, postID)
