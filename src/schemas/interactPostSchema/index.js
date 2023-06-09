@@ -100,6 +100,9 @@ const interactPostSchema = mongoose.Schema({
     
     deleted: reqBool,
 
+    hasPoll: reqBool,
+    pollID: reqString,
+
     hasMentions: reqBool,
     mentionData: [mentionDataSchema], // max 10 ideally
 

@@ -56,6 +56,11 @@
                     "msg" : "Error with emails"
                 },
                 {
+                    "code" : "O",
+                    "msg" : "Error with Polls"
+                },
+
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -406,8 +411,175 @@
                     "msg" : "Email is already in verification process by another user."
                 },
                 {
+                    "code" : "O001",
+                    "msg" : "Please insert a poll name."
+                },
+                {
+                    "code" : "O002",
+                    "msg" : "Not enough options, min is %m, max is %ma",
+                    "options" : [
+                        {
+                            "name" : "min",
+                            "replacement" : "%m",
+                            "default" : 2
+                        }, {
+                            "name" : "max",
+                            "replacement" : "%ma",
+                            "default" : 10
+                        }
+                    ]
+                },
+                {
+                    "code" : "O003",
+                    "msg" : "To many options, limit to %m.",
+                    "options" : [
+                        {
+                            "name" : "max",
+                            "replacement" : "%m",
+                            "default" : 10
+                        }
+                    ]
+                },
+                {
+                    "code" : "O004",
+                    "msg" : "Please insert options"
+                },
+                {
+                    "code" : "O005",
+                    "msg" : "Option %o title not found.",
+                    "options" : [
+                        {
+                            "name" : "optionNum",
+                            "replacement" : "%o",
+                            "default" : ""
+                        }
+                    ]
+                },
+                {
+                    "code" : "O006",
+                    "msg" : "Not enough valid options, min is %m",
+                    "options" : [
+                        {
+                            "name" : "min",
+                            "replacement" : "%m",
+                            "default" : 2
+                        }
+                    ]
+                },
+                {
+                    "code" : "O007",
+                    "msg" : "An error accured while saving Poll Option %title",
+                    "options" : [
+                        {
+                            "name" : "title",
+                            "replacement" : "%title",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "O008",
+                    "msg" : "User not authorized to make changes to poll."
+                },
+                {
+                    "code" : "O009",
+                    "msg" : "The poll has ended."
+                },
+                {
+                    "code" : "O010",
+                    "msg" : "poll has been edited too recently"
+                },
+                {
+                    "code" : "O011",
+                    "msg" : "There was no poll found with the pollID"
+                },
+                {
+                    "code" : "O012",
+                    "msg" : "Please provide pollID"
+                },
+                {
+                    "code" : "O013",
+                    "msg" : "There was no option title provided"
+                },
+                {
+                    "code" : "O014",
+                    "msg" : "Unexpected Error"
+                },
+                {
+                    "code" : "O015",
+                    "msg" : "The new pollName not found"
+                },
+                {
+                    "code" : "O016",
+                    "msg" : "Title was not sent to validation"
+                },
+                {
+                    "code" : "O017",
+                    "msg" : "%type is to long, please be under %max_poll characters, message was: %title_l characters.",
+                    "options" : [
+                        {
+                            "name" : "type",
+                            "replacement" : "%type",
+                            "default" : "Poll title"
+                        },
+                        {
+                            "name" : "max_poll",
+                            "replacement" : "%max_poll",
+                            "default" : "Unknown"
+                        },
+                        {
+                            "name" : "title_length",
+                            "replacement" : "%title_l",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "O018",
+                    "msg" : "An unknown eror from validating titles. possibly the type name."
+                },
+                {
+                    "code" : "O019",
+                    "msg" : "The poll was not found."
+                },
+                {
+                    "code" : "O020",
+                    "msg" : "Could not find provided optionID for poll."
+                },
+                {
+                    "code" : "O021",
+                    "msg" : "User already voted for option."
+                },
+                {
+                    "code" : "O022",
+                    "msg" : "pollIndexID is not the same as the pollIndexID in the option ."
+                },
+                {
+                    "code" : "O023",
+                    "msg" : "AmountLike for option was lower than expected"
+                },
+                {
+                    "code" : "O024",
+                    "msg" : "The user has not voted."
+                },
+                {
+                    "code" : "O025",
+                    "msg" : "The poll has ended, user can no longer vote."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
+                },
+                {
+                    "code" : "Z002",
+                    "msg" : "Incorrectly added error: %errormsg",
+                    "options" : [
+                        {
+                            "name" : "msg",
+                            "replacement" : "%errormsg",
+                            "default" : "Unknown"
+                        }
+                    ]
                 }
             ]
         }
