@@ -411,6 +411,10 @@
                     "msg" : "Email is already in verification process by another user."
                 },
                 {
+                    "code" : "N009",
+                    "msg" : "User already authenticated"
+                },
+                {
                     "code" : "O001",
                     "msg" : "Please insert a poll name."
                 },

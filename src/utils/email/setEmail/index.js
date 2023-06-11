@@ -7,39 +7,90 @@ const { checktime } = require('../../checktime');
 const { emailSender } = require('../send');
 
 async function setEmail({email, userID }) {
+    console.log("setEmail")
     if (!email) return searchError("N004")
     if (!userID) return searchError("B009");
 
     // is email valid
-    const isValid = validEmail({email});
+    const isValid = await validEmail({email});
     if (!isValid.valid) return isValid.error;
 
     // does user exist
-    const userPriv = await interactUserPrivSchema.findOne({_id: userID});
+    const userPriv = await interactUserPrivSchema.findOne({_id: userID });
     if (!userPriv) return searchError("C009");
-
     if (userPriv.email === email) return searchError("N003");
 
-    // is email already in use
-    const emailFound = await interactUserPrivSchema.findOne({email});
-    if (emailFound) return searchError("N006");
+    // is email already in use or in pending verification
+    const emailInUse = await checkEmailInUse({ email });
+    if (emailInUse.error) return emailInUse.error;
 
-    // check if user has a pending email verification request + not the same email
-    const userEmailReqFound = await interactEmailVerificationSchema.findOne({ userID });
-    if (userEmailReqFound && userEmailReqFound.email != email) return searchError("N007");
+    // check if user has pending user verification request
     
-    // check if user has a pending email verification request + not the same email
-    const emailReqFound = await interactEmailVerificationSchema.findOne({ email });
-    if (emailReqFound && emailReqFound.userID != userID) return searchError("N008");
+    const foundEmailVer = await findCurUserVer({ userID });
 
+    if (foundEmailVer.found) {
+        // check if its different email, if it is, searcHError("N007"), asking to cancel first
+        // check if its the same email, if it is, send a new email with new verification code
+
+        // functino that replaces, instead of setting and creating new one
+        return false;
+    }
+    
     // save email verification request
+    const emailID = await setEmailDB({ email, userID });
+    if (!emailID) return false
 
+    const verificationID = await createVerificationID({ emailID });
+    if (!verificationID) return false;
 
     // send email verification request
+    const emailSent = await sendEmailVer({ email, userID, emailVerID: verificationID });
+    return { "status": "success", emailSent, verificationID };
+}
+
+// create verificationID
+async function createVerificationID({ emailID }) {
+    const verificationID = uuidv4();
+    
+    await interactEmailVerificationSchema.findOneAndUpdate({ 
+        _id: emailID
+    }, {
+        verificationID: verificationID
+    });
+
+    return verificationID;
+}
+
+// send email verification
+async function sendEmailVer({ email, userID, emailVerID }) {
+    const emailSent = await emailSender({
+        users: [{
+            email: email,
+            userID: userID,
+            bbc: false
+        }],
+        type: 0,
+        subject: "Email Verification Interact",
+        content: `Please verify your email. Open: https://interact-api.novapro.net/emails/request/verfication/${emailVerID}/ to verify. Thank you.`,
+        htmlElement: {
+            h1: "Interact Email Verification",
+            p: "Please verify your email",
+            a: `https://interact-api.novapro.net/emails/request/verfication/${emailVerID}`,
+        }
+    });
+
+    return { "status": "success", emailSent };
+}
+
+// find user's emailVer schema
+async function findCurUserVer({ userID }) {
+    const foundEmailData = await interactEmailVerificationSchema.findOne({ _id: userID });
+    if (!foundEmailData) return { found: false };
+    else return { found: true, data: foundEmailData };
 }
 
 // setting email
-async function setEmail({ email, userID, replace }) {
+async function setEmailDB({ email, userID, replace }) {
     const emailID = uuidv4();
     await interactEmailVerificationSchema.create({
         _id: emailID,
@@ -48,7 +99,9 @@ async function setEmail({ email, userID, replace }) {
         email: email,
         userID: userID,
         replaceCurrent: false,
-    })
+    });
+
+    return emailID;
 }
 
 // replace old email
@@ -118,7 +171,6 @@ async function saveVerificationReq({
     emailVerID, 
     replaceCurrent
 }) {
-
     const emailVerification = await interactEmailVerificationSchema.create({
         _id: emailVerID,
         timestamp: checktime(),
@@ -134,8 +186,21 @@ async function saveVerificationReq({
     };
 }
 
+// is email in use
+async function checkEmailInUse({ email }) {
+    // if being used
+    const emailFound = await interactUserPrivSchema.findOne({ email });
+    if (emailFound) return { error: searchError("N006") };
+
+    // if pending verification
+    const foundVerification = await interactEmailVerificationSchema.findOne({ email });
+    if (foundVerification) return { error: searchError("N006") };
+
+    return { success: true };
+}
+
 // is email valid
-function validEmail({email}) {
+async function validEmail({ email }) {
     if (!email) return {
         "valid" : false,
         "error" : searchError("N004")
@@ -148,7 +213,12 @@ function validEmail({email}) {
         "email" : email,
         "error" : searchError("N005")
     }
-    else return { 
+
+    // check if in use
+    const emailInUse = await checkEmailInUse({ email });
+    if (emailInUse.error) return emailInUse.error;
+    
+    return { 
         "valid" : true,
         "email" : email
     };

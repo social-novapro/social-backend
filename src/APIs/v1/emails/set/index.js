@@ -1,11 +1,7 @@
 const router = require('express').Router();
-const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
 const { searchError } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const { verifyEmail, sendVerificationEmail } = require('../../../../../utils/email');
-const { searchError } = require('../../../../utils/searchError');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
+const { setEmail } = require('../../../../utils/email/setEmail');
 
 router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -15,15 +11,11 @@ router.post('/', async (req, res) => {
     const { userid } = req.headers;
 
     if (!email) return res.status(400).send(searchError("N002"));
-    
 
-    const { emailVerID } = req.params;
-    if (!emailVerID) return res.status(400).send(searchError("N001"));
-    
-    const done = await verifyEmail(emailVerID);
-    // const { userid } = req.headers;
+    const emailRequest = await setEmail({ email, userID: userid });
 
-    return res.status(200).send(done);
+    if (!emailRequest || emailRequest?.error || emailRequest?.code) return res.status(400).send(emailRequest?.error ? emailRequest?.error  : emailRequest );
+    return res.status(200).send(emailRequest);
 })
 
 module.exports = router;

@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // users is an array of objects with userID and email or just userID
-async function emailSender({ users, subject, content, htmlElement }) {
+async function emailSender({ users, type, subject, content, htmlElement }) {
     if (!htmlElement.ahref && htmlElement.a) htmlElement.ahref = htmlElement.a
     if (!htmlElement.a && htmlElement.ahref) htmlElement.a = htmlElement.ahref
     if (!users || !subject || !content ) return { "status": "error", "error": "Missing required fields "}
@@ -46,6 +46,7 @@ async function emailSender({ users, subject, content, htmlElement }) {
 
     const email = {
         emailID,
+        type,
         sendTo: [],
         subject,
         content,
@@ -106,6 +107,7 @@ async function emailSender({ users, subject, content, htmlElement }) {
 async function saveEmail(email, status) {
     const emailData = await interactEmailSchema.create({ 
         _id: email.emailID,
+        type: email.type,
         timestamp: email.timestamp,
         failed: status,
         subject: email.subject,
@@ -146,7 +148,7 @@ async function testing() {
                 bbc: false
             }
         ],
-        type: 00,
+        type: 50,
         subject: "Multiple senders! BCC",
         content: "Sending a test email with multiple senders",
         htmlElement: {
