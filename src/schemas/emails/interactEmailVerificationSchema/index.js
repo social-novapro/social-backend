@@ -21,6 +21,17 @@ const reqBool = {
     type: Boolean,
     required: true
 };
+const nonreqBool = {
+    type: Boolean,
+    required: false
+};
+
+const emailHistoryData = mongoose.Schema({
+    _id: nonreqString, // emailVerID
+    timestamp: nonreqNum, // time sent
+    verified: nonreqBool, // if email is verified
+    email: nonreqString // email address
+});
 
 const interactEmailVerificationSchema = mongoose.Schema({
     _id: reqString, // emailVerID
@@ -30,6 +41,8 @@ const interactEmailVerificationSchema = mongoose.Schema({
     email: reqString, // email address
     replaceCurrent: reqBool, // if email should replace current email
     userID: reqString, // userID
+    emailHistory: [emailHistoryData], // email history
+    verificationID: nonreqString, // verification ID sent to email
 });
 
 

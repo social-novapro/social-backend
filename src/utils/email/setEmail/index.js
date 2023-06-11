@@ -34,6 +34,47 @@ async function setEmail({email, userID }) {
 
     // save email verification request
 
+
+    // send email verification request
+}
+
+// setting email
+async function setEmail({ email, userID, replace }) {
+    const emailID = uuidv4();
+    await interactEmailVerificationSchema.create({
+        _id: emailID,
+        timestamp: checktime(),
+        verified: false,
+        email: email,
+        userID: userID,
+        replaceCurrent: false,
+    })
+}
+
+// replace old email
+async function replaceEmail({ emailID, newEmail, oldEmailData, userID }) {
+    // set new email
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        _id: emailID
+    }, {
+        timestamp: checktime(),
+        verified: false,
+        email: newEmail,
+        userID: userID,
+        replaceCurrent: true,
+    })
+
+    // add to history
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        _id: emailID
+    }, {
+        $push : { "replaceEmails" : { 
+            oldEmail: oldEmailData.email,
+            timestampSet: oldEmailData.timestamp,
+            wasVerified: oldEmailData.verified,
+            timestampRemoved: checktime()
+        }}
+    });
 }
 
 // only accessed within this file
@@ -52,7 +93,7 @@ async function requestVerifyEmail({ userID, email, userPriv }) {
     // sends email
     const emailSend = await emailSender({
         users: [{ userID, email }],
-        type: 02,
+        type: 2,
         subject: "Verify your email at Interact",
         content: `Verify your email, click the link below: ${emailVerURL}`,
         htmlElement: {
@@ -104,9 +145,13 @@ function validEmail({email}) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!regex.test(email)) return {
         "valid" : false,
+        "email" : email,
         "error" : searchError("N005")
     }
-    else return { "valid" : true };
+    else return { 
+        "valid" : true,
+        "email" : email
+    };
 }
 
 module.exports = { setEmail, validEmail }
