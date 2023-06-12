@@ -6,10 +6,11 @@ const { v4: uuidv4 } = require('uuid');
 const { checktime } = require('../../checktime');
 const { emailSender } = require('../send');
 
-async function setEmail({email, userID }) {
-    console.log("setEmail")
+// set email verification request
+async function setEmail({email, userID, password }) {
     if (!email) return searchError("N004")
-    if (!userID) return searchError("B009");
+    if (!userID) return searchError("Z002", [{ name: "msg", data: "no userID provided"}] )
+    if (!password) return searchError("Z002", [{ name: "msg", data: "no passsword provided"}] )
 
     // is email valid
     const isValid = await validEmail({email});
@@ -19,6 +20,9 @@ async function setEmail({email, userID }) {
     const userPriv = await interactUserPrivSchema.findOne({_id: userID });
     if (!userPriv) return searchError("C009");
     if (userPriv.email === email) return searchError("N003");
+
+    // CHECK if password is correct 
+    // !! DO
 
     // is email already in use or in pending verification
     const emailInUse = await checkEmailInUse({ email });
@@ -63,6 +67,8 @@ async function createVerificationID({ emailID }) {
 
 // send email verification
 async function sendEmailVer({ email, userID, emailVerID }) {
+    const verURL = `https://interact-api.novapro.net/v1/emails/requests/verfication/${emailVerID}/`;
+    
     const emailSent = await emailSender({
         users: [{
             email: email,
@@ -71,11 +77,11 @@ async function sendEmailVer({ email, userID, emailVerID }) {
         }],
         type: 0,
         subject: "Email Verification Interact",
-        content: `Please verify your email. Open: https://interact-api.novapro.net/emails/request/verfication/${emailVerID}/ to verify. Thank you.`,
+        content: `Please verify your email. Open: ${verURL} to verify. Thank you.`,
         htmlElement: {
-            h1: "Interact Email Verification",
+            h1: "Verify your email at Interact",
             p: "Please verify your email",
-            a: `https://interact-api.novapro.net/emails/request/verfication/${emailVerID}`,
+            a: `${verURL}`,
         }
     });
 
@@ -128,62 +134,6 @@ async function replaceEmail({ emailID, newEmail, oldEmailData, userID }) {
             timestampRemoved: checktime()
         }}
     });
-}
-
-// only accessed within this file
-async function requestVerifyEmail({ userID, email, userPriv }) {
-    // creates ID and url
-    const emailVerID = uuidv4();
-    const verificationReq = await saveVerificationReq({
-        userID,
-        email,
-        emailVerID,
-        replaceCurrent: !userPriv.email ? true : false
-    });
-
-    const emailVerURL = `https://interact-api.novapro.net/v1/emails/requests/verification/${emailVerID}`;
-
-    // sends email
-    const emailSend = await emailSender({
-        users: [{ userID, email }],
-        type: 2,
-        subject: "Verify your email at Interact",
-        content: `Verify your email, click the link below: ${emailVerURL}`,
-        htmlElement: {
-            h1: "Verify your email at Interact",
-            p: `Verify your email, click the link below:`,
-            a: emailVerURL,
-        }
-    });
-    // returns data
-    return {
-        success: true,
-        verifyRequestDB: verificationReq,
-        emailDB: emailSend
-    };
-}
-
-
-// save verification request to DB
-async function saveVerificationReq({ 
-    userID, 
-    email,
-    emailVerID, 
-    replaceCurrent
-}) {
-    const emailVerification = await interactEmailVerificationSchema.create({
-        _id: emailVerID,
-        timestamp: checktime(),
-        verified: false,
-        email: email,
-        replaceCurrent: replaceCurrent,
-        userID: userID
-    });
-
-    return {
-        success: true,
-        DB: emailVerification
-    };
 }
 
 // is email in use
