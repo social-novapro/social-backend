@@ -107,6 +107,15 @@ async function quotingPostSetup(quotingPost, postID, userID) {
         upsert: true
     });
 
+    // add to the main post's quote count
+    await interactPostSchema.findOneAndUpdate({
+        _id: quotingPost._id//postID
+    }, {        
+        totalQuotes: quotingPost.totalQuotes ? quotingPost.totalQuotes + 1 : 1,
+    }, {
+        upsert: true
+    });
+
     await pushQuotePost(userID, postID, quotingUser._id);
 
     return postID;

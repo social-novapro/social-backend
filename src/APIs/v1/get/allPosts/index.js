@@ -3,6 +3,7 @@ const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { searchError } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
+const { isLiked } = require('../../../../utils/post/isLiked');
 
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -17,6 +18,9 @@ router.get('/', async (req, res) => {
             var type;
             var postData = post;
             var userData;
+
+            const foundLike = await isLiked({ postID: post._id, userID: req.headers.userid });
+            if (foundLike) postData.liked = true;
 
             if (post.userID) {
                 const UserData = await interactUserSchema.findOne({_id: post.userID});
