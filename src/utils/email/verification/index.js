@@ -19,21 +19,21 @@ async function verifyEmail({ emailVerID }) {
 
     // update user email in user priv
     await interactUserPrivSchema.findOneAndUpdate({ 
-        _id: accept.userID 
+        _id: emailReqFound.userID 
     }, { 
         email: emailReqFound.email 
     });
 
     // set email setting
-    await setEmailSetting({ userID: accept.userID });
+    await setEmailSetting({ userID: emailReqFound.userID, email: emailReqFound.email });
 
     const interactURL = "https://interact.novapro.net/"
 
     // send email to user that email has been verified
     await emailSender({
         users: [{
-            email: email,
-            userID: userID,
+            email: emailReqFound.email,
+            userID: emailReqFound.userID,
             bbc: false
         }],
         type: 2,
@@ -51,10 +51,20 @@ async function verifyEmail({ emailVerID }) {
 }
 
 // set up Email Setting Schema
-async function setEmailSetting({ userID }) {
+async function setEmailSetting({ userID, email }) {
+    if (!email) return console.log("no email? " + email)
+    const foundEmailSettings = await interactEmailSettingSchema.findOne({ _id: userID });
+    if (foundEmailSettings) {
+        await interactEmailSettingSchema.findOneAndUpdate({
+            _id: userID
+        }, {
+            email: email,
+        });
+        return;
+    }
+    
     await interactEmailSettingSchema.create({
         _id: userID,
-        emailID: emailID,
         email: email,
         notifications: true,
         emailSub: true,
@@ -62,6 +72,7 @@ async function setEmailSetting({ userID }) {
         emailAlerts: true,
         emailReplies: true,
     });
+    return;
 }
 
 module.exports = { verifyEmail }

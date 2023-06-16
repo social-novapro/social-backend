@@ -56,7 +56,7 @@ const userSend = mongoose.Schema({
         41 = notification request
     5x = other
         50 = other  
-        
+        51 = unknown
     0= default email
     1= password reset request
     2= dm notification

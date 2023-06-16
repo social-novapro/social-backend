@@ -1,7 +1,7 @@
 const {pushNotification} = require('../pushNotification')
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const interactUserNotifications = require('../../../schemas/notifications/interactUserNotifications');
-const emailNotification = require('../emailNotification');
+const {emailNotification} = require('../emailNotification');
 
 async function pushNewPost(userID, postID) {
     const hasFound = await interactSubscribeNotification.findOne({_id: userID})

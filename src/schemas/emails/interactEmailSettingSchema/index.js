@@ -28,7 +28,6 @@ const nonreqBool = {
 
 const interactEmailSettingSchema = mongoose.Schema({
     _id: reqString, // userID
-    emailID: reqString, // emailID
     email: reqString, // email address
     notifications: reqBool, // if email should receive ANY notifications
     emailSub: reqBool, // if email should receive sub notifications

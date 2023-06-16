@@ -46,7 +46,7 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
 
     const email = {
         emailID,
-        type,
+        type: type || 51,
         sendTo: [],
         subject,
         content,
