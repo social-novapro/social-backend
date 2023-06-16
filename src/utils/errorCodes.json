@@ -300,7 +300,7 @@
                 },
                 {
                     "code" : "G001",
-                    "msg" : "no username provided"
+                    "msg" : "no username or email provided"
                 }, 
                 {
                     "code" : "G002",
@@ -318,6 +318,10 @@
                     "code" : "G005",
                     "msg" : "password provided was incorreect"
                 }, 
+                {
+                    "code" : "G006",
+                    "msg" : "Unable to find email provided"
+                },
                 {
                     "code" : "H001",
                     "msg" : "You tried to delete a post that is not yours."
