@@ -1,6 +1,4 @@
 const router = require('express').Router();
-const interactUserSchema = require('../../../../../schemas/interactUserSchema');
-const interactUserPrivSchema = require('../../../../../schemas/interactUserPrivSchema');
 const { searchError } = require('../../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../../utils/checkRequestTokens');
 const { validEmail } = require('../../../../../utils/email');
