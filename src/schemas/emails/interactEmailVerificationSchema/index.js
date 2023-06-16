@@ -43,6 +43,8 @@ const interactEmailVerificationSchema = mongoose.Schema({
     replaceCurrent: reqBool, // if email should replace current email
     emailHistory: [emailHistoryData], // email history
     verificationID: nonreqString, // verification ID sent to email
+    shouldRemoveEmail: nonreqBool, // email should be removed
+    removeEmailVerID: nonreqString, // emailVerID to remove
 });
 
 
