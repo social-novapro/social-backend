@@ -5,12 +5,17 @@ const { searchError } = require('../../searchError');
 const { v4: uuidv4 } = require('uuid');
 const { checktime } = require('../../checktime');
 const { emailSender } = require('../send');
+const { checkPassword } = require('../../userAuth');
 
 // set email verification request
 async function setEmail({email, userID, password }) {
     if (!email) return searchError("N004")
     if (!userID) return searchError("Z002", [{ name: "msg", data: "no userID provided"}] )
     if (!password) return searchError("Z002", [{ name: "msg", data: "no passsword provided"}] )
+
+    // checks if password is correct
+    const passwordCorrect = await checkPassword({ userID: userID, password: password });
+    if (!passwordCorrect || passwordCorrect.error) return { error: 'Password incorrect' };
 
     // is email valid
     const isValid = await validEmail({email});
@@ -67,7 +72,7 @@ async function createVerificationID({ emailID }) {
 
 // send email verification
 async function sendEmailVer({ email, userID, emailVerID }) {
-    const verURL = `https://interact-api.novapro.net/v1/emails/requests/verfication/${emailVerID}/`;
+    const verURL = `https://interact-api.novapro.net/v1/emails/requests/verification/${emailVerID}/`;
     
     const emailSent = await emailSender({
         users: [{

@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
 
     if (!email) return res.status(400).send(searchError("N002"));
 
-    const emailRequest = await removeEmail({ email, userID: userid, password });
+    const emailRequest = await removeEmail({ currentEmail: email, userID: userid, password });
 
     if (!emailRequest || emailRequest?.error || emailRequest?.code) return res.status(400).send(emailRequest?.error ? emailRequest?.error  : emailRequest );
     return res.status(200).send(emailRequest);
