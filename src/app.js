@@ -257,6 +257,8 @@ function updateCurrentUser(currentUser, ws) {
     connections.websockets[`${currentUser.userID}`] = ws
 }
 
+const msgContentLimit = 240;
+
 wss.on('connection', async (ws, req) => {
     totalUsers = totalUsers + 1;
     
@@ -459,6 +461,27 @@ wss.on('connection', async (ws, req) => {
             const newID = uuidv4();
             switch (data.type) {
                 case 2:
+                    const checkMSGContent = data.message.content
+                    if (checkMSGContent.length > msgContentLimit || checkMSGContent.includes("<script") || checkMSGContent.includes("iframe") || checkMSGContent.includes("meta")) {
+                        ws.send(JSON.stringify({"error" : `message content to long`}));
+                        const errorMSG = {
+                            _id: newID,
+                            type: 02,
+                            user,
+                            apiVersion: config.LATEST_API,
+                            message: {
+                                userID,
+                                currentUsers: totalUsers,
+                                content: "Message to long, or you included bad text...",
+                                timeStamp: getTime(),
+                                replyTo: null,
+                                edited: false
+                            }
+                        };
+
+                        return ws.send(JSON.stringify(errorMSG))
+                    };
+
                     messageSend = {
                         _id: newID,
                         type: 02,
@@ -503,6 +526,28 @@ wss.on('connection', async (ws, req) => {
                 case 05: 
                     if (!data.editMessage) return ws.send(JSON.stringify({'error' : "you must have a editMessage object included in your message"}))
                     if (!data.editMessage.postID) return ws.send(JSON.stringify({"error" : "you must have a postID inside your editMessage object"}))
+                    
+                    const checkMSGContentEdit = data.newContent
+                    if (checkMSGContentEdit.length > msgContentLimit || checkMSGContentEdit.includes("<script") || checkMSGContentEdit.includes("iframe") || checkMSGContentEdit.includes("meta")) {
+                        ws.send(JSON.stringify({"error" : `message content to long`}));
+                        const errorMSG = {
+                            _id: newID,
+                            type: 2,
+                            user,
+                            apiVersion: config.LATEST_API,
+                            message: {
+                                userID,
+                                currentUsers: totalUsers,
+                                content: "Message to long, or you included bad text...",
+                                timeStamp: getTime(),
+                                replyTo: null,
+                                edited: false
+                            }
+                        };
+
+                        return ws.send(JSON.stringify(errorMSG))
+                    };
+
                     const messageOld = await liveChatSchema.findOne({ _id: data.editMessage.postID });
 
                     if (!messageOld) {
