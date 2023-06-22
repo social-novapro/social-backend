@@ -7,12 +7,13 @@ const { checkUsername, checkPassword } = require('../../../../utils/checks/');
 const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
 const SHA1 = require("crypto-js/sha1");
+const { setEmail } = require('../../../../utils/email/setEmail');
 
 router.post('/', async (req, res) => {
     const tokenData = await checkDevTokens(req.headers.devtoken, req.headers.apptoken);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { username, displayName, password, description, pronouns, statusTitle } = req.body;
+    const { username, displayName, password, description, pronouns, statusTitle, email } = req.body;
 
     if (!username && !displayName) return res.status(400).send(searchError("C002"));
     else if (!username) return res.status(400).send(searchError("C003"));
@@ -51,6 +52,12 @@ router.post('/', async (req, res) => {
 
     if (!passwordCorrect) return res.status(403).send(searchError("G005"));
     
+    if (email) {
+        await setEmail({ email, userID: foundUsername._id, password });
+        // no error handling done
+    }
+
+
 
     const accessTokenFound = await createAccessToken(foundPrivUser._id, foundPrivUser.userToken, apptoken);
 
