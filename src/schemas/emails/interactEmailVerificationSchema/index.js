@@ -28,7 +28,7 @@ const nonreqBool = {
 
 const emailHistoryData = mongoose.Schema({
     _id: nonreqString, // emailVerID
-    timestamp: nonreqNum, // time sent
+    timestamp: nonreqNum, // time verfied
     verified: nonreqBool, // if email is verified
     email: nonreqString // email address
 });

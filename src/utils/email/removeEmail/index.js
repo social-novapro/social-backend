@@ -10,24 +10,81 @@ async function confirmRemove({ emailVerID }) {
     const removed = await removeEmail({ email, userID, password});
     if (!removed) return false;
 
+    return true;
 }
 
 async function removeEmail({ email, userID, password }) {
     // if user decides to remove the email
-    // check if email is verified
-//     await interactUserPrivSchema.findOneAndUpdate({
-//         _id: userID,
-//         password: password,
-//         email: email
-//     }, {
+    const del1 = await delEmailSettings({ email, userID });
+    if (!del1) return false;
+    
+    const del2 = await removeEmailPriv({ email, userID });
+    if (!del2) return false;
 
+    const del3 = await removeCurrentEmail({ email, userID });
+    if (!del3) return false;
+
+    return true;
 }
+
 // delete interactEmailSettings
+async function delEmailSettings({ email, userID }) {
+    const foundSettings = await interactEmailSettingSchema.findOne({ _id: userID });
+    if (!foundSettings) return false;
+    if (foundSettings.email !== email) return false;
+
+    await interactEmailSettingSchema.findOneAndDelete({
+        userID: userID
+    });
+}
 
 
 // remove email from interactUserPrivSchema
-// remove current email from interactEmailVerificationSchema
+async function removeEmailPriv({ email, userID }) {
+    const foundPriv = await interactUserPrivSchema.findOne({ _id: userID });
+    if (!foundPriv) return false;
+    if (foundPriv.email !== email) return false;
 
+    await interactUserPrivSchema.findOneAndUpdate({
+        _id: userID
+    }, {
+        email: null
+    });
+
+    return true;
+}
+
+// remove current email from interactEmailVerificationSchema+add to history
+async function removeCurrentEmail({ email, userID }) {
+    const foundVer = await interactEmailVerificationSchema.findOne({ userID: userID });
+    if (!foundVer) return false;
+    if (foundVer.email !== email) return false;
+
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        _id: userID
+    }, {
+        email: null,
+        verified: false,
+        timestampVerified: null,
+        timestampEmail: null,
+        verificationID: null,
+    });
+
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        _id: userID
+    }, {
+        $push: {
+            emailHistory: {
+                _id: foundVer.verificationID,
+                timestamp: foundVer.timestampVerified,
+                verified: foundVer.verified,
+                email: foundVer.email
+            }
+        }
+    });
+
+    return true;
+}
 
 // sends a request to remove email
 async function requestRemove({ currentEmail, userID, password }) {
