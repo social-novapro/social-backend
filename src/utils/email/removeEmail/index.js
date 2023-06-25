@@ -6,22 +6,32 @@ const { emailSender } = require('../../email/send');
 const { checktime } = require('../../checktime');
 const { checkPassword } = require('../../userAuth');
 
-async function confirmRemove({ emailVerID }) {
-    const removed = await removeEmail({ email, userID, password});
+// need to test properly
+async function confirmRemove({ removeEmailVerID }) {
+    const foundRemove = await interactEmailVerificationSchema.findOne({ removeEmailVerID });
+    console.log("foundRemove", foundRemove)
+    if (!foundRemove) return false;
+
+    const { userID, email } = foundRemove;
+
+    const removed = await removeEmail({ email, userID });
     if (!removed) return false;
 
     return true;
 }
 
-async function removeEmail({ email, userID, password }) {
+async function removeEmail({ email, userID }) {
     // if user decides to remove the email
     const del1 = await delEmailSettings({ email, userID });
+    console.log("del1", del1)
     if (!del1) return false;
     
     const del2 = await removeEmailPriv({ email, userID });
+    console.log("del2", del2)
     if (!del2) return false;
 
     const del3 = await removeCurrentEmail({ email, userID });
+    console.log("del3", del3)
     if (!del3) return false;
 
     return true;
@@ -30,12 +40,16 @@ async function removeEmail({ email, userID, password }) {
 // delete interactEmailSettings
 async function delEmailSettings({ email, userID }) {
     const foundSettings = await interactEmailSettingSchema.findOne({ _id: userID });
+    console.log("foundSettings", foundSettings)
     if (!foundSettings) return false;
-    if (foundSettings.email !== email) return false;
+
+    if (foundSettings.email != email) return false;
 
     await interactEmailSettingSchema.findOneAndDelete({
-        userID: userID
+        _id: userID
     });
+
+    return true;
 }
 
 
@@ -67,7 +81,11 @@ async function removeCurrentEmail({ email, userID }) {
         verified: false,
         timestampVerified: null,
         timestampEmail: null,
-        verificationID: null,
+        verificationID: false,
+
+        shouldRemoveEmail: false,
+        removeEmailVerID: null,
+        timestampRemoveEmail: null
     });
 
     await interactEmailVerificationSchema.findOneAndUpdate({
@@ -109,7 +127,7 @@ async function requestRemove({ currentEmail, userID, password }) {
     const timestampRemoveEmail = checktime();
 
     await interactEmailVerificationSchema.findOneAndUpdate({
-        _id: emailVerID
+        _id: VerData._id
     }, {
         removeEmailVerID: removeEmailVerID,
         shouldRemoveEmail: true,
@@ -146,4 +164,4 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
     return { "status": "success", emailSent };
 }
 
-module.exports = { removeEmail, requestRemove };
+module.exports = { confirmRemove, requestRemove };
