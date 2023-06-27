@@ -13,7 +13,10 @@ async function verifyEmail({ emailVerID }) {
     // verified = true for verificatino Schema
     const accept = await interactEmailVerificationSchema.findOneAndUpdate(
         { _id: emailReqFound._id },
-        { verified: true },
+        { 
+            verified: true,
+            timestampVerified: checktime() 
+        },
         { new: true }
     );
 

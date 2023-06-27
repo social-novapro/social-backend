@@ -17,6 +17,8 @@ async function getData(userID) {
         email: UserPrivData?.email ? UserPrivData.email : "None Set",
         emailSetting: EmailVer?.email ? EmailVer.email : false,
         verified: EmailVer?.verified ? true : false,
+        timestampVerified: EmailVer?.timestampVerified ? EmailVer.timestampVerified : null,
+        removeRequest: EmailVer?.shouldRemoveEmail ? true : false,
         emailSettings: EmailSettings 
     }
 
