@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const { emailSender } = require('../../email/send');
 const { checktime } = require('../../checktime');
 const { checkPassword } = require('../../userAuth');
+const { current } = require("../../../../config.json")
 
 // need to test properly
 async function confirmRemove({ removeEmailVerID }) {
@@ -143,7 +144,9 @@ async function requestRemove({ currentEmail, userID, password }) {
 
 // send email remove request
 async function sendEmailRemoveVer({ email, userID, emailVerID }) {
-    const verURL = `https://interact-api.novapro.net/v1/emails/requests/confirmRemove/${emailVerID}/`;
+    const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
+    const verURL = `${mainURL}/emails/?removeEmail=${emailVerID}/`;
+    //const verURL = `https://interact-api.novapro.net/v1/emails/requests/confirmRemove/${emailVerID}/`;
     
     const emailSent = await emailSender({
         users: [{

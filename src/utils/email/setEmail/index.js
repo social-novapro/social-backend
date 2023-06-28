@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const { checktime } = require('../../checktime');
 const { emailSender } = require('../send');
 const { checkPassword } = require('../../userAuth');
+const { current } = require("../../../../config.json")
 
 // set email verification request
 async function setEmail({email, userID, password }) {
@@ -38,6 +39,7 @@ async function setEmail({email, userID, password }) {
     const foundEmailVer = await findCurUserVer({ userID });
 
     if (foundEmailVer.found) {
+        // replaceEmail()
         // check if its different email, if it is, searcHError("N007"), asking to cancel first
         // check if its the same email, if it is, send a new email with new verification code
 
@@ -72,7 +74,9 @@ async function createVerificationID({ emailID }) {
 
 // send email verification
 async function sendEmailVer({ email, userID, emailVerID }) {
-    const verURL = `https://interact-api.novapro.net/v1/emails/requests/verification/${emailVerID}/`;
+    const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
+    const verURL = `${mainURL}/emails/?verification=${emailVerID}/`;
+    //const verURL = `https://interact-api.novapro.net/v1/emails/requests/verification/${emailVerID}/`;
     
     const emailSent = await emailSender({
         users: [{

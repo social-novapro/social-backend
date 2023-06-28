@@ -4,6 +4,7 @@ const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema'
 const { searchError } = require('../../searchError');
 const { v4: uuidv4 } = require('uuid');
 const { emailSender } = require('../send');
+const { checktime } = require('../../checktime');
 
 async function verifyEmail({ emailVerID }) {
     const emailReqFound = await interactEmailVerificationSchema.findOne({ verificationID: emailVerID });
