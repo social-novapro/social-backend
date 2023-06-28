@@ -21,16 +21,20 @@ async function confirmRemove({ removeEmailVerID }) {
     return true;
 }
 
+// if user decides to remove the email
 async function removeEmail({ email, userID }) {
-    // if user decides to remove the email
+    // working
     const del1 = await delEmailSettings({ email, userID });
     console.log("del1", del1)
     if (!del1) return false;
     
+    // seems to work
     const del2 = await removeEmailPriv({ email, userID });
     console.log("del2", del2)
     if (!del2) return false;
 
+    // fails
+    // now working
     const del3 = await removeCurrentEmail({ email, userID });
     console.log("del3", del3)
     if (!del3) return false;
@@ -76,13 +80,13 @@ async function removeCurrentEmail({ email, userID }) {
     if (foundVer.email !== email) return false;
 
     await interactEmailVerificationSchema.findOneAndUpdate({
-        _id: userID
+        _id: foundVer._id
     }, {
         email: null,
         verified: false,
         timestampVerified: null,
         timestampEmail: null,
-        verificationID: false,
+        verificationID: null,
 
         shouldRemoveEmail: false,
         removeEmailVerID: null,
@@ -90,7 +94,7 @@ async function removeCurrentEmail({ email, userID }) {
     });
 
     await interactEmailVerificationSchema.findOneAndUpdate({
-        _id: userID
+        _id: foundVer._id
     }, {
         $push: {
             emailHistory: {

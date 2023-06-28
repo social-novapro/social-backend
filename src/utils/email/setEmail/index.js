@@ -6,7 +6,8 @@ const { v4: uuidv4 } = require('uuid');
 const { checktime } = require('../../checktime');
 const { emailSender } = require('../send');
 const { checkPassword } = require('../../userAuth');
-const { current } = require("../../../../config.json")
+const { current } = require("../../../../config.json");
+const { requestRemove } = require('../removeEmail');
 
 // set email verification request
 async function setEmail({email, userID, password }) {
@@ -37,19 +38,31 @@ async function setEmail({email, userID, password }) {
     // check if user has pending user verification request
     
     const foundEmailVer = await findCurUserVer({ userID });
+    var emailID;
+    if (foundEmailVer.found ) {
+        if (!foundEmailVer.data.email) {
+            const completedSet = await setCurrentEmailDB({ emailID: foundEmailVer.data._id, userID, newEmail: email });
+            if (!completedSet) return false;
 
-    if (foundEmailVer.found) {
-        // replaceEmail()
-        // check if its different email, if it is, searcHError("N007"), asking to cancel first
-        // check if its the same email, if it is, send a new email with new verification code
-
-        // functino that replaces, instead of setting and creating new one
-        return false;
-    }
+            emailID = foundEmailVer.data._id;
+        } else {
+            if (foundEmailVer.data.email === email) return false;
     
-    // save email verification request
-    const emailID = await setEmailDB({ email, userID });
-    if (!emailID) return false
+            // sends a request for deletion email
+            const confirmRemove = await requestRemove({ email: foundEmailVer.data.email, userID, password });
+            // you can then re-request a new email
+    
+            // can also add a "replaceCurrent", 
+            // then send the confirmation email to the new email once you confirm remove
+    
+            return false;
+        }
+    } else {
+        // save email verification request
+        const emailIDSet = await setEmailDB({ email, userID });
+        if (!emailIDSet) return false
+        emailID = emailIDSet;
+    }
 
     const verificationID = await createVerificationID({ emailID });
     if (!verificationID) return false;
@@ -99,7 +112,9 @@ async function sendEmailVer({ email, userID, emailVerID }) {
 
 // find user's emailVer schema
 async function findCurUserVer({ userID }) {
-    const foundEmailData = await interactEmailVerificationSchema.findOne({ _id: userID });
+    //const foundEmailData = await interactEmailVerificationSchema.findOne({ _id: userID });
+    const foundEmailData = await interactEmailVerificationSchema.findOne({ userID: userID });
+
     if (!foundEmailData) return { found: false };
     else return { found: true, data: foundEmailData };
 }
@@ -118,8 +133,21 @@ async function setEmailDB({ email, userID, replace }) {
 
     return emailID;
 }
+async function setCurrentEmailDB({ emailID, userID, newEmail }) {
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        _id: emailID
+    }, {
+        timestamp: checktime(),
+        verified: false,
+        email: newEmail,
+        userID: userID,
+        replaceCurrent: true,
+    })
+    return true;
+}
 
 // replace old email
+// dont use this function - lets user remove old email without verification
 async function replaceEmail({ emailID, newEmail, oldEmailData, userID }) {
     // set new email
     await interactEmailVerificationSchema.findOneAndUpdate({

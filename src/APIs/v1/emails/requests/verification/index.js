@@ -8,7 +8,7 @@ router.get('/:emailVerID', async (req, res) => {
     if (!emailVerID) return res.status(400).send(searchError("N001"));
     
     const done = await verifyEmail({ emailVerID });
-
+    if (!done.success) return res.status(400).send(done);
     return res.status(200).send(done);
 })
 

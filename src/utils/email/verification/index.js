@@ -33,8 +33,9 @@ async function verifyEmail({ emailVerID }) {
 
     const interactURL = "https://interact.novapro.net/"
 
+    // !! email doesnt seem to get recieved?? - on outlook school email
     // send email to user that email has been verified
-    await emailSender({
+    const email = await emailSender({
         users: [{
             email: emailReqFound.email,
             userID: emailReqFound.userID,
@@ -49,7 +50,7 @@ async function verifyEmail({ emailVerID }) {
             a: `${interactURL}`,
         }
     });
-
+    console.log(email)
 
     return { success: true, DB: accept };
 }

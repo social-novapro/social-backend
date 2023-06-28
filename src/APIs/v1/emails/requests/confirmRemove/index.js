@@ -8,7 +8,8 @@ router.get('/:removeEmailVerID', async (req, res) => {
     if (!removeEmailVerID) return res.status(400).send(searchError("N001"));
     
     const done = await confirmRemove({ removeEmailVerID });
-
+    // add proper errors
+    if (!done) return res.status(400).send(done);
     return res.status(200).send(done);
 })
 
