@@ -10,7 +10,7 @@ router.delete('/', async (req, res) => {
     const { email, password } = req.body;
     const { userid } = req.headers;
 
-    if (!email) return res.status(400).send(searchError("N002"));
+    if (!email) return res.status(400).send(searchError("N004"));
 
     const emailRequest = await requestRemove({ currentEmail: email, userID: userid, password });
 

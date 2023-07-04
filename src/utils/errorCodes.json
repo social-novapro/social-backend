@@ -59,7 +59,6 @@
                     "code" : "O",
                     "msg" : "Error with Polls"
                 },
-
                 {
                     "code" : "Z",
                     "msg" : "Unknown errors."
@@ -316,7 +315,7 @@
                 }, 
                 {
                     "code" : "G005",
-                    "msg" : "password provided was incorreect"
+                    "msg" : "Password provided was incorreect"
                 }, 
                 {
                     "code" : "G006",
@@ -417,6 +416,46 @@
                 {
                     "code" : "N009",
                     "msg" : "User already authenticated"
+                },
+                {
+                    "code" : "N010",
+                    "msg" : "There was no set in email settings."
+                },
+                {
+                    "code" : "N011",
+                    "msg" : "Found email settings was not equal to provided email."
+                },
+                {
+                    "code" : "N012",
+                    "msg" : "Email in priv schema was not equal to provided email."
+                },
+                {
+                    "code" : "N013",
+                    "msg" : "Email in verification schema is not equal to provided email."
+                },
+                {
+                    "code" : "N014",
+                    "msg" : "Email verification schema was not found."
+                },
+                {
+                    "code" : "N015",
+                    "msg" : "Error occured while creating email verification ID."
+                },
+                {
+                    "code" : "N016",
+                    "msg" : "Error occured while creating email settings."
+                },
+                {
+                    "code" : "N017",
+                    "msg" : "Email is aleady set to provided email."
+                },
+                {
+                    "code" : "N018",
+                    "msg" : "There was an error updating email verification"
+                },
+                {
+                    "code" : "N019",
+                    "msg" : "You got an error where email is not completed, or maybe check your email."
                 },
                 {
                     "code" : "O001",

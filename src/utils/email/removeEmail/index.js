@@ -5,18 +5,19 @@ const { v4: uuidv4 } = require('uuid');
 const { emailSender } = require('../../email/send');
 const { checktime } = require('../../checktime');
 const { checkPassword } = require('../../userAuth');
-const { current } = require("../../../../config.json")
+const { current } = require("../../../../config.json");
+const { searchError } = require('../../searchError');
 
 // need to test properly
 async function confirmRemove({ removeEmailVerID }) {
     const foundRemove = await interactEmailVerificationSchema.findOne({ removeEmailVerID });
     console.log("foundRemove", foundRemove)
-    if (!foundRemove) return false;
+    if (!foundRemove) return searchError("N014");
 
     const { userID, email } = foundRemove;
 
     const removed = await removeEmail({ email, userID });
-    if (!removed) return false;
+    if (!removed || removed.error) return removed;
 
     return true;
 }
@@ -26,18 +27,18 @@ async function removeEmail({ email, userID }) {
     // working
     const del1 = await delEmailSettings({ email, userID });
     console.log("del1", del1)
-    if (!del1) return false;
+    if (!del1 || del1.error) return del1;
     
     // seems to work
     const del2 = await removeEmailPriv({ email, userID });
     console.log("del2", del2)
-    if (!del2) return false;
+    if (!del2 || del2.error) return del2;
 
     // fails
     // now working
     const del3 = await removeCurrentEmail({ email, userID });
     console.log("del3", del3)
-    if (!del3) return false;
+    if (!del3 || del3.error) return del3;
 
     return true;
 }
@@ -45,9 +46,8 @@ async function removeEmail({ email, userID }) {
 // delete interactEmailSettings
 async function delEmailSettings({ email, userID }) {
     const foundSettings = await interactEmailSettingSchema.findOne({ userID: userID });
-    if (!foundSettings) return false;
-
-    if (foundSettings.email != email) return false;
+    if (!foundSettings) return searchError("N010");
+    if (foundSettings.email != email) return searchError("N011");
 
     await interactEmailSettingSchema.findOneAndDelete({
         _id: userID
@@ -60,8 +60,8 @@ async function delEmailSettings({ email, userID }) {
 // remove email from interactUserPrivSchema
 async function removeEmailPriv({ email, userID }) {
     const foundPriv = await interactUserPrivSchema.findOne({ _id: userID });
-    if (!foundPriv) return false;
-    if (foundPriv.email !== email) return false;
+    if (!foundPriv) return searchError("B013");
+    if (foundPriv.email !== email) return searchError("N012");
 
     await interactUserPrivSchema.findOneAndUpdate({
         _id: userID
@@ -75,8 +75,8 @@ async function removeEmailPriv({ email, userID }) {
 // remove current email from interactEmailVerificationSchema+add to history
 async function removeCurrentEmail({ email, userID }) {
     const foundVer = await interactEmailVerificationSchema.findOne({ userID: userID });
-    if (!foundVer) return false;
-    if (foundVer.email !== email) return false;
+    if (!foundVer) return searchError("N014");
+    if (foundVer.email !== email) return searchError("N013");
 
     await interactEmailVerificationSchema.findOneAndUpdate({
         _id: foundVer._id
@@ -113,7 +113,7 @@ async function requestRemove({ currentEmail, userID, password }) {
     // UNTESTED
     // checks password 
     const passwordCorrect = await checkPassword({ userID: userID, password: password });
-    if (!passwordCorrect || passwordCorrect.error) return { error: 'Password incorrect' };
+    if (!passwordCorrect || passwordCorrect.error) return { error: searchError("G005") };
    
     const VerData = await interactEmailVerificationSchema.findOne({
         userID: userID

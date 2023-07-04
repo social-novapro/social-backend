@@ -8,8 +8,8 @@ function searchError(errorCode, options, usedAPIversion) {
         if (APIVersion.API == apiVersionLookup) {
             for (error of APIVersion.errorCodes) {
                 if (error.code == errorCode){
-                    if (error.options && error.options[0]) return textReplacements({ error, optionsInput: options });
-                    else return error;
+                    if (error.options && error.options[0]) return exportError(textReplacements({ error, optionsInput: options }));
+                    else return exportError(error);
                 }
             };
         };
@@ -17,6 +17,11 @@ function searchError(errorCode, options, usedAPIversion) {
     
     return searchError("Z001", [], apiVersionLookup);
 };
+
+function exportError(error) {
+    const { code, msg } = error;
+    return { code, msg, error: true };
+}
 
 function textReplacements({ error, optionsInput }) {
     var newMessage = error.msg.slice();

@@ -65,7 +65,8 @@ async function setEmailSetting({ userID, email }) {
         }, {
             email: email,
         });
-        return;
+
+        return true;
     }
     
     await interactEmailSettingSchema.create({
@@ -77,7 +78,8 @@ async function setEmailSetting({ userID, email }) {
         emailAlerts: true,
         emailReplies: true,
     });
-    return;
+    
+    return true;
 }
 
 module.exports = { verifyEmail }

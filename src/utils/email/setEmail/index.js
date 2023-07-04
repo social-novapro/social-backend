@@ -17,7 +17,7 @@ async function setEmail({email, userID, password }) {
 
     // checks if password is correct
     const passwordCorrect = await checkPassword({ userID: userID, password: password });
-    if (!passwordCorrect || passwordCorrect.error) return { error: 'Password incorrect' };
+    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
 
     // is email valid
     const isValid = await validEmail({email});
@@ -45,11 +45,13 @@ async function setEmail({email, userID, password }) {
         // if theres no email set
         if (!foundEmailVer.data.email || !foundEmailVer.data.verified) {
             const completedSet = await setCurrentEmailDB({ emailID: foundEmailVer.data._id, userID, newEmail: email });
-            if (!completedSet) return false;
+            if (!completedSet || completedSet.error) return searchError("N018");
 
             emailID = foundEmailVer.data._id;
         } else {
-            if (foundEmailVer.data.email === email) return false;
+            // in future resend email verification
+            if (foundEmailVer.data.email === email) return searchError("N017");
+
     
             // sends a request for deletion email
             const confirmRemove = await requestRemove({ email: foundEmailVer.data.email, userID, password });
@@ -58,17 +60,17 @@ async function setEmail({email, userID, password }) {
             // can also add a "replaceCurrent", 
             // then send the confirmation email to the new email once you confirm remove
     
-            return false;
+            return searchError("N019");
         }
     } else {
         // save email verification request
         const emailIDSet = await setEmailDB({ email, userID });
-        if (!emailIDSet) return false
+        if (!emailIDSet) return searchError("N016");
         emailID = emailIDSet;
     }
 
     const verificationID = await createVerificationID({ emailID });
-    if (!verificationID) return false;
+    if (!verificationID) return searchError("N015");
 
     // send email verification request
     const emailSent = await sendEmailVer({ email, userID, emailVerID: verificationID });
@@ -118,7 +120,7 @@ async function findCurUserVer({ userID }) {
     //const foundEmailData = await interactEmailVerificationSchema.findOne({ _id: userID });
     const foundEmailData = await interactEmailVerificationSchema.findOne({ userID: userID });
 
-    if (!foundEmailData) return { found: false };
+    if (!foundEmailData) return { found: false, error: searchError("N014") };
     else return { found: true, data: foundEmailData };
 }
 
@@ -149,6 +151,7 @@ async function setCurrentEmailDB({ emailID, userID, newEmail }) {
         userID: userID,
         replaceCurrent: true,
     })
+
     return true;
 }
 
@@ -183,11 +186,11 @@ async function replaceEmail({ emailID, newEmail, oldEmailData, userID }) {
 async function checkEmailInUse({ email }) {
     // if being used
     const emailFound = await interactUserPrivSchema.findOne({ email });
-    if (emailFound) return { error: searchError("N006") };
+    if (emailFound) return searchError("N006");
 
     // if pending verification
     const foundVerification = await interactEmailVerificationSchema.findOne({ email });
-    if (foundVerification) return { error: searchError("N006") };
+    if (foundVerification) return searchError("N006");
 
     return { success: true };
 }
