@@ -110,7 +110,6 @@ async function removeCurrentEmail({ email, userID }) {
 
 // sends a request to remove email
 async function requestRemove({ currentEmail, userID, password }) {
-    // UNTESTED
     // checks password 
     const passwordCorrect = await checkPassword({ userID: userID, password: password });
     if (!passwordCorrect || passwordCorrect.error) return { error: searchError("G005") };
@@ -119,11 +118,14 @@ async function requestRemove({ currentEmail, userID, password }) {
         userID: userID
     });
 
-    if (!VerData) return { error: 'Email not found' };
-    if (VerData.verified !== true) return { error: 'Email not verified' };
-    if (!VerData.email) return { error: 'Email not found' };
-    if (VerData.email !== currentEmail) return { error: 'Provided email not equal' };
-    if (VerData.shouldRemoveEmail === true && VerData.removeEmailVerID) return { error: 'Email already requested to be removed' };
+    if (!VerData) return searchError("N014")
+    // if email is not verified
+    // maybe make it so that if email is not verified, it will still send a request to remove email anyways
+    if (VerData.verified !== true) return searchError("N022");
+    if (!VerData.email) return searchError("N020");
+    if (VerData.email !== currentEmail) return searchError("N021");
+    // in future send another request to remove email
+    if (VerData.shouldRemoveEmail === true && VerData.removeEmailVerID) return searchError("N023");
 
 
     // send a request to remove email

@@ -427,7 +427,7 @@
                 },
                 {
                     "code" : "N012",
-                    "msg" : "Email in priv schema was not equal to provided email."
+                    "msg" : "Email in private schema was not equal to provided email."
                 },
                 {
                     "code" : "N013",
@@ -456,6 +456,22 @@
                 {
                     "code" : "N019",
                     "msg" : "You got an error where email is not completed, or maybe check your email."
+                },
+                {
+                    "code" : "N020",
+                    "msg" : "There is no email in verification schema."
+                },
+                {
+                    "code" : "N021",
+                    "msg" : "Provided email is not equal to email in verification schema."
+                },
+                {
+                    "code" : "N022",
+                    "msg" : "Email is not verified, please verify email before removing. Or change email directly."
+                },
+                {
+                    "code" : "N023",
+                    "msg" : "Email already requested to be removed"
                 },
                 {
                     "code" : "O001",
