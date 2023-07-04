@@ -39,8 +39,11 @@ async function setEmail({email, userID, password }) {
     
     const foundEmailVer = await findCurUserVer({ userID });
     var emailID;
-    if (foundEmailVer.found ) {
-        if (!foundEmailVer.data.email) {
+    if (foundEmailVer.found) {
+        // also check if verified or not
+
+        // if theres no email set
+        if (!foundEmailVer.data.email || !foundEmailVer.data.verified) {
             const completedSet = await setCurrentEmailDB({ emailID: foundEmailVer.data._id, userID, newEmail: email });
             if (!completedSet) return false;
 
@@ -120,6 +123,7 @@ async function findCurUserVer({ userID }) {
 }
 
 // setting email
+// creating email DB
 async function setEmailDB({ email, userID, replace }) {
     const emailID = uuidv4();
     await interactEmailVerificationSchema.create({
@@ -133,6 +137,8 @@ async function setEmailDB({ email, userID, replace }) {
 
     return emailID;
 }
+
+// updating email DB
 async function setCurrentEmailDB({ emailID, userID, newEmail }) {
     await interactEmailVerificationSchema.findOneAndUpdate({
         _id: emailID

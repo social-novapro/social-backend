@@ -44,8 +44,7 @@ async function removeEmail({ email, userID }) {
 
 // delete interactEmailSettings
 async function delEmailSettings({ email, userID }) {
-    const foundSettings = await interactEmailSettingSchema.findOne({ _id: userID });
-    console.log("foundSettings", foundSettings)
+    const foundSettings = await interactEmailSettingSchema.findOne({ userID: userID });
     if (!foundSettings) return false;
 
     if (foundSettings.email != email) return false;
