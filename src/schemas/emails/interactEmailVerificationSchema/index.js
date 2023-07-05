@@ -37,10 +37,16 @@ const interactEmailVerificationSchema = mongoose.Schema({
     _id: reqString, // emailVerID
     userID: reqString, // userID
     timestamp: reqNum, // time created email settings
+
+    // current email settings
     timestampVerified: nonreqNum, // time verified
     verified: reqBool, // if email is verified
     email: reqString, // email address
+
+    // replace email
     replaceCurrent: reqBool, // if email should replace current email
+    replaceEmail: nonreqString, // email to email field with
+
     emailHistory: [emailHistoryData], // email history
 
     // add verification

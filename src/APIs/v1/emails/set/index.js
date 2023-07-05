@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
 
     const emailRequest = await setEmail({ email, userID: userid, password });
 
-    if (!emailRequest || emailRequest?.error || emailRequest?.code) return res.status(400).send(emailRequest?.error ? emailRequest?.error  : emailRequest );
+    if (!emailRequest || emailRequest?.error) return res.status(400).send(emailRequest);
     return res.status(200).send(emailRequest);
 })
 

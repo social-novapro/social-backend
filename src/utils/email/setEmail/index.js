@@ -10,7 +10,7 @@ const { current } = require("../../../../config.json");
 const { requestRemove } = require('../removeEmail');
 
 // set email verification request
-async function setEmail({email, userID, password }) {
+async function setEmail({ email, userID, password }) {
     if (!email) return searchError("N004")
     if (!userID) return searchError("Z002", [{ name: "msg", data: "no userID provided"}] )
     if (!password) return searchError("Z002", [{ name: "msg", data: "no passsword provided"}] )
@@ -18,6 +18,24 @@ async function setEmail({email, userID, password }) {
     // checks if password is correct
     const passwordCorrect = await checkPassword({ userID: userID, password: password });
     if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
+
+
+    const foundEmailVer = await findCurUserVer({ userID });
+    console.log("foundEmailVer", foundEmailVer)
+    // check if its the same and unverified, and doesnt have a remove request
+    if (foundEmailVer.found) {
+        if (
+            foundEmailVer.data.email === email && 
+            !foundEmailVer.data.verified && 
+            foundEmailVer.data._id && 
+            !foundEmailVer.data.removeEmailVerID
+        ) {
+            
+            const resent = await resendSetEmail({ email, userID, emailID: foundEmailVer.data._id });
+            console.log("resent", resent)
+            return resent;
+        }
+    }
 
     // is email valid
     const isValid = await validEmail({email});
@@ -33,11 +51,11 @@ async function setEmail({email, userID, password }) {
 
     // is email already in use or in pending verification
     const emailInUse = await checkEmailInUse({ email });
-    if (emailInUse.error) return emailInUse.error;
+    if (emailInUse.error) return emailInUse;
 
     // check if user has pending user verification request
     
-    const foundEmailVer = await findCurUserVer({ userID });
+    //const foundEmailVer = await findCurUserVer({ userID });
     var emailID;
     if (foundEmailVer.found) {
         // also check if verified or not
@@ -52,14 +70,18 @@ async function setEmail({email, userID, password }) {
             // in future resend email verification
             if (foundEmailVer.data.email === email) return searchError("N017");
 
-    
             // sends a request for deletion email
-            const confirmRemove = await requestRemove({ email: foundEmailVer.data.email, userID, password });
+            const confirmRemove = await requestRemove({ currentEmail: foundEmailVer.data.email, userID, password });
+            console.log("cf", confirmRemove)
             // you can then re-request a new email
-    
+            const replaceDB = await addReplaceCurrent({ emailID: foundEmailVer.data._id, newEmail: email });
+            console.log("rp", replaceDB)
             // can also add a "replaceCurrent", 
             // then send the confirmation email to the new email once you confirm remove
-    
+            
+            // TODO COMPLETE
+
+            // this is a false error
             return searchError("N019");
         }
     } else {
@@ -69,6 +91,23 @@ async function setEmail({email, userID, password }) {
         emailID = emailIDSet;
     }
 
+    const verificationID = await createVerificationID({ emailID });
+    if (!verificationID) return searchError("N015");
+
+    // send email verification request
+    const emailSent = await sendEmailVer({ email, userID, emailVerID: verificationID });
+    return { "status": "success", emailSent, verificationID };
+}
+
+// ran after last email is removed, and has a replaceCurrent
+async function sendVerReplace({ userID }) {
+    // password is already checked earlier
+    // last email was already removed 
+    // TODO 
+}
+
+// resends email verification
+async function resendSetEmail({ email, userID, emailID }) {
     const verificationID = await createVerificationID({ emailID });
     if (!verificationID) return searchError("N015");
 
@@ -123,6 +162,18 @@ async function findCurUserVer({ userID }) {
     if (!foundEmailData) return { found: false, error: searchError("N014") };
     else return { found: true, data: foundEmailData };
 }
+
+// add replaceCurrent to emailVer schema
+async function addReplaceCurrent({ emailID, newEmail }) {
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        _id: emailID
+    }, {
+        replaceCurrent: true,
+        replaceEmail: newEmail
+    });
+
+    return true;
+};
 
 // setting email
 // creating email DB

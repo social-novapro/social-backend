@@ -24,6 +24,17 @@ async function confirmRemove({ removeEmailVerID }) {
 
 // if user decides to remove the email
 async function removeEmail({ email, userID }) {
+    // check if theres a replaceCurrent
+    const foundEmailVer = await interactEmailVerificationSchema({ userID });
+    if (!foundEmailVer) return searchError("N015");
+    if (foundEmailVer.email !== email) return searchError("N016");
+
+    if (foundEmailVer.replaceCurrent && foundEmailVer.replaceEmail) {
+        // send email to replaceCurrent
+        // TODO, use sendVerReplace() from ./setEmail
+        return 
+    }
+
     // working
     const del1 = await delEmailSettings({ email, userID });
     console.log("del1", del1)
