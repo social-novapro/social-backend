@@ -14,11 +14,24 @@ async function confirmRemove({ removeEmailVerID }) {
     console.log("foundRemove", foundRemove)
     if (!foundRemove) return searchError("N014");
 
+    await removeRemoveEmailVerID({ removeEmailVerID });
+
     const { userID, email } = foundRemove;
 
     const removed = await removeEmail({ email, userID });
     if (!removed || removed.error) return removed;
 
+    return true;
+}
+
+// remove removeEmailVerID from interactEmailVerificationSchema
+// UNTESTED
+async function removeRemoveEmailVerID({ removeEmailVerID }) {
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        removeEmailVerID
+    }, {
+        removeEmailVerID: null
+    });
     return true;
 }
 
@@ -45,7 +58,6 @@ async function removeEmail({ email, userID }) {
     console.log("del2", del2)
     if (!del2 || del2.error) return del2;
 
-    // fails
     // now working
     const del3 = await removeCurrentEmail({ email, userID });
     console.log("del3", del3)

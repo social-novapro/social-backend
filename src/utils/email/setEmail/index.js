@@ -106,10 +106,18 @@ async function sendVerReplace({ userID }) {
     // TODO 
 }
 
-// resends email verification
+// get current email verification
+async function getVerID({ userID }) {
+    const foundEmailVer = await findCurUserVer({ userID });
+    if (!foundEmailVer.found || !foundEmailVer.data || !foundEmailVer.data.verificationID) return searchError("N020");
+
+    return foundEmailVer.data.verificationID;
+}
+
+// resends email verification with same verificationID
 async function resendSetEmail({ email, userID, emailID }) {
-    const verificationID = await createVerificationID({ emailID });
-    if (!verificationID) return searchError("N015");
+    const verificationID = await getVerID({ emailID });
+    if (verificationID.error) return verificationID;
 
     // send email verification request
     const emailSent = await sendEmailVer({ email, userID, emailVerID: verificationID });
