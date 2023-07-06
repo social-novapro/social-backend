@@ -31,6 +31,62 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
     const { h1, p, a, ahref } = htmlElement;
     const emailID = uuidv4();
 
+    const mainStyle = `style="background-color: rgb(28, 28, 30); padding: 0px; margin: 0;"`;
+    const bodyStyle = `style="background-color: rgb(28, 28, 30); padding: 40px; padding-left:20px; padding-right:20px;margin: 0;"`;
+    const headerStyle = `style="background-color: rgb(44, 44, 46); padding: 20px; margin: 0;"`;
+    const footerStyle = `style="background-color: rgb(44, 44, 46); padding: 20px; margin: 0;"`;
+    const colorStyle = `style="color: rgb(255, 255, 255); padding: 0px; margin: 0;"`;
+    const headerPStyle = `style="color: rgb(255, 255, 255); padding: 0px; margin: 0; padding-top: 5px;"`;
+
+    /*
+        <div style="display: flex; align-items: center;">
+            <div style="display: inline-block; align-items: center; border-bottom: 2px solid rgba(39, 113, 240, 0.9);">
+                <img src="https://interact.novapro.net/favicon.ico" alt="Interact Logo" width="50" height="50">
+                <div style="padding-left:5px;"></div>
+                <h1 ${colorStyle}>Interact</h1> 
+            </div>
+        </div>
+
+
+
+                    <img src="https://interact.novapro.net/favicon.ico" style="padding: 5px;" alt="Interact Logo" width="50" height="50">
+                    <div style="padding-left:5px;"></div>
+                    <h1 ${headerh1Style}>Interact</h1>
+    */
+   
+    const defaultHeader = `
+        <div ${headerStyle}>
+            <div style="display: inline-flex; align-items: center;">
+                <div style="display: flex; align-items: center; border-bottom: 2px solid rgba(39, 113, 240, 0.9);">
+                    <table cellpadding="0" cellspacing="0">
+                        <tr>
+                        <td style="padding: 5px;">
+                            <img src="https://interact.novapro.net/favicon.ico" alt="Interact Logo" width="50" height="50" style="vertical-align: middle;">
+                        </td>
+                        <td style="padding: 5px;">
+                            <h1 ${colorStyle}>Interact</h1>
+                        </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <p ${colorStyle}>This email is from Interact</p>
+        </div>
+    `;
+
+    const defaultFooter = `
+        <div ${footerStyle}>
+            <p ${colorStyle}>Interact</p>
+            <ul>
+                <li><a ${colorStyle} target="_blank" href="https://interact.novapro.net">Interact Home Page</a></li>
+                <li><a ${colorStyle} target="_blank" href="https://novapro.net/privacy/">Interact Privacy</a></li>
+                <li><a ${colorStyle} target="_blank" href="https://novapro.net/interact/">Interact Information</a></li>
+                <li><a ${colorStyle} target="_blank" href="https://novapro.net/">Nova Productions</a></li>
+            </ul>
+        </div>
+    `;
+    console.log(defaultHeader)
+
     const mailOptions = {
         from: email_user,
         to: [],
@@ -38,9 +94,15 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
         subject,
         text: content,
         html: `
-            ${h1 ? `<h1>${h1}</h1>` : ''}
-            ${p ? `<p>${p}</p>` : ''}
-            ${a ? `<a target="_blank" href="${ahref}">${a}</a>` : ''}
+            <div ${mainStyle}>
+                ${defaultHeader}
+                <div ${bodyStyle}>
+                    ${h1 ? `<h1 ${colorStyle}>${h1}</h1>` : ''}
+                    ${p ? `<p ${colorStyle}>${p}</p>` : ''}
+                    ${a ? `<a ${colorStyle}target="_blank" href="${ahref}">${a}</a>` : ''}
+                </div>
+                ${defaultFooter}
+            </div>
         `
     };
 
@@ -62,6 +124,7 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
         const userFound = await interactUserSchema.findOne({ _id: user.userID })
         if (userFound) {
             if (user.email) {
+                console.log(user)
                 if (user.bcc) mailOptions.bcc.push(user.email)
                 else mailOptions.to.push(user.email)
 
@@ -74,22 +137,23 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
             }
         }
     }
-  
 
     transporter.sendMail(mailOptions, async (error, info) => {
         if (error) {
             console.error(error);
             const savedEmail = await saveEmail(email, true);
 
-            returnData = {
+            const returnData = {
                 "status": "error",
                 "error": "Email not sent",
                 "db": savedEmail
             }
+            
+            return returnData;
         } else {
             const savedEmail = await saveEmail(email, false)
 
-            returnData =  {
+            const returnData =  {
                 "status": "success",
                 "message": "Email sent",
                 "db": savedEmail
@@ -138,14 +202,14 @@ async function testing() {
     const emailSend = await emailSender({
         users: [
             {
-                userID: "test",
+                userID: "6427dee1-5939-432f-b41a-aeee97003db6",
                 email: "daniel@novapro.net",
-                bbc: true
+                bcc: true
             },
             {
-                userID: "test2",
+                userID: "6427dee1-5939-432f-b41a-aeee97003db6",
                 email: "daniel@dkravec.net",
-                bbc: false
+                bcc: true
             }
         ],
         type: 50,
