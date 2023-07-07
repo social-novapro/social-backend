@@ -419,7 +419,7 @@
                 },
                 {
                     "code" : "N010",
-                    "msg" : "There was no set in email settings."
+                    "msg" : "Email settings for this account was not found."
                 },
                 {
                     "code" : "N011",
@@ -472,6 +472,14 @@
                 {
                     "code" : "N023",
                     "msg" : "Email already requested to be removed"
+                },
+                {
+                    "code" : "N024",
+                    "msg" : "Please add an amount of email settings to change."
+                },
+                {
+                    "code" : "N025",
+                    "msg" : "Please inset a valid setting to change."
                 },
                 {
                     "code" : "O001",

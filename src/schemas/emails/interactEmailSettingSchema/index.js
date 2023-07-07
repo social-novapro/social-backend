@@ -34,6 +34,7 @@ const interactEmailSettingSchema = mongoose.Schema({
     emailNewsLetter: reqBool, // if email should receive newsletter
     emailAlerts: reqBool, // if email should receive alerts
     emailReplies: reqBool, // if email should receive replies
+    emailMentions: nonreqBool, // if email should receive replies
 });
 
 module.exports = mongoose.model('interact-email-setting', interactEmailSettingSchema);
