@@ -145,10 +145,18 @@ async function requestRemove({ currentEmail, userID, password }) {
     // if email is not verified
     // maybe make it so that if email is not verified, it will still send a request to remove email anyways
     if (VerData.verified !== true) return searchError("N022");
+    // theres no email set (for some reason?)
     if (!VerData.email) return searchError("N020");
+    // if the email is not the same as the current email 
     if (VerData.email !== currentEmail) return searchError("N021");
     // in future send another request to remove email
-    if (VerData.shouldRemoveEmail === true && VerData.removeEmailVerID) return searchError("N023");
+    if (VerData.shouldRemoveEmail === true && VerData.removeEmailVerID) {
+        // sends request to remove email again
+        // same ID as previous
+        // could replace with a new ID in future
+        await sendEmailRemoveVer({ email: currentEmail, userID, emailVerID: VerData.removeEmailVerID });
+        return true;
+    };
 
 
     // send a request to remove email
@@ -169,6 +177,7 @@ async function requestRemove({ currentEmail, userID, password }) {
 
     return true;
 }
+
 
 // send email remove request
 async function sendEmailRemoveVer({ email, userID, emailVerID }) {
