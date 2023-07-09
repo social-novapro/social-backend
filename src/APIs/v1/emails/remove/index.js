@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { searchError } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const { requestRemove } = require('../../../../utils/email/removeEmail');
+const { requestRemove } = require('../../../../utils/email/setEmail');
 
 router.delete('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);

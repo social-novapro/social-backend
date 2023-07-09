@@ -16,7 +16,9 @@ async function verifyEmail({ emailVerID }) {
         { _id: emailReqFound._id },
         { 
             verified: true,
-            timestampVerified: checktime() 
+            timestampVerified: checktime(),
+            verificationID: null,
+            timestampVerSent: null
         },
         { new: true }
     );

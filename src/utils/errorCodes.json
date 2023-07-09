@@ -482,6 +482,10 @@
                     "msg" : "Please inset a valid setting to change."
                 },
                 {
+                    "code" : "N026",
+                    "msg" : "Did not find data to replace email in email ver schema."
+                },
+                {
                     "code" : "O001",
                     "msg" : "Please insert a poll name."
                 },

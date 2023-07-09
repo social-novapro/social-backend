@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { searchError } = require('../../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../../utils/checkRequestTokens');
-const { confirmRemove } = require('../../../../../utils/email/removeEmail');
+const { confirmRemove } = require('../../../../../utils/email/setEmail');
 
 router.get('/:removeEmailVerID', async (req, res) => {
     const { removeEmailVerID } = req.params;
@@ -9,7 +9,7 @@ router.get('/:removeEmailVerID', async (req, res) => {
     
     const done = await confirmRemove({ removeEmailVerID });
     // add proper errors
-    if (!done) return res.status(400).send(done);
+    if (!done || done.error) return res.status(400).send(done);
     return res.status(200).send(done);
 })
 
