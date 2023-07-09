@@ -76,16 +76,22 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
 
     const defaultFooter = `
         <div ${footerStyle}>
-            <p ${colorStyle}>Interact</p>
-            <ul>
+        <p ${colorStyle}>Interact is a product of Nova Productions</p>
+        <ul>
                 <li><a ${colorStyle} target="_blank" href="https://interact.novapro.net">Interact Home Page</a></li>
                 <li><a ${colorStyle} target="_blank" href="https://novapro.net/privacy/">Interact Privacy</a></li>
                 <li><a ${colorStyle} target="_blank" href="https://novapro.net/interact/">Interact Information</a></li>
                 <li><a ${colorStyle} target="_blank" href="https://novapro.net/">Nova Productions</a></li>
             </ul>
+            <div>
+                <p ${colorStyle}>Want to change how you receive these emails?</p>
+                <p ${colorStyle}>You can
+                    <a ${colorStyle} target="_blank" href="https://interact.novapro.net/?emailSettings">update your settings</a> or
+                    <a ${colorStyle} target="_blank" href="https://interact.novapro.net/?emailSettings">unsubcribe from emails</a>
+                </p>
+            </div>
         </div>
     `;
-    console.log(defaultHeader)
 
     const mailOptions = {
         from: email_user,
