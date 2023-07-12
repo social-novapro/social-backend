@@ -477,6 +477,14 @@ async function findPoll({ pollID }) {
     return pollFound;
 }
 
+// get any polls from a certian user
+async function getPollsFromUser({ userID }) {
+    const pollsFound = await interactPollSchema.find({ userID });
+    if (!pollsFound) return searchError("O019");
+
+    return pollsFound;
+}
+
 module.exports = {
     createPoll,
     editPollTitle,
@@ -485,5 +493,6 @@ module.exports = {
     createNewPollOption,
     createPollVote,
     removePollVote,
-    findUserVote
+    findUserVote,
+    getPollsFromUser
 }
