@@ -12,7 +12,7 @@ async function checkPassword({ userID, password }) {
         password = password of
     */
     const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
-    if (!foundPrivUser) return res.status(403).send(searchError("G004"));
+    if (!foundPrivUser) return searchError("G004");
 
     var returnValue = {
         error: false,
