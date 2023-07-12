@@ -486,6 +486,10 @@
                     "msg" : "Did not find data to replace email in email ver schema."
                 },
                 {
+                    "code" : "N027",
+                    "msg" : "Email was not verified, please verify before editing settings"
+                },
+                {
                     "code" : "O001",
                     "msg" : "Please insert a poll name."
                 },

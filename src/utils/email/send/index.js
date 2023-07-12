@@ -38,22 +38,6 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
     const colorStyle = `style="color: rgb(255, 255, 255); padding: 0px; margin: 0;"`;
     const headerPStyle = `style="color: rgb(255, 255, 255); padding: 0px; margin: 0; padding-top: 5px;"`;
 
-    /*
-        <div style="display: flex; align-items: center;">
-            <div style="display: inline-block; align-items: center; border-bottom: 2px solid rgba(39, 113, 240, 0.9);">
-                <img src="https://interact.novapro.net/favicon.ico" alt="Interact Logo" width="50" height="50">
-                <div style="padding-left:5px;"></div>
-                <h1 ${colorStyle}>Interact</h1> 
-            </div>
-        </div>
-
-
-
-                    <img src="https://interact.novapro.net/favicon.ico" style="padding: 5px;" alt="Interact Logo" width="50" height="50">
-                    <div style="padding-left:5px;"></div>
-                    <h1 ${headerh1Style}>Interact</h1>
-    */
-   
     const defaultHeader = `
         <div ${headerStyle}>
             <div style="display: inline-flex; align-items: center;">
@@ -70,12 +54,13 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
                     </table>
                 </div>
             </div>
-            <p ${colorStyle}>This email is from Interact</p>
+            <div style="padding:5px"><p ${colorStyle}>This email is from Interact</p></div>
         </div>
     `;
 
     const defaultFooter = `
         <div ${footerStyle}>
+        ${users.length==1? "<p><<userSection>></p>" : "" }
         <p ${colorStyle}>Interact is a product of Nova Productions</p>
         <ul>
                 <li><a ${colorStyle} target="_blank" href="https://interact.novapro.net">Interact Home Page</a></li>
@@ -133,6 +118,10 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
                 console.log(user)
                 if (user.bcc) mailOptions.bcc.push(user.email)
                 else mailOptions.to.push(user.email)
+
+                if (users.length==1) {
+                    mailOptions.html = mailOptions.html.replace("<<userSection>>", `<p ${headerPStyle}>This email is for: @${userFound.username}</p>`)
+                }
 
                 email.sendTo.push({ 
                     userID: user.userID,
