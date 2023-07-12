@@ -21,7 +21,7 @@ async function setEmail({ email, userID, password }) {
 
 
     const foundEmailVer = await findCurUserVer({ userID });
-    console.log("foundEmailVer", foundEmailVer)
+
     // check if its the same and unverified, and doesnt have a remove request
     if (foundEmailVer.found) {
         if (
@@ -32,7 +32,6 @@ async function setEmail({ email, userID, password }) {
         ) {
             
             const resent = await resendSetEmail({ email, userID, emailID: foundEmailVer.data._id });
-            console.log("resent", resent)
             return resent;
         }
     }
@@ -75,19 +74,12 @@ async function setEmail({ email, userID, password }) {
             // there is already an email that was verified, must send a request to remove it first
 
             // sends a request for deletion email
-            const confirmRemove = await requestRemove({ currentEmail: foundEmailVer.data.email, userID, password });
-            console.log("cf", confirmRemove)
-            // you can then re-request a new email
-            const replaceDB = await addReplaceCurrent({ emailID: foundEmailVer.data._id, newEmail: email });
-            console.log("rp", replaceDB)
-            // can also add a "replaceCurrent", 
-            // then send the confirmation email to the new email once you confirm remove
-            
-            // TODO COMPLETE
-            return { "status": "success", "msg" : "check your previous email for removal verification code! Then your new email!" };
+            await requestRemove({ currentEmail: foundEmailVer.data.email, userID, password });
 
-            // this is a false error
-            return searchError("N019");
+            // you can then re-request a new email
+            await addReplaceCurrent({ emailID: foundEmailVer.data._id, newEmail: email });
+
+            return { "status": "success", "msg" : "check your previous email for removal verification code! Then your new email!" };
         }
     } else {
         // save email verification request
@@ -100,7 +92,7 @@ async function setEmail({ email, userID, password }) {
     if (!verificationID) return searchError("N015");
 
     // send email verification request
-    const emailSent = await sendEmailVer({ email, userID, emailVerID: verificationID });
+    await sendEmailVer({ email, userID, emailVerID: verificationID });
     //return { "status": "success", emailSent, verificationID };
     return { "status": "success", "msg" : "check your email for verification code!" };
 }
@@ -138,8 +130,8 @@ async function resendSetEmail({ email, userID, emailID }) {
     if (verificationID.error) return verificationID;
 
     // send email verification request
-    const emailSent = await sendEmailVer({ email, userID, emailVerID: verificationID });
-    return { "status": "success", emailSent, verificationID };
+    await sendEmailVer({ email, userID, emailVerID: verificationID });
+    return { "status": "success" };
 }
 
 // create verificationID
@@ -162,7 +154,7 @@ async function sendEmailVer({ email, userID, emailVerID }) {
     const verURL = `${mainURL}/emails/?verification=${emailVerID}/`;
     //const verURL = `https://interact-api.novapro.net/v1/emails/requests/verification/${emailVerID}/`;
     
-    const emailSent = await emailSender({
+    await emailSender({
         users: [{
             email: email,
             userID: userID,
@@ -178,7 +170,7 @@ async function sendEmailVer({ email, userID, emailVerID }) {
         }
     });
 
-    return { "status": "success", emailSent };
+    return { "status": "success"  };
 }
 
 // find user's emailVer schema
@@ -279,8 +271,7 @@ async function sendVerReplaceEmail({ userID }) {
     if (!verificationID) return searchError("N015");
 
     // send email verification request
-    const emailSent = await sendEmailVer({ email: replacedEmail.email, userID, emailVerID: verificationID });
-    console.log(emailSent)
+    await sendEmailVer({ email: replacedEmail.email, userID, emailVerID: verificationID });
     //return { "status": "success", emailSent, verificationID };
     return { "status": "success", "msg" : "check your email for verification code!" };
 }
@@ -385,17 +376,14 @@ async function removeEmail({ email, userID }) {
 
     // working
     const del1 = await delEmailSettings({ email, userID });
-    console.log("del1", del1)
     if (!del1 || del1.error) return del1;
     
     // seems to work
     const del2 = await removeEmailPriv({ email, userID });
-    console.log("del2", del2)
     if (!del2 || del2.error) return del2;
 
     // now working
     const del3 = await removeCurrentEmail({ email, userID });
-    console.log("del3", del3)
     if (!del3 || del3.error) return del3;
 
     return true;
@@ -541,7 +529,7 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
     const verURL = `${mainURL}/emails/?removeEmail=${emailVerID}/`;
     //const verURL = `https://interact-api.novapro.net/v1/emails/requests/confirmRemove/${emailVerID}/`;
     
-    const emailSent = await emailSender({
+    await emailSender({
         users: [{
             email: email,
             userID: userID,
@@ -557,7 +545,7 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
         }
     });
 
-    return { "status": "success", emailSent };
+    return { "status": "success" };
 }
 
 module.exports = { 

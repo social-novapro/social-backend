@@ -115,7 +115,6 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
         const userFound = await interactUserSchema.findOne({ _id: user.userID })
         if (userFound) {
             if (user.email) {
-                console.log(user)
                 if (user.bcc) mailOptions.bcc.push(user.email)
                 else mailOptions.to.push(user.email)
 
