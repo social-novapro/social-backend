@@ -152,7 +152,8 @@ function getTime() {
     const currentTime = d.getTime();
     return currentTime;
 };
-
+require('dotenv').config();
+console.log(process.env);
 // WEBSOCKET CODE
 const server = http.createServer(app);
  //const WebSocketRoute = require('./WS')
