@@ -17,6 +17,6 @@ RUN npm install
 # Bundle app source
 COPY . .
 
-WORKDIR /usr/src/app/src
+WORKDIR /usr/src/app
 EXPOSE 3001
-CMD [ "node", "app.js" ]
+CMD [ "npm", "start." ]
