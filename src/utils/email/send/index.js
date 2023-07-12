@@ -1,9 +1,10 @@
 const nodemailer = require('nodemailer');
-require('dotenv').config();
 const { checktime } = require('../../checktime');
 const { v4: uuidv4 } = require('uuid');
 const interactEmailSchema = require('../../../schemas/emails/interactEmailSchema');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
+require('dotenv').config({ path: 'secret.env' })
+
 const { email_user, email_pass } = process.env;
 
 const auth = {
@@ -221,6 +222,7 @@ async function testing() {
 
 async function sendTest() {
     // await testing()
+    console.log(auth)
 }
 
 module.exports = { emailSender, sendTest }
