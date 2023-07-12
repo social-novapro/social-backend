@@ -52,6 +52,10 @@
                     "msg" : "Error with notifications"
                 },
                 {
+                    "code" : "N",
+                    "msg" : "Error with emails"
+                },
+                {
                     "code" : "O",
                     "msg" : "Error with Polls"
                 },
@@ -295,7 +299,7 @@
                 },
                 {
                     "code" : "G001",
-                    "msg" : "no username provided"
+                    "msg" : "no username or email provided"
                 }, 
                 {
                     "code" : "G002",
@@ -311,8 +315,12 @@
                 }, 
                 {
                     "code" : "G005",
-                    "msg" : "password provided was incorreect"
+                    "msg" : "Password provided was incorreect"
                 }, 
+                {
+                    "code" : "G006",
+                    "msg" : "Unable to find email provided"
+                },
                 {
                     "code" : "H001",
                     "msg" : "You tried to delete a post that is not yours."
@@ -372,6 +380,114 @@
                 {
                     "code" : "L002",
                     "msg" : "Error while saving notification sub."
+                },
+                {
+                    "code" : "N001",
+                    "msg" : "Could not find request for verification of email."
+                },
+                {
+                    "code" : "N002",
+                    "msg" : "There was no email linked to this account."
+                },
+                {
+                    "code" : "N003",
+                    "msg" : "email is already verified."
+                },
+                {
+                    "code" : "N004",
+                    "msg" : "Please provide an email address."
+                },
+                {
+                    "code" : "N005",
+                    "msg" : "Not a valid email address, please try again."
+                },
+                {
+                    "code" : "N006",
+                    "msg" : "Email is already in use."
+                },
+                {
+                    "code" : "N007",
+                    "msg" : "User is already in verification process. Please cancel current request first."
+                }, 
+                {
+                    "code" : "N008",
+                    "msg" : "Email is already in verification process by another user."
+                },
+                {
+                    "code" : "N009",
+                    "msg" : "User already authenticated"
+                },
+                {
+                    "code" : "N010",
+                    "msg" : "Email settings for this account was not found."
+                },
+                {
+                    "code" : "N011",
+                    "msg" : "Found email settings was not equal to provided email."
+                },
+                {
+                    "code" : "N012",
+                    "msg" : "Email in private schema was not equal to provided email."
+                },
+                {
+                    "code" : "N013",
+                    "msg" : "Email in verification schema is not equal to provided email."
+                },
+                {
+                    "code" : "N014",
+                    "msg" : "Email verification schema was not found."
+                },
+                {
+                    "code" : "N015",
+                    "msg" : "Error occured while creating email verification ID."
+                },
+                {
+                    "code" : "N016",
+                    "msg" : "Error occured while creating email settings."
+                },
+                {
+                    "code" : "N017",
+                    "msg" : "Email is aleady set to provided email."
+                },
+                {
+                    "code" : "N018",
+                    "msg" : "There was an error updating email verification"
+                },
+                {
+                    "code" : "N019",
+                    "msg" : "You got an error where email is not completed, or maybe check your email."
+                },
+                {
+                    "code" : "N020",
+                    "msg" : "There is no email in verification schema."
+                },
+                {
+                    "code" : "N021",
+                    "msg" : "Provided email is not equal to email in verification schema."
+                },
+                {
+                    "code" : "N022",
+                    "msg" : "Email is not verified, please verify email before removing. Or change email directly."
+                },
+                {
+                    "code" : "N023",
+                    "msg" : "Email already requested to be removed"
+                },
+                {
+                    "code" : "N024",
+                    "msg" : "Please add an amount of email settings to change."
+                },
+                {
+                    "code" : "N025",
+                    "msg" : "Please inset a valid setting to change."
+                },
+                {
+                    "code" : "N026",
+                    "msg" : "Did not find data to replace email in email ver schema."
+                },
+                {
+                    "code" : "N027",
+                    "msg" : "Email was not verified, please verify before editing settings"
                 },
                 {
                     "code" : "O001",

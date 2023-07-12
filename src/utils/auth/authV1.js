@@ -4,7 +4,8 @@ const { checkRequestTokens } = require("../checkRequestTokens");
 async function authV1(req, res, next) {
     console.log(req.originalUrl)
     if ( 
-        req.originalUrl.startsWith('/v1/get/analyticTrend') 
+        req.originalUrl.startsWith('/v1/get/analyticTrend') ||
+        req.originalUrl.startsWith('/v1/emails/requests')
     ) {
         console.log("authV1: bypassing auth")
         return next();
