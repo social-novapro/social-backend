@@ -37,7 +37,6 @@ async function demoCreate({ username }) {
     headersBasic.accessToken = userData.accessToken;
 
     /* turn user into demo user */
-
     const turnDemo = await interactUserSchema.findOneAndUpdate({ _id: userData.userID }, { demo: true });
 
     // create 10 posts
@@ -55,23 +54,28 @@ async function demoCreate({ username }) {
             body: postBody,
             headers: headersBasic
         });
+
         postData.push(postRes);
     }
 
     // create dev token
 
+    // create 3 app tokens
 
+
+    // sign in with 2 of the apps
 
 
     return {
         userData,
+        turnDemo,
         postData
     }
 
-    // ceate 1 login item
+    // ceate 1 login item (done)
     // create 1 dev token
     // create 1 app token
-    // create 10 posts
+    // create 10 posts (done)
     // create 5 polls
     // create 5 replies to a ceritain post
     // vote on 5 polls (including its own, or otherwise)

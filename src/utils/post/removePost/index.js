@@ -1,5 +1,7 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactRepliesSchema = require("../../../schemas/postSchemas/interactRepliesSchema");
+const interactDeletedSchema = require("../../../schemas/interactDeletedSchema");
+const { v4: uuidv4 } = require("uuid");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -14,6 +16,12 @@ async function removePost(postData) {
     }, {
         upsert: true
     });
+    
+    await interactDeletedSchema.create({ 
+        _id: uuidv4(),
+        type: 2,
+        userID: postData.userID
+    })
     
     return true;
 };
