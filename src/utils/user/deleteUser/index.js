@@ -2,12 +2,13 @@
 const { deletePoll, getPollsFromUser } = require('../../polls/');
 /* post functions */
 const { getPostsFromUser } = require('../../post/main/');
-const { removePost } = require('../../post/removePost/');
+const { removePost, removeUserLikes } = require('../../post/removePost/');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactDeletedSchema = require('../../../schemas/interactDeletedSchema');
 const { v4: uuidv4 } = require('uuid');
 const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
 const { getAccessTokens, deleteDevAcc } = require('../../developer/delete');
+
 /**
  * user requests to delete, makes an email
  */
@@ -28,7 +29,7 @@ async function confirmDelete({ deleteID }) {
 async function demoDelete({ username }) {
     const user = await interactUserSchema.findOne({ username });
     if (!user) return { error: 'user not found' };
-    //if (user.demo != true) return { error: 'user is not a demo' };
+    if (user.demo != true) return { error: 'user is not a demo' };
     
     const deletedUser = await deleteUser({ userID: user._id, username: user.username });
 
@@ -37,6 +38,7 @@ async function demoDelete({ username }) {
 
 /**
  * delete user
+ * runs other functions in file to delete each section
  */
 async function deleteUser({ userID, username }) {
     const deletedID = uuidv4();
@@ -51,6 +53,7 @@ async function deleteUser({ userID, username }) {
     
     const delPublicUser = await deletePublicUser({ userID });
 
+    const delRemovedLikes = await deleteLikes({ userID });
     
     const delAccesssTokens = await deleteAccessTokens({ userID });
     
@@ -63,9 +66,10 @@ async function deleteUser({ userID, username }) {
         deletedDB,
         deletedPosts,
         delPublicUser,
-        delPrivUser,
+        delRemovedLikes,
         delAccesssTokens,
-        delDevSettings
+        delDevSettings,
+        delPrivUser
     }
 
     return { success: true };
@@ -136,16 +140,21 @@ async function deletePosts({ userID }) {
 
 /**
  * deletes any other data associated with post
+ * canceled: moved to inside removePost
  */
-async function deletePostSubData({ postID }) {
 
+/**
+ * remove user likes
+ */
+async function deleteLikes({ userID }) {
+    const removed = await removeUserLikes({ userID });
+    return removed;
 }
-
 /**
  * deletes all polls created by user 
  */
 async function deletePolls({ userID }) {
-    const foundPolls = getPollsFromUser({ userID });
+    const foundPolls = await getPollsFromUser({ userID });
     if (foundPolls.error) return foundPolls;
     
     for (const poll of foundPolls) {
@@ -159,11 +168,6 @@ async function deletePolls({ userID }) {
 async function deletePollSubData({ pollID }) {
 }
 
-/**
- * deletes all likes from user
- */
-async function deleteLikes({ userID }) {
-}
 /**
  * deletes subscriptions from user
  * people subbed to them, and people they are subbed to
