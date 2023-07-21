@@ -455,7 +455,7 @@ async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOption
 
     await interactPollVoteIndexSchema.findOneAndUpdate(
         { _id: pollIndexID },
-        { $push : { "votes" : { _id: pollVoteID } } }
+        { $pull : { "votes" : { _id: pollVoteID } } }
     );
 
     var amountVoted = 0;
@@ -468,6 +468,12 @@ async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOption
         { _id: pollID, "pollOptions._id": pollOptionID },
         { $set: { "pollOptions.$.amountVoted": amountVoted }}
     );
+}
+
+// get all user votes
+async function getUserVotes({ userID }) {
+    const foundVotes = await interactPollVoteSchema.find({ userID });
+    return foundVotes;
 }
 
 // findPoll
@@ -485,6 +491,19 @@ async function getPollsFromUser({ userID }) {
     return pollsFound;
 }
 
+// delete all user votes
+async function deleteUserVotes({ userID }) {
+    const foundVotes = await getUserVotes({ userID });
+    const returnArr = [];
+
+    for (const vote of foundVotes) {
+        const delVote = await removePollVote({ pollID: vote.pollID, userID, pollOptionID: vote.pollOptionID });
+        returnArr.push(delVote);
+    }
+
+    return returnArr;
+}
+
 module.exports = {
     createPoll,
     editPollTitle,
@@ -494,5 +513,7 @@ module.exports = {
     createPollVote,
     removePollVote,
     findUserVote,
-    getPollsFromUser
+    getPollsFromUser,
+    getUserVotes,
+    deleteUserVotes
 }

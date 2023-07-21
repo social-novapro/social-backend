@@ -1,5 +1,5 @@
 /* poll functinos */
-const { deletePoll, getPollsFromUser } = require('../../polls/');
+const { deletePoll, getPollsFromUser, deleteUserVotes } = require('../../polls/');
 /* post functions */
 const { getPostsFromUser } = require('../../post/main/');
 const { removePost, removeUserLikes } = require('../../post/removePost/');
@@ -61,15 +61,30 @@ async function deleteUser({ userID, username }) {
     
     const delPrivUser = await deletePrivateUser({ userID });
 
+    const delPolls = await deletePolls({ userID });
+
+    const delVotes = await removeUserVotes({ userID });
+
     return {
         success: true,
         deletedDB,
-        deletedPosts,
         delPublicUser,
-        delRemovedLikes,
-        delAccesssTokens,
-        delDevSettings,
-        delPrivUser
+        postData: {
+            deletedPosts,
+            delRemovedLikes
+        },
+        privateData: {
+            delAccesssTokens,
+            delDevSettings,
+            delPrivUser,
+        },
+        emailData: {
+
+        },
+        pollData: {
+            delVotes,
+            delPolls
+        }
     }
 
     return { success: true };
@@ -156,16 +171,28 @@ async function deleteLikes({ userID }) {
 async function deletePolls({ userID }) {
     const foundPolls = await getPollsFromUser({ userID });
     if (foundPolls.error) return foundPolls;
-    
+    const delArr = [];
+
     for (const poll of foundPolls) {
-        await deletePoll({ userID, pollID: poll._id })
+        const delPoll = await deletePoll({ userID, pollID: poll._id });
+        delArr.push(delPoll);
     }
+
+    return delArr;
 }
 
 /**
  * deletes any other data associated with poll
+ * canceled: should be handled by deletePoll function
  */
-async function deletePollSubData({ pollID }) {
+
+/**
+ * deletes user votes from other polls
+ */
+async function removeUserVotes({ userID }) {
+    const deletedVotes = await deleteUserVotes({ userID });
+
+    return deletedVotes;
 }
 
 /**
@@ -173,21 +200,13 @@ async function deletePollSubData({ pollID }) {
  * people subbed to them, and people they are subbed to
  */
 async function deleteSubscriptions({ userID }) {
-
+    
 }
 
 /**
  * delete all email data
  */
 async function deleteEmails({ userID }) {
-
-}
-
-/**
- * delete developer data
- */
-async function deleteDevProfile({ userID }) {
-
 
 }
 

@@ -91,7 +91,6 @@ async function deleteDevAcc({ userID }) {
     const devAppsDel = await deleteDevAppTokens({ devToken: userPrivFound.devToken });
 
 
-
     // remove devToken from userPriv
     const updatedPrivUser = await interactUserPrivSchema.findOneAndUpdate({ 
         _id: userID 
