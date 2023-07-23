@@ -1,7 +1,6 @@
 const router = require('express').Router();
-const interactSubscribeNotification = require('../../../../schemas/notifications/interactSubscribeNotification')
-const { searchError } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
+const { getSubscriptions } = require('../../../../utils/subscriptions');
 
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -9,13 +8,10 @@ router.get('/', async (req, res) => {
 
     const { userid } = req.headers;
 
-    const subData = await interactSubscribeNotification.find({
-        "subscribed._id" : userid,
-    });
+    const subData = await getSubscriptions({ userID: userid });
 
-    if (!subData || !subData[0]) return res.status(404).send({"error" : "no subscriptions found"})
-  
-    return res.status(200).send(subData);
+    if (subData.error) return res.status(400).send(subData);
+    else return res.status(200).send(subData);
 });
 
 module.exports = router;
