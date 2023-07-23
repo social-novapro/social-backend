@@ -338,6 +338,18 @@
                     "msg" : "not done route"
                 },
                 {
+                    "code" : "I003",
+                    "msg" : "Please use /v1/subscriptions/getAll instead of /v1/get/subscriptions."
+                },
+                {
+                    "code" : "I004",
+                    "msg" : "Please use /v1/subscriptions/sub instead of /v1/post/subUser."
+                },
+                {
+                    "code" : "I005",
+                    "msg" : "Please use /v1/subscriptions/unsub instead of /v1/delete/unsubUser."
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },

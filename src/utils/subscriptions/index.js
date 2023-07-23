@@ -12,7 +12,14 @@ async function delUserSubData({ }) {
 /**
  * lets user unsubcribe from all users
  */
+async function unSubAll({ userID }) {
+    const subData = await getSubscriptions({ userID });
+    if (subData.error) return subData;
 
+    for (const sub of subData) {
+        //console.log(sub)
+    }
+}
 /** 
  * PUBLIC FUNCTION
  * lets user sub to another user
@@ -26,6 +33,17 @@ async function subToUser({ userID, subUserID }) {
     var sending = await lookForSub(subUserID, userID)
     if (!sending.found) return searchError("L002");
     else return sending;
+}
+
+/**
+ * PUBLIC FUNCTION
+ * returns if user is subbed or not
+ */
+async function isSubbed({ userID, subUserID }) {
+    var checkIfSubbed = await lookForSub(subUserID, userID)
+    
+    if (!checkIfSubbed.found) return { 'error' : "Client was not subscribed to the user. "};
+    else return checkIfSubbed;
 }
 
 /**
@@ -111,4 +129,4 @@ async function lookForSub(subUserID, userID) {
     return sending 
 };
 
-module.exports = { unsubFromUser, getSubscriptions, subToUser }
+module.exports = { unsubFromUser, getSubscriptions, subToUser, isSubbed }
