@@ -59,8 +59,11 @@ const interactEmailVerificationSchema = mongoose.Schema({
     removeEmailVerID: nonreqString, // emailVerID to remove
     timestampRemoveEmail: nonreqNum, // time remove email requested
 
+    // delete account
+    shouldDelAcc: nonreqBool,
+    deleteAccountVerID: nonreqString, // delAccVerID
+    timestampDeleteAccount: nonreqNum
     // change password - do in future pr
-    // change email - do in future pr
 });
 
 

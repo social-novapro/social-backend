@@ -60,6 +60,10 @@
                     "msg" : "Error with Polls"
                 },
                 {
+                    "code" : "P",
+                    "msg" : "Error with deleting account"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -656,6 +660,33 @@
                 {
                     "code" : "O025",
                     "msg" : "The poll has ended, user can no longer vote."
+                },
+                {
+                    "code" : "P001",
+                    "msg" : "Please set and verify your email before deleting your account."
+                },
+                {
+                    "code" : "P002",
+                    "msg" : "Please verify your email before deleting your account."
+                },
+                {
+                    "code" : "P003",
+                    "msg" : "Account was not previously set to be deleted."
+                },
+                {
+                    "code" : "P004",
+                    "msg" : "delAccVerID was invalid, try again with another code."
+                },
+                {
+                    "code" : "P005",
+                    "msg" : "Verification expired %time ago.",
+                    "options" : [
+                        {
+                            "name" : "time",
+                            "replacement" : "%time",
+                            "default" : "unknown"
+                        }
+                    ]
                 },
                 {
                     "code" : "Z001",

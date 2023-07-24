@@ -222,7 +222,7 @@ async function testing() {
 
 async function sendTest() {
     // await testing()
-    console.log(auth)
+    //console.log(auth)
 }
 
 module.exports = { emailSender, sendTest }

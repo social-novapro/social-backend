@@ -540,7 +540,7 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
         content: `Please verify your removal request. Open: ${verURL} to verify. Thank you.`,
         htmlElement: {
             h1: "Verify email removal at Interact",
-            p: "Please confirm your removal request, open link to verify.",
+            p: "Please confirm your removal request, open the link to verify.",
             a: `${verURL}`,
         }
     });

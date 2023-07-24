@@ -1,36 +1,114 @@
+const interactUserSchema = require('../../../schemas/interactUserSchema');
+const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
+const interactDeletedSchema = require('../../../schemas/interactDeletedSchema');
+const interactEmailVerificationSchema = require("../../../schemas/emails/interactEmailVerificationSchema");
 /* poll functinos */
 const { deletePoll, getPollsFromUser, deleteUserVotes } = require('../../polls/');
 /* post functions */
 const { getPostsFromUser } = require('../../post/main/');
 const { removePost, removeUserLikes } = require('../../post/removePost/');
-const interactUserSchema = require('../../../schemas/interactUserSchema');
-const interactDeletedSchema = require('../../../schemas/interactDeletedSchema');
 const { v4: uuidv4 } = require('uuid');
-const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
 const { getAccessTokens, deleteDevAcc } = require('../../developer/delete');
 const { deleteAllBookmarks } = require('../../bookmarks');
 const { deleteEmailDBs } = require('../../email/setEmail');
 const { unsubFromAll } = require('../../subscriptions');
+const { searchError } = require('../../searchError');
+const { checktime, timeSinceEpoch } = require('../../checktime');
+const { emailSender } = require('../../email/send');
+const { current } = require("../../../../config.json");
 
 /**
  * user requests to delete, makes an email
  */
 async function requestDelete({ userID }) {
+    const foundVer = await interactEmailVerificationSchema.findOne({ userID });
+    if (!foundVer) return searchError("P001");
+    if (!foundVer.verified) return searchError("P002");
 
+    var delAccVerID = uuidv4();
+    await interactEmailVerificationSchema.findOneAndUpdate({ 
+        _id: foundVer._id
+    }, {
+        shouldDelAcc: true,
+        deleteAccountVerID: delAccVerID,
+        timestampDeleteAccount: checktime()
+    });
+
+    await sendDeletionEmail({ email: foundVer.email, userID: foundVer.userID, delAccVerID});
+    
+    return { success: true };
+}
+
+async function sendDeletionEmail({ email, userID, delAccVerID}) {
+    const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
+    const verURL = `${mainURL}/emails/?deleteAccount=${delAccVerID}/`;
+    
+    await emailSender({
+        users: [{
+            email: email,
+            userID: userID,
+            bbc: false
+        }],
+        type: 2,
+        subject: "Confirm Deletion",
+        content: `Thank you for checking out Interact, to delete your account open: ${verURL} and confirm your deletion!`,
+        htmlElement: {
+            h1: "Email Verified!",
+            p: "Thank you for checking out Interact, to delete your account open the link, and confirm your deletion!",
+            a: `${verURL}`,
+        }
+    });
+    return true;
 }
 
 /**
  * lets user cancel the delete request, and cant run delete link
  */
 async function cancelDelete({ deleteID }) {
+    const foundVer = await interactEmailVerificationSchema.findOne({ deleteAccountVerID: deleteID });
+    if (!foundVer) return searchError("P004");
 
+    if (!foundVer.verified) return searchError("P002");
+
+    if (!foundVer.deleteAccountVerID || !foundVer.shouldDelAcc) return searchError("P003");
+
+    await interactEmailVerificationSchema.findOneAndUpdate({ 
+        _id: foundVer._id 
+    }, {
+        shouldDelAcc: false,
+        deleteAccountVerID: null,
+        timestampDeleteAccount: null
+    });
+    
+    return true;
 }
 
 /**
  * confirms delete request, deletes all data
  */
 async function confirmDelete({ deleteID }) {
+    const foundVer = await interactEmailVerificationSchema.findOne({ deleteAccountVerID: deleteID });
+    if (!foundVer) return searchError("P004");
 
+    const checkExpired = checkIfRequestExpired(foundVer.timestampDeleteAccount);
+    if (checkExpired.error) return checkExpired;
+
+    // NOT DONE
+}
+
+/**
+ * checks if the request is expired
+ * max is 1 day 
+ */
+function checkIfRequestExpired(timestamp) {
+    //const defaultExpire = 8640;
+    //const defaultExpire = 86400000; // 1 day
+    const defaultExpire =  1800000; // 30 minutes
+    
+    const diff = checktime() - timestamp;
+
+    if (diff>=defaultExpire) return searchError("P005", [{ name: "time", data: timeSinceEpoch((diff-defaultExpire))}]);
+    else return true;
 }
 
 /**
@@ -238,4 +316,4 @@ async function deleteEmails({ userID }) {
    return delEmails;
 }
 
-module.exports = { requestDelete, confirmDelete, demoDelete }
+module.exports = { requestDelete, confirmDelete, cancelDelete, demoDelete }

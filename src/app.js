@@ -15,12 +15,11 @@ const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
 
 require('dotenv').config({ path: 'secret.env' })
-console.log(process.env);
 
 
 // sending email
 const { sendTest } = require('./utils/email/send');
-sendTest();
+// sendTest();
 
 /* collect everything within a index
 const interactPostSchema = require('./database/posts-schema')

@@ -45,7 +45,7 @@ async function verifyEmail({ emailVerID }) {
         }],
         type: 2,
         subject: "Email Verified!",
-        content: `Thank you for verifying your email! Open: ${interactURL} to explore the rest of interact!.`,
+        content: `Thank you for verifying your email! Open: ${interactURL} to explore the rest of interact!`,
         htmlElement: {
             h1: "Email Verified!",
             p: "Thank you for verifying your email! Check out the rest of Interact!",
