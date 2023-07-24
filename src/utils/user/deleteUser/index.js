@@ -8,11 +8,21 @@ const interactDeletedSchema = require('../../../schemas/interactDeletedSchema');
 const { v4: uuidv4 } = require('uuid');
 const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
 const { getAccessTokens, deleteDevAcc } = require('../../developer/delete');
+const { deleteAllBookmarks } = require('../../bookmarks');
+const { deleteEmailDBs } = require('../../email/setEmail');
+const { unsubFromAll } = require('../../subscriptions');
 
 /**
  * user requests to delete, makes an email
  */
 async function requestDelete({ userID }) {
+
+}
+
+/**
+ * lets user cancel the delete request, and cant run delete link
+ */
+async function cancelDelete({ deleteID }) {
 
 }
 
@@ -59,11 +69,17 @@ async function deleteUser({ userID, username }) {
     
     const delDevSettings = await deleteDev({ userID });
     
+    const delEmails = await deleteEmails({ userID });
+
     const delPrivUser = await deletePrivateUser({ userID });
 
     const delPolls = await deletePolls({ userID });
 
     const delVotes = await removeUserVotes({ userID });
+
+    const delBookmarks = await deleteBookmarks({ userID });
+
+    const delSubs = await deleteSubscriptions({ userID });
 
     return {
         success: true,
@@ -79,15 +95,17 @@ async function deleteUser({ userID, username }) {
             delPrivUser,
         },
         emailData: {
-
+            delEmails
         },
         pollData: {
             delVotes,
             delPolls
+        },
+        saves: {
+            delSubs,
+            delBookmarks
         }
     }
-
-    return { success: true };
 }
 
 /**
@@ -200,14 +218,24 @@ async function removeUserVotes({ userID }) {
  * people subbed to them, and people they are subbed to
  */
 async function deleteSubscriptions({ userID }) {
-    
+    const delSubs = unsubFromAll({ userID });
+    return delSubs;
+}
+
+/**
+ * delete bookmarks
+ */
+async function deleteBookmarks({ userID }) {
+    const deleted = await deleteAllBookmarks({ userID });
+    return deleted;
 }
 
 /**
  * delete all email data
  */
 async function deleteEmails({ userID }) {
-
+   const delEmails = await deleteEmailDBs({ userID });
+   return delEmails;
 }
 
 module.exports = { requestDelete, confirmDelete, demoDelete }

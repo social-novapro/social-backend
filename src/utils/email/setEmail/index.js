@@ -548,7 +548,34 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
     return { "status": "success" };
 }
 
+/**
+ * wipe email DBs
+ */
+async function deleteEmailDBs({ userID }) {
+    // remove veriifcation
+    const foundVer = await interactEmailVerificationSchema.findOne({ userID });
+    if (!foundVer) return {
+        error: searchError("N020")
+    };
+
+    // wipe from priv
+    if (foundVer.email) await removeEmailPriv({ email: foundVer.email, userID });
+    
+    // remove settings
+    const foundSettings = await interactEmailSettingSchema.findOne({ _id: userID });
+    if (!foundSettings) return {
+        foundVer,
+        error: searchError("N010")
+    };
+
+    return {
+        foundVer,
+        foundSettings
+    }
+}
+
 module.exports = { 
     setEmail, validEmail, sendVerReplaceEmail,
-    confirmRemove, requestRemove
+    confirmRemove, requestRemove,
+    deleteEmailDBs
 }
