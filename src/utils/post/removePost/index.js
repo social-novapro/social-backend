@@ -6,6 +6,7 @@ const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPos
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
+    if (postData.isQuote) await removeQuote(postData);
     
     // if postData.isQuote later
     if (postData.replyIndexID) await deleteReplyIndex(postData);
@@ -37,14 +38,28 @@ async function deleteReplyIndex(postData) {
     await interactRepliesSchema.findOneAndDelete({_id: postData.replyIndexID});
 };
 
+async function removeQuote({ _id, quoteData }) {
+    if (!quoteData) return false;
+    const foundPost = await interactPostSchema.findOne({ _id: quoteData.postID })
+    if (!foundPost) return false; // was already deleted maybe 
+    
+    await interactPostSchema.findOneAndUpdate({
+        _id: quoteData.postID
+    }, {
+        totalQuotes: foundPost.totalQuotes ? foundPost.totalQuotes-1 : 0,
+    });
+}
+
 async function removeFromReplyIndex({_id, replyData}) {
     if (!replyData) return false;
-    
+    const foundPost = await interactPostSchema.findOne({ _id: replyData.postID })
+    if (!foundPost) return false; // was already deleted maybe
+
     // removes reply count post
     await interactPostSchema.findOneAndUpdate({
         _id: replyData.postID
     }, {
-        totalReplies: replyData.totalReplies ? replyData.totalReplies-- : 0,
+        totalReplies: foundPost.totalReplies ? foundPost.totalReplies-1 : 0,
     });
 
     // removes from index
@@ -57,7 +72,7 @@ async function removeFromReplyIndex({_id, replyData}) {
     return true;
 };
 
-async function removeUserLikes() {
+async function removeUserLikes({ userID }) {
     const likesData = await interactPostLikeSchema.find({
         "peopleLiked._id" : userID,
     });

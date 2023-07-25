@@ -100,9 +100,14 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     await interactPostSchema.findOneAndUpdate({
         _id: postID
     }, {
+        isQuote: true,
         quoteReplyPostID: `${quotingPost ? quotingPost._id : null}`,
         quotedPost: quotingPost,
-        quotedUser: quotingUser
+        quotedUser: quotingUser,
+        quoteData : {
+            postID: quotingPost._id,
+            userID: quotingPost.userID
+        }
     }, {
         upsert: true
     });
