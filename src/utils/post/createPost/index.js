@@ -43,7 +43,7 @@ async function newPostIndex(userID, data) {
 
     if (quoteReplyPostID) {
         const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
-        if (quotingPost) return quotingPostSetup(quotingPost, postID, userID);
+        if (quotingPost) await quotingPostSetup(quotingPost, postID, userID);
         // else return res.status(404).send(searchError("D002"));
     }
     if (replyingPostID) {
