@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { demoCreate } = require('../../../../../utils/user/demoCreate');
 
-router.get('/:username', async (req, res) => {
+router.post('/:username', async (req, res) => {
     const { username } = req.params;
     console.log("hi")
     const returnData = await demoCreate({ username });

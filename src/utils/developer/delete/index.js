@@ -20,6 +20,22 @@ async function getAppTokens({ userID }) {
 }
 
 /**
+ * delete accesses from client 
+ */
+async function deleteUserAccesses({ userID }) {
+    const accessesFound = await getAccessTokens({ userID });
+    if (!accessesFound) return null;
+    const deletedAccesses = [];
+
+    for (const access of accessesFound) {
+        const deletedAccess = await deleteAccessToken({ accessToken: access._id })
+        deletedAccesses.push(deletedAccess);
+    }
+
+    return deletedAccesses;
+}
+
+/**
  * get assigned access tokens from given app token
  */
 async function deleteAccessTokensFromApp({ appToken }) {
@@ -73,7 +89,7 @@ async function deleteDevAppTokens({ devToken }) {
     const devApps = await developerAppToken.find({ devToken });
     const devAppData = []
     for (const app of devApps) {
-        const data = await deleteAccessTokensFromApp({ appToken: app._id });
+        const data = await deleteAppToken({ appToken: app._id });
         devAppData.push(data);
     }
     return devAppData;
@@ -107,4 +123,4 @@ async function deleteDevAcc({ userID }) {
 
 }
 
-module.exports = { deleteDevAcc, getAccessTokens, getAppTokens, deleteAccessToken, deleteAppToken, deleteDevToken }
+module.exports = { deleteDevAcc, getAccessTokens, getAppTokens, deleteUserAccesses, deleteAccessToken, deleteAppToken, deleteDevToken }

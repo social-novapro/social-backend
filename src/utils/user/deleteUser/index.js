@@ -8,7 +8,7 @@ const { deletePoll, getPollsFromUser, deleteUserVotes } = require('../../polls/'
 const { getPostsFromUser } = require('../../post/main/');
 const { removePost, removeUserLikes } = require('../../post/removePost/');
 const { v4: uuidv4 } = require('uuid');
-const { getAccessTokens, deleteDevAcc } = require('../../developer/delete');
+const { deleteDevAcc, deleteUserAccesses } = require('../../developer/delete');
 const { deleteAllBookmarks } = require('../../bookmarks');
 const { deleteEmailDBs } = require('../../email/setEmail');
 const { unsubFromAll } = require('../../subscriptions');
@@ -143,7 +143,6 @@ async function deleteUser({ userID, username }) {
 
     const delRemovedLikes = await deleteLikes({ userID });
     
-    const delAccesssTokens = await deleteAccessTokens({ userID });
     
     const delDevSettings = await deleteDev({ userID });
     
@@ -159,6 +158,8 @@ async function deleteUser({ userID, username }) {
 
     const delSubs = await deleteSubscriptions({ userID });
 
+    const delUserAccesssTokens = await deleteAccessTokens({ userID });
+
     return {
         success: true,
         deletedDB,
@@ -168,7 +169,7 @@ async function deleteUser({ userID, username }) {
             delRemovedLikes
         },
         privateData: {
-            delAccesssTokens,
+            delUserAccesssTokens,
             delDevSettings,
             delPrivUser,
         },
@@ -212,16 +213,8 @@ async function deletePrivateUser({ userID }) {
  * delete tokens
  */
 async function deleteAccessTokens({ userID }) {
-    const accessesFound = await getAccessTokens({ userID });
-    if (!accessesFound) return null;
-    const deletedAccesses = [];
-
-    for (const access of accessesFound) {
-        const deletedAccess = await deleteAccessTokens({ accessToken: access._id })
-        deletedAccesses.push(deletedAccess);
-    }
-
-    return deletedAccesses;
+   const deletedAcceses = await deleteUserAccesses({ userID });
+   return deletedAcceses;
 }
 
 /**
