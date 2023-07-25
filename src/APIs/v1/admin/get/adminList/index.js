@@ -4,6 +4,13 @@ const {checkUserPerms} = require('../../../../../utils/checkUserPerms');
 const { searchError } = require('../../../../../utils/searchError');
 const interactAdminSchema = require('../../../../../schemas/admin/interactAdminSchema');
 
+/**
+* @path /v1/admin/get/adminList
+* @headers ::default
+* @returns ::defaultError
+* @returns :schema:interactAdminSchema []
+*/
+
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
