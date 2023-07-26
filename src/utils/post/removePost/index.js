@@ -1,6 +1,6 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactRepliesSchema = require("../../../schemas/postSchemas/interactRepliesSchema");
-const interactDeletedSchema = require("../../../schemas/interactDeletedSchema");
+const interactDeletedSchema = require("../../../schemas/deleted/interactDeletedSchema");
 const { v4: uuidv4 } = require("uuid");
 const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPostLikeSchema");
 

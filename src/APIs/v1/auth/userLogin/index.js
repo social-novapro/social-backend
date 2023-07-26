@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
 
     var foundUserID = null;
     var usernameFound = null;
-
+    var foundUser = null;
     // username login
     if (!emailUsed) {
         const foundUsername = await interactUserSchema.findOne({ username });
@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
 
         foundUserID = foundUsername._id;
         usernameFound = foundUsername.username;
+        foundUser = foundUsername;
     }
 
     // email login
@@ -46,10 +47,11 @@ router.get('/', async (req, res) => {
 
         foundUserID = foundUsername._id;
         usernameFound = foundUsername.username;
+        foundUser = foundUsername;
     }
   
     const foundPassword = await checkPassword({ userID: foundUserID, password });
-    if (foundPassword.error) return res.status(403).send(foundPassword.msg);
+    if (foundPassword.error) return res.status(403).send(foundPassword);
     if (foundPassword.correctPassword != true) return res.status(403).send(searchError("G005"));
     
     const foundPrivUser = await interactUserPrivSchema.findOne({_id: foundUserID });
@@ -58,7 +60,7 @@ router.get('/', async (req, res) => {
     const accessTokenFound = await createAccessToken(foundUserID, foundPrivUser.userToken, apptoken);
     const sendData = {
         "login" : true,
-        "publicData" : usernameFound,
+        "publicData" : foundUser,
         "accessToken" : accessTokenFound._id,
         "userToken" : accessTokenFound.userToken,
         "userID" : accessTokenFound.userID,

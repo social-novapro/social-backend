@@ -1,6 +1,6 @@
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
-const interactDeletedSchema = require('../../../schemas/interactDeletedSchema');
+const interactDeletedSchema = require('../../../schemas/deleted/interactDeletedSchema');
 const interactEmailVerificationSchema = require("../../../schemas/emails/interactEmailVerificationSchema");
 /* poll functinos */
 const { deletePoll, getPollsFromUser, deleteUserVotes } = require('../../polls/');
@@ -16,11 +16,18 @@ const { searchError } = require('../../searchError');
 const { checktime, timeSinceEpoch } = require('../../checktime');
 const { emailSender } = require('../../email/send');
 const { current } = require("../../../../config.json");
+const { checkPassword } = require('../../userAuth');
+const interactDeletedUserSchema = require('../../../schemas/deleted/interactDeletedUserSchema');
 
 /**
  * user requests to delete, makes an email
  */
-async function requestDelete({ userID }) {
+async function requestDelete({ userID, password }) {
+    if (!password) return searchError("Z002", [{ name: "msg", data: "no passsword provided"}] );
+    
+    const passwordCorrect = await checkPassword({ userID: userID, password: password });
+    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
+
     const foundVer = await interactEmailVerificationSchema.findOne({ userID });
     if (!foundVer) return searchError("P001");
     if (!foundVer.verified) return searchError("P002");
@@ -53,7 +60,7 @@ async function sendDeletionEmail({ email, userID, delAccVerID}) {
         subject: "Confirm Deletion",
         content: `Thank you for checking out Interact, to delete your account open: ${verURL} and confirm your deletion!`,
         htmlElement: {
-            h1: "Email Verified!",
+            h1: "Account Deletion",
             p: "Thank you for checking out Interact, to delete your account open the link, and confirm your deletion!",
             a: `${verURL}`,
         }
@@ -94,6 +101,9 @@ async function confirmDelete({ deleteID }) {
     if (checkExpired.error) return checkExpired;
 
     // NOT DONE
+    // AFTER TEST:
+    const deleted = await deleteUser({ userID: foundVer.userID });
+    return deleted;
 }
 
 /**
@@ -143,7 +153,6 @@ async function deleteUser({ userID, username }) {
 
     const delRemovedLikes = await deleteLikes({ userID });
     
-    
     const delDevSettings = await deleteDev({ userID });
     
     const delEmails = await deleteEmails({ userID });
@@ -160,7 +169,7 @@ async function deleteUser({ userID, username }) {
 
     const delUserAccesssTokens = await deleteAccessTokens({ userID });
 
-    return {
+    const deleteData = {
         success: true,
         deletedDB,
         delPublicUser,
@@ -185,6 +194,18 @@ async function deleteUser({ userID, username }) {
             delBookmarks
         }
     }
+
+    const newID = uuidv4();
+
+    const save = await interactDeletedUserSchema.create({
+        _id: newID,
+        allData: deleteData
+    });
+
+    return {
+        newID,
+        deleteData
+    };
 }
 
 /**
@@ -231,7 +252,7 @@ async function deleteDev({ userID }) {
  */
 async function deletePosts({ userID }) {
     const foundPosts = await getPostsFromUser({ userID });
-    if (!foundPosts || foundPosts.error) return null;
+    if (!foundPosts || foundPosts.error) return { error: "user has no posts" };
     const data = [];
 
     for (const post of foundPosts) {

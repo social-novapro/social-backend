@@ -30,6 +30,9 @@ async function verifyEmail({ emailVerID }) {
         email: emailReqFound.email 
     });
 
+    // removes others
+    await removeOthers({ userID: emailReqFound.userID, email: emailReqFound.email });
+    
     // set email setting
     await setEmailSetting({ userID: emailReqFound.userID, email: emailReqFound.email });
 
@@ -55,6 +58,17 @@ async function verifyEmail({ emailVerID }) {
     console.log(email)
 
     return { success: true, DB: accept };
+}
+
+// removes any other person that may have attempted to asign email to account
+async function removeOthers({ userID, email }) {
+    const foundEmailAssignments = await interactEmailVerificationSchema.find({ email });
+
+    for (const emailFound of foundEmailAssignments) {
+        if (emailFound.userID != userID ) {
+            await interactEmailVerificationSchema.findOneAndUpdate({ _id: emailFound._id}, { email: null });
+        }
+    }
 }
 
 // set up Email Setting Schema

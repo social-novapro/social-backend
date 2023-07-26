@@ -284,7 +284,7 @@ async function checkEmailInUse({ email }) {
 
     // if pending verification
     const foundVerification = await interactEmailVerificationSchema.findOne({ email });
-    if (foundVerification) return searchError("N006");
+    if (foundVerification?.verified) return searchError("N006");
 
     return { success: true };
 }
@@ -554,17 +554,16 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
 async function deleteEmailDBs({ userID }) {
     // remove veriifcation
     const foundVer = await interactEmailVerificationSchema.findOne({ userID });
-    if (!foundVer) return {
-        error: searchError("N020")
-    };
-
+    if (!foundVer) return searchError("N020")
+    const deletedVer = await interactEmailVerificationSchema.findOneAndDelete({ userID });
+    
     // wipe from priv
     if (foundVer.email) await removeEmailPriv({ email: foundVer.email, userID });
     
     // remove settings
-    const foundSettings = await interactEmailSettingSchema.findOne({ _id: userID });
+    const foundSettings = await interactEmailSettingSchema.findOneAndDelete({ _id: userID });
     if (!foundSettings) return {
-        foundVer,
+        deletedVer,
         error: searchError("N010")
     };
 

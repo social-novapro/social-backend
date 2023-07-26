@@ -13,7 +13,7 @@ const reqNum = {
     required: true
 };
 
-const interactDeletedSchema = mongoose.Schema({
+const interactDeletedSchema = new mongoose.Schema({
     _id: reqString, // unique ID, deletedID
     type: reqNum, // 1=user, 2=post, .find({_id: userID, type: 1 })
     userID: reqString, // userID of deleted account or creator
