@@ -55,7 +55,6 @@ async function verifyEmail({ emailVerID }) {
             a: `${interactURL}`,
         }
     });
-    console.log(email)
 
     return { success: true, DB: accept };
 }

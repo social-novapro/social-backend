@@ -69,6 +69,31 @@ async function sendDeletionEmail({ email, userID, delAccVerID}) {
 }
 
 /**
+ * sends email to user with completion confirmation
+ */
+async function sendCompletionEmail({ email, username, userID }) {
+    const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
+    const sendURL = `${mainURL}/`
+    await emailSender({
+        users: [{
+            email: email,
+            userID: userID,
+            username,
+            bbc: false
+        }],
+        type: 2,
+        subject: "Deletion Completed",
+        content: `Thank you for checking out Interact, your account has been deleted! You can make another account, or in the future recover your account (feature not complete yet). Check out interact again via link: ${sendURL}`,
+        htmlElement: {
+            h1: "Account has been deleted.",
+            p: "Thank you for checking out Interact, your account has been deleted! You can make another account, or in the future recover your account (feature not complete yet). Check out interact again via link below.",
+            a: `${sendURL}`,
+        }
+    });
+    return true;
+}
+
+/**
  * lets user cancel the delete request, and cant run delete link
  */
 async function cancelDelete({ deleteID }) {
@@ -201,6 +226,9 @@ async function deleteUser({ userID, username }) {
         _id: newID,
         allData: deleteData
     });
+
+    // sends email to user with completion confirmation
+    await sendCompletionEmail({ email, username, userID });
 
     return {
         newID,
