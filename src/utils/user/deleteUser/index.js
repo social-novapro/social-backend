@@ -196,6 +196,7 @@ async function deleteUser({ userID, username }) {
 
     const deleteData = {
         success: true,
+        timestamp: checktime(),
         deletedDB,
         delPublicUser,
         postData: {
@@ -222,7 +223,7 @@ async function deleteUser({ userID, username }) {
 
     const newID = uuidv4();
 
-    const save = await interactDeletedUserSchema.create({
+    await interactDeletedUserSchema.create({
         _id: newID,
         allData: deleteData
     });
@@ -303,6 +304,7 @@ async function deleteLikes({ userID }) {
     const removed = await removeUserLikes({ userID });
     return removed;
 }
+
 /**
  * deletes all polls created by user 
  */
@@ -329,7 +331,6 @@ async function deletePolls({ userID }) {
  */
 async function removeUserVotes({ userID }) {
     const deletedVotes = await deleteUserVotes({ userID });
-
     return deletedVotes;
 }
 
@@ -338,7 +339,7 @@ async function removeUserVotes({ userID }) {
  * people subbed to them, and people they are subbed to
  */
 async function deleteSubscriptions({ userID }) {
-    const delSubs = unsubFromAll({ userID });
+    const delSubs = await unsubFromAll({ userID });
     return delSubs;
 }
 
