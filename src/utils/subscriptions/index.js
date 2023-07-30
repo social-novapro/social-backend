@@ -105,6 +105,7 @@ async function pullFromDB({ userID, subUserID }) {
         { upsert: true }
     );
 }
+
 /**
  * pushes sub to db
  */

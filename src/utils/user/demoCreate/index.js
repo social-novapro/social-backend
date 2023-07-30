@@ -120,9 +120,13 @@ async function demoCreate({ username }) {
     headersBasic.appToken = mainHeaderData.appToken;
 
     // subscribe to own user
+    const subRes = await sendRequest({
+        url: `/v1/subscriptions/sub/${loginData.userID}`,
+        method: "POST"
+    });
 
+    // create replies and quotes
     const repliesAndQuotes = [];
-    // create replies
     for (var i=0; i<10;i++) {
         const postID = postData[i]._id;
 
@@ -164,6 +168,7 @@ async function demoCreate({ username }) {
         publicData: {
             loginData,
             userData,
+            subRes
         },
         privateData: {
             userPrivData

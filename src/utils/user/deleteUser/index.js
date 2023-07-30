@@ -15,7 +15,7 @@ const { unsubFromAll } = require('../../subscriptions');
 const { searchError } = require('../../searchError');
 const { checktime, timeSinceEpoch } = require('../../checktime');
 const { emailSender } = require('../../email/send');
-const { current } = require("../../../../config.json");
+const { current, demoEmailAdr } = require("../../../../config.json");
 const { checkPassword } = require('../../userAuth');
 const interactDeletedUserSchema = require('../../../schemas/deleted/interactDeletedUserSchema');
 
@@ -229,7 +229,7 @@ async function deleteUser({ userID, username }) {
     });
 
     // sends email to user with completion confirmation
-    await sendCompletionEmail({ email, username, userID });
+    await sendCompletionEmail({ email: demoEmailAdr, username, userID });
 
     return {
         newID,
@@ -340,6 +340,7 @@ async function removeUserVotes({ userID }) {
  */
 async function deleteSubscriptions({ userID }) {
     const delSubs = await unsubFromAll({ userID });
+    // TOOD : Remove notifications from db
     return delSubs;
 }
 
