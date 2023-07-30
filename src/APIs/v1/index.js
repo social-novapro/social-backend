@@ -8,7 +8,7 @@ const adminAPI = require('./admin');
 const polls = require('./polls');
 const emails = require('./emails');
 const users = require('./users');
-const subscriptions = require('./subscriptions');
+const notifications = require('./notifications');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -22,6 +22,7 @@ router.use('/admin', adminAPI);
 router.use('/polls', polls);
 router.use('/emails', emails);
 router.use('/users', users);
-router.use('/subscriptions', subscriptions);
+router.use('/subscriptions', notifications);
+router.use('/notifications', notifications);
 
 module.exports = router;

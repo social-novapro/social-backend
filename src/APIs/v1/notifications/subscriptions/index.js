@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const { getSubscriptions } = require('../../../../utils/subscriptions');
+const { getSubscriptions } = require('../../../../utils/notifications/subscriptions');
 
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);

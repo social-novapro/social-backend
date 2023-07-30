@@ -1,6 +1,6 @@
-const interactSubscribeNotification = require('../../schemas/notifications/interactSubscribeNotification')
-const { searchError } = require('../searchError');
-const { checktime } = require("../checktime");
+const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification')
+const { searchError } = require('../../searchError');
+const { checktime } = require("../../checktime");
 
 /**
  * 

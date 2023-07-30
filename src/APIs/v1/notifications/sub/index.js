@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const { subToUser } = require('../../../../utils/subscriptions');
+const { subToUser } = require('../../../../utils/notifications/subscriptions/');
 
 router.post('/:subUserID', async (req, res) => {
     const tokenData = await checkRequestTokens(req);

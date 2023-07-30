@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 const { deleteDevAcc, deleteUserAccesses } = require('../../developer/delete');
 const { deleteAllBookmarks } = require('../../bookmarks');
 const { deleteEmailDBs } = require('../../email/setEmail');
-const { unsubFromAll } = require('../../subscriptions');
+const { unsubFromAll } = require('../../notifications/subscriptions');
 const { searchError } = require('../../searchError');
 const { checktime, timeSinceEpoch } = require('../../checktime');
 const { emailSender } = require('../../email/send');
@@ -196,7 +196,6 @@ async function deleteUser({ userID, username }) {
 
     const deleteData = {
         success: true,
-        timestamp: checktime(),
         deletedDB,
         delPublicUser,
         postData: {
@@ -225,6 +224,8 @@ async function deleteUser({ userID, username }) {
 
     await interactDeletedUserSchema.create({
         _id: newID,
+        userID: userID,
+        timestamp: checktime(),
         allData: deleteData
     });
 
@@ -340,7 +341,8 @@ async function removeUserVotes({ userID }) {
  */
 async function deleteSubscriptions({ userID }) {
     const delSubs = await unsubFromAll({ userID });
-    // TOOD : Remove notifications from db
+    // TOOD : Remove own notifications from db
+    // remove any notificaitons to other users from client
     return delSubs;
 }
 

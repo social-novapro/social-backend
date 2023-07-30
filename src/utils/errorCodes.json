@@ -343,15 +343,23 @@
                 },
                 {
                     "code" : "I003",
-                    "msg" : "Please use /v1/subscriptions/getAll instead of /v1/get/subscriptions."
+                    "msg" : "Please use /v1/notifications/subscriptions instead of /v1/get/subscriptions."
                 },
                 {
                     "code" : "I004",
-                    "msg" : "Please use /v1/subscriptions/sub instead of /v1/post/subUser."
+                    "msg" : "Please use /v1/notifications/sub instead of /v1/post/subUser."
                 },
                 {
                     "code" : "I005",
-                    "msg" : "Please use /v1/subscriptions/unsub instead of /v1/delete/unsubUser."
+                    "msg" : "Please use /v1/notifications/unsub instead of /v1/delete/unsubUser."
+                },
+                {
+                    "code" : "I006",
+                    "msg" : "Please use /v1/notifications/dissmiss instead of /v1/delete/dismissNotification."
+                },
+                {
+                    "code" : "I007",
+                    "msg" : "Please use /v1/notifications/getList instead of /v1/get/notifications."
                 },
                 {
                     "code" : "J001",
@@ -396,6 +404,10 @@
                 {
                     "code" : "L002",
                     "msg" : "Error while saving notification sub."
+                },
+                {
+                    "code" : "L003",
+                    "msg" : "There was no notificationID provided"
                 },
                 {
                     "code" : "N001",
