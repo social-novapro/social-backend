@@ -19,4 +19,19 @@ async function dismissNotification({userID, notificationID}) {
     else return { "success" : true, "data" : newNotifcations }
 };
 
-module.exports = { dismissNotification };
+async function dismissAllNotifications({ userID }) {
+    const found = await interactUserNotifications.findOne({ _id: userID }); 
+    if (!found) return searchError("L001");
+
+    await interactUserNotifications.findOneAndDelete({ _id: userID});
+
+    const stillAlive = await interactUserNotifications.findOne({ _id: userID }); 
+
+    if (stillAlive) return searchError("L004");
+    else return {
+        "success" : true,
+        "data" : found
+    };
+}
+
+module.exports = { dismissNotification, dismissAllNotifications };

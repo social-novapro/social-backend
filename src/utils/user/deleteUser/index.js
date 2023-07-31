@@ -18,6 +18,7 @@ const { emailSender } = require('../../email/send');
 const { current, demoEmailAdr } = require("../../../../config.json");
 const { checkPassword } = require('../../userAuth');
 const interactDeletedUserSchema = require('../../../schemas/deleted/interactDeletedUserSchema');
+const { dismissAllNotifications } = require('../../notifications/dismissNotification');
 
 /**
  * user requests to delete, makes an email
@@ -192,6 +193,8 @@ async function deleteUser({ userID, username }) {
 
     const delSubs = await deleteSubscriptions({ userID });
 
+    const delNoti = await dismissAllNotifications({ userID });
+
     const delUserAccesssTokens = await deleteAccessTokens({ userID });
 
     const deleteData = {
@@ -216,6 +219,7 @@ async function deleteUser({ userID, username }) {
         },
         saves: {
             delSubs,
+            delNoti,
             delBookmarks
         }
     }

@@ -3,6 +3,7 @@ const interactRepliesSchema = require("../../../schemas/postSchemas/interactRepl
 const interactDeletedSchema = require("../../../schemas/deleted/interactDeletedSchema");
 const { v4: uuidv4 } = require("uuid");
 const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPostLikeSchema");
+const { deletePostNotifications } = require("../../notifications/deleteRemovedPost");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -26,6 +27,9 @@ async function removePost(postData) {
         type: 2,
         userID: postData.userID
     })
+
+    // removes previously pushed notifications
+    await deletePostNotifications({ postID: postData._id })
     
     return true;
 };
