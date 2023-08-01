@@ -22,7 +22,7 @@ async function unsubFromAll({ userID }) {
  */
 async function subToUser({ userID, subUserID }) {
     var checkIfSubbed = await lookForSub(subUserID, userID)
-    if (checkIfSubbed.found) return { 'error' : "Client was already subscribed to the user."};
+    if (checkIfSubbed.found) return searchError("L009");
     
     await pushToDB({ userID, subUserID });
 
@@ -38,7 +38,7 @@ async function subToUser({ userID, subUserID }) {
 async function isSubbed({ userID, subUserID }) {
     var checkIfSubbed = await lookForSub(subUserID, userID)
     
-    if (!checkIfSubbed.found) return { 'error' : "Client was not subscribed to the user. "};
+    if (!checkIfSubbed.found) return searchError("L005");
     else return checkIfSubbed;
 }
 
@@ -52,7 +52,7 @@ async function getSubscriptions({ userID }) {
         "subscribed._id" : userID,
     });
 
-    if (!subData || !subData[0]) return {"error" : "no subscriptions found"}
+    if (!subData || !subData[0]) return searchError("L007")
     const returnData = [];
 
     for (const subbed of subData) {
@@ -78,14 +78,14 @@ async function unsubFromUser({ userID, subUserID }) {
     if (!subUserID) return;
 
     var checkIfSubbed = await lookForSub(subUserID, userID)
-    if (!checkIfSubbed.found) return { 'error' : "Client was not subscribed to the user. "};
+    if (!checkIfSubbed.found) return searchError("L005");
 
     await pullFromDB({ userID, subUserID});
 
     var sending = await lookForSub(subUserID, userID)
     if (!sending.found) return { "success" : true, "subdata": checkIfSubbed };
     
-    return {"error" : "unknown error while unsubcribing"};
+    return searchError("L006");
 }
 
 /**
@@ -125,7 +125,7 @@ async function lookForSub(subUserID, userID) {
         obj: {}
     };
     
-    if (!Subscribers) return { error: "No subs for user searching."}
+    if (!Subscribers) return searchError("L008")
     for (const sub of Subscribers.subscribed) {
         if (sub._id==userID) {
             sending.obj={

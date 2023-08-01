@@ -152,8 +152,8 @@ function checkIfRequestExpired(timestamp) {
  */
 async function demoDelete({ username }) {
     const user = await interactUserSchema.findOne({ username });
-    if (!user) return { error: 'user not found' };
-    if (user.demo != true) return { error: 'user is not a demo' };
+    if (!user) return searchError("P007")
+    if (user.demo != true) return searchError("P006")
     
     const deletedUser = await deleteUser({ userID: user._id, username: user.username });
 
@@ -248,7 +248,7 @@ async function deleteUser({ userID, username }) {
  */
 async function deletePublicUser({ userID }) {
     const foundUser = await interactUserSchema.findOne({ _id: userID });
-    if (!foundUser) return { error: "not found " };
+    if (!foundUser) return searchError("P007")
 
     const deletedUser = await interactUserSchema.findOneAndDelete({ _id: userID })
 
@@ -287,7 +287,8 @@ async function deleteDev({ userID }) {
  */
 async function deletePosts({ userID }) {
     const foundPosts = await getPostsFromUser({ userID });
-    if (!foundPosts || foundPosts.error) return { error: "user has no posts" };
+    if (!foundPosts || foundPosts.error) return searchError("P008");
+
     const data = [];
 
     for (const post of foundPosts) {

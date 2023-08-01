@@ -21,7 +21,7 @@ async function pullPostBookmarks({ postID }) {
         "saves._id" : postID,
     });
 
-    if (!bookmarkData || !bookmarkData[0]) return console.log("not found 2?")
+    if (!bookmarkData || !bookmarkData[0]) return searchError("K005")
 
     const pulledBookmarks = [];
     for (const bookmark of bookmarkData) {

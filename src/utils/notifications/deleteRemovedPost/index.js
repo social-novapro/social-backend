@@ -5,6 +5,7 @@
 
 const interactNotifications = require("../../../schemas/notifications/interactNotifications");
 const interactUserNotifications = require("../../../schemas/notifications/interactUserNotifications");
+const { searchError } = require("../../searchError");
 
 async function deletePostNotifications({postID}) {
     /*
@@ -14,10 +15,10 @@ async function deletePostNotifications({postID}) {
             check for everyone who has the notifiactionID in their "inbox" + remove the notificaiton
     */
     const foundNotifcation = await interactNotifications.findOne({ postID: postID });
-    if (!foundNotifcation) return console.log("not fonud?");
+    if (!foundNotifcation) return searchError("L010");
 
     const usersNotified = await interactUserNotifications.find({ "notifications" : foundNotifcation._id });
-    if (!usersNotified || !usersNotified[0]) return console.log("not found 3?")
+    if (!usersNotified || !usersNotified[0]) return searchError("L011")
 
     for (const notif of usersNotified) {
         await interactUserNotifications.findOneAndUpdate({

@@ -1,6 +1,7 @@
 const config = require('../../../../config.json');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
+const { searchError } = require('../../searchError');
 
 function checkifdev() {
     if (config.current != "dev") return false;
@@ -22,7 +23,7 @@ var headersBasic = {
 // this is a demo function to create a user
 async function demoCreate({ username }) {
     const isdev = checkifdev();
-    if (!isdev) return { "error" : "Please use only in developer backend mode."};
+    if (!isdev) return searchError("C013");
     
     // create a user
     const userBody = {
@@ -41,7 +42,7 @@ async function demoCreate({ username }) {
         headers: headersBasic 
     });
 
-    if (loginData.error || loginData.login!=true) return {error: "error creating user", loginData};
+    if (loginData.error || loginData.login!=true) return searchError("C014");
     headersBasic.userToken = loginData.userToken;
     headersBasic.userID = loginData.userID;
     headersBasic.accessToken = loginData.accessToken;
@@ -280,7 +281,7 @@ async function sendRequest({ url, method, body, headers }) {
         const data = await res.json();
         return data;
     } catch (err) {
-        return { error: "error parsing json -demoCreate- for url " + url };
+        return searchError("C015", [{name: "url", data: url }]);
     }
 }
 

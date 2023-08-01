@@ -49,7 +49,7 @@
                 },
                 {
                     "code" : "L",
-                    "msg" : "Error with notifications"
+                    "msg" : "Error with notifications or subscriptions"
                 },
                 {
                     "code" : "N",
@@ -112,6 +112,10 @@
                 {
                     "code" : "A011",
                     "msg" : "You did not input an appname in the request to create an application."
+                },
+                {
+                    "code" : "A012",
+                    "msg" : "User was not a developer."
                 },
                 {
                     "code" : "B001",
@@ -214,6 +218,25 @@
                     "msg" : "Username does not reach rules"
                 },
                 {
+                    "code" : "C013",
+                    "msg" : "demoCreate- Please use only in developer backend mode."
+                },
+                {
+                    "code" : "C014",
+                    "msg" : "demoCreate- error creating user"
+                },
+                {
+                    "code" : "C015",
+                    "msg" : "error parsing json -demoCreate- for url: %url",
+                    "options" : [
+                        {
+                            "name" : "url",
+                            "replacement" : "%url",
+                            "default" : "null"
+                        }
+                    ]
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -260,6 +283,10 @@
                 {
                     "code" : "D012",
                     "msg" : "Post has no replies"
+                },
+                {
+                    "code" : "D013",
+                    "msg" : "User has no posts"
                 },
                 {
                     "code" : "E001",
@@ -398,6 +425,10 @@
                     "msg" : "no bookmarks for this user found"
                 },
                 {
+                    "code" : "K005",
+                    "msg" : "There was no bookmark data found for this post."
+                },
+                {
                     "code" : "L001",
                     "msg" : "No found notifications for user."
                 },
@@ -412,6 +443,38 @@
                 {
                     "code" : "L004",
                     "msg" : "Could not delete notifications properly."
+                },
+                {
+                    "code" : "L005",
+                    "msg" : "Client was not subscribed to the user"
+                },
+                {
+                    "code" : "L006",
+                    "msg" : "Unknown error while unsubscribing"
+                },
+                {
+                    "code" : "L007",
+                    "msg" : "No subscriptions found"
+                },
+                {
+                    "code" : "L008",
+                    "msg" : "No subs for user searching"
+                },
+                {
+                    "code" : "L009",
+                    "msg" : "Client was already subscribed to the user"
+                },
+                {
+                    "code" : "L010",
+                    "msg" : "There were no found notifications found for the post."
+                },
+                {
+                    "code" : "L011",
+                    "msg" : "There was no users notified about the post."
+                },
+                {
+                    "code" : "L012",
+                    "msg" : "There was no subscriptions found for user."
                 },
                 {
                     "code" : "N001",
@@ -703,6 +766,18 @@
                             "default" : "unknown"
                         }
                     ]
+                },
+                {
+                    "code" : "P006",
+                    "msg" : "User is not a demo"
+                },
+                {
+                    "code" : "P007",
+                    "msg" : "User to be deleted was not found"
+                },
+                {
+                    "code" : "P008",
+                    "msg" : "User has no posts to be deleted"
                 },
                 {
                     "code" : "Z001",
