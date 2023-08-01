@@ -173,23 +173,24 @@ async function deleteUser({ userID, username }) {
         username
     });
 
-    const deletedPosts = await deletePosts({ userID, username });
     
     const delPublicUser = await deletePublicUser({ userID });
 
     const delRemovedLikes = await deleteLikes({ userID });
+
+    const delVotes = await removeUserVotes({ userID });
+
+    const delBookmarks = await deleteBookmarks({ userID });
+
+    const delPolls = await deletePolls({ userID });
+
+    const deletedPosts = await deletePosts({ userID, username });
     
     const delDevSettings = await deleteDev({ userID });
     
     const delEmails = await deleteEmails({ userID });
 
     const delPrivUser = await deletePrivateUser({ userID });
-
-    const delPolls = await deletePolls({ userID });
-
-    const delVotes = await removeUserVotes({ userID });
-
-    const delBookmarks = await deleteBookmarks({ userID });
 
     const delSubs = await deleteSubscriptions({ userID });
 
@@ -298,11 +299,6 @@ async function deletePosts({ userID }) {
 }
 
 /**
- * deletes any other data associated with post
- * canceled: moved to inside removePost
- */
-
-/**
  * remove user likes
  */
 async function deleteLikes({ userID }) {
@@ -327,11 +323,6 @@ async function deletePolls({ userID }) {
 }
 
 /**
- * deletes any other data associated with poll
- * canceled: should be handled by deletePoll function
- */
-
-/**
  * deletes user votes from other polls
  */
 async function removeUserVotes({ userID }) {
@@ -345,8 +336,6 @@ async function removeUserVotes({ userID }) {
  */
 async function deleteSubscriptions({ userID }) {
     const delSubs = await unsubFromAll({ userID });
-    // TOOD : Remove own notifications from db
-    // remove any notificaitons to other users from client
     return delSubs;
 }
 

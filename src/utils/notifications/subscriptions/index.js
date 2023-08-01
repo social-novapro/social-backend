@@ -3,13 +3,6 @@ const { searchError } = require('../../searchError');
 const { checktime } = require("../../checktime");
 
 /**
- * 
- */
-async function delUserSubData({ }) {
-
-}
-
-/**
  * lets user unsubcribe from all users
  */
 async function unsubFromAll({ userID }) {

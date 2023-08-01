@@ -125,6 +125,71 @@ async function demoCreate({ username }) {
         method: "POST"
     });
 
+    // like and create bookmarks
+    const likeData = [];
+    var bookmarkData;
+    for (var i=5; i<10;i++) {
+        const postID = postData[i]._id;
+
+        const postRes = await sendRequest({
+            url: `/v1/put/likePost/${postID}`,
+            method: "PUT"
+        });
+
+        const bookmarkRes = await sendRequest({
+            url: `/v1/post/savePost/`,
+            method: "POST",
+            body: {
+                postID,
+                listname: "main"
+            }
+        });
+
+        likeData.push(postRes);
+        bookmarkData = bookmarkRes;
+    }
+
+    // create polls
+    const pollData = [];
+    var amountOptions = 2;
+    for (var i=0; i<8; i++) {
+        var pollBody = {
+            pollName: `poll #${i+1}`,
+            optionAmount: amountOptions
+        }
+
+        for (var j=0; j<amountOptions; j++) {
+            pollBody[`option_${j+1}`] = `option num #${j+1}`;
+        }
+
+        const pollRes = await sendRequest({
+            url: "/v1/polls/create",
+            method: "POST",
+            body: pollBody,
+        });
+
+        amountOptions++;
+        pollData.push(pollRes);
+    }
+
+    // vote on polls
+    const voteData = [];
+    for (var i=0; i<8; i++) {
+        const pollBody = {
+            pollID: pollData[i].pollData._id,
+            pollOptionID: pollData[i].pollData.pollOptions[1]._id
+        }
+
+        const voteRes = await sendRequest({
+            url: "/v1/polls/createVote",
+            method: "PUT",
+            body: pollBody,
+        });
+
+        voteData.push(voteRes);
+    }
+
+
     // create replies and quotes
     const repliesAndQuotes = [];
     for (var i=0; i<10;i++) {
@@ -134,7 +199,8 @@ async function demoCreate({ username }) {
             content: `Test ${i} with ${postID}`,
             userID: loginData.userID,
             replyingPostID: (i<=5) ? postID : null,
-            quoteReplyPostID: (i>=5) ? postID : null
+            quoteReplyPostID: (i>=5) ? postID : null,
+            linkedPollID: (i<8) ? pollData[i].pollData._id : null
         }
 
         const postRes = await sendRequest({
@@ -167,8 +233,7 @@ async function demoCreate({ username }) {
     return {
         publicData: {
             loginData,
-            userData,
-            subRes
+            userData
         },
         privateData: {
             userPrivData
@@ -180,7 +245,16 @@ async function demoCreate({ username }) {
         },
         posts: {
             postData,
-            repliesAndQuotes
+            repliesAndQuotes,
+            likeData
+        },
+        polls: {
+            pollData,
+            voteData
+        },
+        saveData: {
+            subRes,
+            bookmarkData
         }
     }
 
@@ -188,21 +262,17 @@ async function demoCreate({ username }) {
     // create 1 dev token (done)
     // create 1 app token (done)
     // create 10 posts (done)
-    // create 5 polls
+    // create 5 polls (done)
     // create 5 replies to a ceritain post (done)
-    // vote on 5 polls (including its own, or otherwise)
-    // sub to a user
-    // like a post
-
-    return {
-
-    }
+    // vote on 5 polls (including its own, or otherwise) (done)
+    // sub to a user (done)
+    // like a post (done x5)
 }
 
 async function sendRequest({ url, method, body, headers }) {
     const res = await fetch(`http://localhost:5002${url}`, {
         method,
-        body: JSON.stringify(body),
+        body: body ? JSON.stringify(body) : null,
         headers : headers ? headers : headersBasic
     });
     
@@ -210,7 +280,7 @@ async function sendRequest({ url, method, body, headers }) {
         const data = await res.json();
         return data;
     } catch (err) {
-        return { error: "error parsing json" };
+        return { error: "error parsing json -demoCreate- for url " + url };
     }
 }
 

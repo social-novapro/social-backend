@@ -23,6 +23,8 @@ async function dismissAllNotifications({ userID }) {
     const found = await interactUserNotifications.findOne({ _id: userID }); 
     if (!found) return searchError("L001");
 
+    // deletes notification schema, and all attached notifications for user
+    // keeps original notifications 
     await interactUserNotifications.findOneAndDelete({ _id: userID});
 
     const stillAlive = await interactUserNotifications.findOne({ _id: userID }); 

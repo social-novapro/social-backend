@@ -17,7 +17,7 @@ async function deletePostNotifications({postID}) {
     if (!foundNotifcation) return console.log("not fonud?");
 
     const usersNotified = await interactUserNotifications.find({ "notifications" : foundNotifcation._id });
-    if (!usersNotified || !usersNotified[0]) return console.log("not found 2?")
+    if (!usersNotified || !usersNotified[0]) return console.log("not found 3?")
 
     for (const notif of usersNotified) {
         await interactUserNotifications.findOneAndUpdate({

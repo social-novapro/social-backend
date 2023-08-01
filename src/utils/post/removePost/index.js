@@ -4,6 +4,7 @@ const interactDeletedSchema = require("../../../schemas/deleted/interactDeletedS
 const { v4: uuidv4 } = require("uuid");
 const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPostLikeSchema");
 const { deletePostNotifications } = require("../../notifications/deleteRemovedPost");
+const { pullPostBookmarks } = require("../../bookmarks");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -29,7 +30,10 @@ async function removePost(postData) {
     })
 
     // removes previously pushed notifications
-    await deletePostNotifications({ postID: postData._id })
+    await deletePostNotifications({ postID: postData._id });
+
+    // pulls previously saved bookmarks
+    await pullPostBookmarks({ postID: postData._id });
     
     return true;
 };

@@ -410,6 +410,10 @@
                     "msg" : "There was no notificationID provided"
                 },
                 {
+                    "code" : "L004",
+                    "msg" : "Could not delete notifications properly."
+                },
+                {
                     "code" : "N001",
                     "msg" : "Could not find request for verification of email."
                 },

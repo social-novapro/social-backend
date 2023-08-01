@@ -13,4 +13,29 @@ async function deleteAllBookmarks({ userID }) {
     return userBookmarks;
 }
 
-module.exports = { deleteAllBookmarks }
+/**
+ * removes all bookmarks of a certian post, for example after deletion
+ */
+async function pullPostBookmarks({ postID }) {
+    const bookmarkData = await interactPostBookmarks.find({
+        "saves._id" : postID,
+    });
+
+    if (!bookmarkData || !bookmarkData[0]) return console.log("not found 2?")
+
+    const pulledBookmarks = [];
+    for (const bookmark of bookmarkData) {
+        pulledBookmarks.push({ "userID": bookmark._id});
+        
+        // IN FUTURE COULD REPLACE WITH A "DELETED"
+        await interactPostBookmarks.findOneAndUpdate({
+            _id: bookmark._id
+        }, {
+            $pull : { "saves" : {_id: postID} }
+        })
+    }
+
+    return pulledBookmarks;
+}
+
+module.exports = { deleteAllBookmarks, pullPostBookmarks }
