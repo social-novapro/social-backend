@@ -43,7 +43,7 @@ async function newPostIndex(userID, data) {
 
     if (quoteReplyPostID) {
         const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
-        if (quotingPost) return quotingPostSetup(quotingPost, postID, userID);
+        if (quotingPost) await quotingPostSetup(quotingPost, postID, userID);
         // else return res.status(404).send(searchError("D002"));
     }
     if (replyingPostID) {
@@ -100,9 +100,14 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     await interactPostSchema.findOneAndUpdate({
         _id: postID
     }, {
+        isQuote: true,
         quoteReplyPostID: `${quotingPost ? quotingPost._id : null}`,
         quotedPost: quotingPost,
-        quotedUser: quotingUser
+        quotedUser: quotingUser,
+        quoteData : {
+            postID: quotingPost._id,
+            userID: quotingPost.userID
+        }
     }, {
         upsert: true
     });

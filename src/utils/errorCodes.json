@@ -49,7 +49,7 @@
                 },
                 {
                     "code" : "L",
-                    "msg" : "Error with notifications"
+                    "msg" : "Error with notifications or subscriptions"
                 },
                 {
                     "code" : "N",
@@ -58,6 +58,10 @@
                 {
                     "code" : "O",
                     "msg" : "Error with Polls"
+                },
+                {
+                    "code" : "P",
+                    "msg" : "Error with deleting account"
                 },
                 {
                     "code" : "Z",
@@ -108,6 +112,10 @@
                 {
                     "code" : "A011",
                     "msg" : "You did not input an appname in the request to create an application."
+                },
+                {
+                    "code" : "A012",
+                    "msg" : "User was not a developer."
                 },
                 {
                     "code" : "B001",
@@ -210,6 +218,25 @@
                     "msg" : "Username does not reach rules"
                 },
                 {
+                    "code" : "C013",
+                    "msg" : "demoCreate- Please use only in developer backend mode."
+                },
+                {
+                    "code" : "C014",
+                    "msg" : "demoCreate- error creating user"
+                },
+                {
+                    "code" : "C015",
+                    "msg" : "error parsing json -demoCreate- for url: %url",
+                    "options" : [
+                        {
+                            "name" : "url",
+                            "replacement" : "%url",
+                            "default" : "null"
+                        }
+                    ]
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -256,6 +283,10 @@
                 {
                     "code" : "D012",
                     "msg" : "Post has no replies"
+                },
+                {
+                    "code" : "D013",
+                    "msg" : "User has no posts"
                 },
                 {
                     "code" : "E001",
@@ -338,6 +369,26 @@
                     "msg" : "not done route"
                 },
                 {
+                    "code" : "I003",
+                    "msg" : "Please use /v1/notifications/subscriptions instead of /v1/get/subscriptions."
+                },
+                {
+                    "code" : "I004",
+                    "msg" : "Please use /v1/notifications/sub instead of /v1/post/subUser."
+                },
+                {
+                    "code" : "I005",
+                    "msg" : "Please use /v1/notifications/unsub instead of /v1/delete/unsubUser."
+                },
+                {
+                    "code" : "I006",
+                    "msg" : "Please use /v1/notifications/dissmiss instead of /v1/delete/dismissNotification."
+                },
+                {
+                    "code" : "I007",
+                    "msg" : "Please use /v1/notifications/getList instead of /v1/get/notifications."
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },
@@ -374,12 +425,56 @@
                     "msg" : "no bookmarks for this user found"
                 },
                 {
+                    "code" : "K005",
+                    "msg" : "There was no bookmark data found for this post."
+                },
+                {
                     "code" : "L001",
                     "msg" : "No found notifications for user."
                 },
                 {
                     "code" : "L002",
                     "msg" : "Error while saving notification sub."
+                },
+                {
+                    "code" : "L003",
+                    "msg" : "There was no notificationID provided"
+                },
+                {
+                    "code" : "L004",
+                    "msg" : "Could not delete notifications properly."
+                },
+                {
+                    "code" : "L005",
+                    "msg" : "Client was not subscribed to the user"
+                },
+                {
+                    "code" : "L006",
+                    "msg" : "Unknown error while unsubscribing"
+                },
+                {
+                    "code" : "L007",
+                    "msg" : "No subscriptions found"
+                },
+                {
+                    "code" : "L008",
+                    "msg" : "No subs for user searching"
+                },
+                {
+                    "code" : "L009",
+                    "msg" : "Client was already subscribed to the user"
+                },
+                {
+                    "code" : "L010",
+                    "msg" : "There were no found notifications found for the post."
+                },
+                {
+                    "code" : "L011",
+                    "msg" : "There was no users notified about the post."
+                },
+                {
+                    "code" : "L012",
+                    "msg" : "There was no subscriptions found for user."
                 },
                 {
                     "code" : "N001",
@@ -644,6 +739,45 @@
                 {
                     "code" : "O025",
                     "msg" : "The poll has ended, user can no longer vote."
+                },
+                {
+                    "code" : "P001",
+                    "msg" : "Please set and verify your email before deleting your account."
+                },
+                {
+                    "code" : "P002",
+                    "msg" : "Please verify your email before deleting your account."
+                },
+                {
+                    "code" : "P003",
+                    "msg" : "Account was not previously set to be deleted."
+                },
+                {
+                    "code" : "P004",
+                    "msg" : "delAccVerID was invalid, try again with another code."
+                },
+                {
+                    "code" : "P005",
+                    "msg" : "Verification expired %time ago.",
+                    "options" : [
+                        {
+                            "name" : "time",
+                            "replacement" : "%time",
+                            "default" : "unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "P006",
+                    "msg" : "User is not a demo"
+                },
+                {
+                    "code" : "P007",
+                    "msg" : "User to be deleted was not found"
+                },
+                {
+                    "code" : "P008",
+                    "msg" : "User has no posts to be deleted"
                 },
                 {
                     "code" : "Z001",

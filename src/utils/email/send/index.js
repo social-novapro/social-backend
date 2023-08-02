@@ -110,17 +110,18 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
     
     for (let i = 0; i < users.length; i++) {
         const user = users[i];
+        if (!user) break;
         if (!user.userID) break;
 
         // const userFound = true; // testing
         const userFound = await interactUserSchema.findOne({ _id: user.userID })
-        if (userFound) {
+        if (userFound || user?.username) {
             if (user.email) {
                 if (user.bcc) mailOptions.bcc.push(user.email)
                 else mailOptions.to.push(user.email)
 
                 if (users.length==1) {
-                    mailOptions.html = mailOptions.html.replace("<<userSection>>", `<p ${headerPStyle}>This email is for: @${userFound.username}</p>`)
+                    mailOptions.html = mailOptions.html.replace("<<userSection>>", `<p ${headerPStyle}>This email is for: @${user?.username ? user.username : userFound.username}</p>`)
                 }
 
                 email.sendTo.push({ 
@@ -222,7 +223,7 @@ async function testing() {
 
 async function sendTest() {
     // await testing()
-    console.log(auth)
+    //console.log(auth)
 }
 
 module.exports = { emailSender, sendTest }

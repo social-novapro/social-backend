@@ -1,5 +1,6 @@
 {
     "current" : "prod",
+    "demoEmailAdr" : "daniel@novapro.net",
     "dev" : {
         "mongo_url" : "mongodb://localhost:27017/Kate"
     },

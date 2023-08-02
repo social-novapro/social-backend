@@ -15,17 +15,17 @@ router.get('/', async (req, res) => {
 
     for (post of AllPosts) {
         if (post.content) {
-            var type;
+            var type = null;
             var postData = post;
-            var userData;
+            var userData = null;
 
             const foundLike = await isLiked({ postID: post._id, userID: req.headers.userid });
             if (foundLike) postData.liked = true;
 
             if (post.userID) {
-                const UserData = await interactUserSchema.findOne({_id: post.userID});
-                if (UserData) {
-                    userData = UserData;
+                const UserDataFound = await interactUserSchema.findOne({_id: post.userID});
+                if (UserDataFound) {
+                    userData = UserDataFound;
                     type = { "type" : "post", "user" : "included" };
                 } else type = { "type" : "post"};
             } else type = { "type" : "post" };

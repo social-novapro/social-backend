@@ -12,6 +12,10 @@ const reqBool = {
     type: Boolean,
     required: true
 };
+const nonreqBool = {
+    type: Boolean,
+    required: false
+};
 
 // type 06
 const privacySettingSchema = mongoose.Schema({
@@ -42,7 +46,8 @@ const interactUserSchema = mongoose.Schema({
     privacySetting: privacySettingSchema,
     profileURL: reqString,
     userAge: reqNum, //yyyy-mm-dd
-    verified: reqBool
+    verified: reqBool,
+    demo: nonreqBool, 
 });
 
 module.exports = mongoose.model('interact-users', interactUserSchema);

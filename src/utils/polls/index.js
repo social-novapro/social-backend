@@ -28,7 +28,7 @@ async function createPoll({ userID, pollOptions }) {
 
     // must have more than 2 options
     if (options.length < 2) return searchError("O002", [{ name: "min", data: MIN_AMOUNT_OPTIONS }, { name: "max", data: MAX_AMOUNT_OPTIONS }])
-    if (options.length > MAX_AMOUNT_OPTIONS) return { error: "to many options" };
+    if (options.length > MAX_AMOUNT_OPTIONS) return searchError("O003");
 
     const validateTitle = validTitle({ type: "poll", title: pollName})
     if (validateTitle.possible==false) return validateTitle;
@@ -97,12 +97,12 @@ function canEditPoll({ pollData, userID }) {
 
 // create poll option
 async function createNewPollOption({ userID, pollID, optionTitle }) {
-    if (!pollID) return { error: searchError("O012") }
-    if (!optionTitle) return { error: searchError("O013")}
+    if (!pollID) return searchError("O012");
+    if (!optionTitle) return searchError("O013");
     
     const pollData = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollData) return { error: searchError("O011") };
-    if (pollData.pollOptions.length > MAX_AMOUNT_OPTIONS) return { error: searchError("O003", [ { name: "max", data: MAX_AMOUNT_OPTIONS }])}
+    if (!pollData) return searchError("O011");
+    if (pollData.pollOptions.length > MAX_AMOUNT_OPTIONS) return searchError("O003", [ { name: "max", data: MAX_AMOUNT_OPTIONS }])
 
     const canEdit = canEditPoll({ pollData, userID })
     if (canEdit.possible==false) return canEdit;
@@ -177,9 +177,9 @@ function validTitle({ type, title }) {
 // delete poll
 async function deletePoll({ userID, pollID }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return { error: searchError("O019")};
+    if (!pollFound) return searchError("O019");
 
-    if (pollFound.userID != userID) return { error: searchError("O008") }
+    if (pollFound.userID != userID) return searchError("O008");
 
     // finding each option
     for (const option of pollFound.pollOptions) {
@@ -195,17 +195,24 @@ async function deletePoll({ userID, pollID }) {
 // delete poll indexes
 async function deletePollIndex({ indexID }) {
     const voteIndex = await interactPollVoteIndexSchema.findOne({ _id: indexID })
+
+    // recursion of deleting indexes
     if (voteIndex.previousIndexID) {
         await deletePollIndex({ indexID: voteIndex.previousIndexID })
     } 
     if (voteIndex.nextIndexID) {
         await deletePollIndex({ indexID: voteIndex.previousIndexID })
     }
-    if (voteIndex.index && voteIndex.index[0]._id) {
-        for (const vote of voteIndex.index) {
-            await deleteVote({ voteID: voteIndex.index })
+
+    // deletes any votes found for option
+    if (voteIndex.votes && voteIndex.votes[0]) {
+        for (const vote of voteIndex.votes) {
+            await deleteVote({ voteID: vote._id })
         }
     }
+
+    // deletes actual index
+    await interactPollVoteIndexSchema.findOneAndDelete({ _id: indexID });
     return { deletedIndex: voteIndex }
 }
 
@@ -221,7 +228,7 @@ async function deleteVote({ voteID }) {
 // change title of poll
 async function editPollTitle({ userID, pollID, pollName }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return { error: searchError("O019")};
+    if (!pollFound) return searchError("O019");
 
     const canEdit = canEditPoll({ pollData: pollFound, userID })
     if (canEdit.possible==false) return canEdit;
@@ -272,7 +279,7 @@ async function createPollVoteIndex({ pollID, userID, pollOptionID }) {
 // checks if theres already a vote index
 async function createPollVote({ pollID, userID, pollOptionID }) {
     // create a proper error
-    if (!pollID || !userID || !pollOptionID) return { error: searchError("O014") };
+    if (!pollID || !userID || !pollOptionID) return searchError("O014");
 
     const foundPoll = await findPoll({ pollID });
     if (foundPoll.error) return foundPoll;
@@ -280,7 +287,7 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     const isTimeOver = timeOver({ pollData: foundPoll });
     if (isTimeOver.possible == false) return isTimeOver;
 
-    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return { error: searchError("O020") };
+    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchError("O020");
     
     // makes sure its only within poll
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
@@ -298,7 +305,7 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     const userVoted = await checkUserVote({ userID, pollID });
     if (userVoted.voted) {
         // user already voted for same option
-        if (userVoted.foundVote.pollOptionID == pollOptionID) return { error: searchError("O021") };
+        if (userVoted.foundVote.pollOptionID == pollOptionID) return searchError("O021");
 
         // change vote
         const removedVote = await removeVoteDB({ userID, userVote: userVoted.foundVote });
@@ -322,7 +329,7 @@ async function removePollVote({ pollID, userID, pollOptionID }) {
     const isTimeOver = timeOver({ pollData: foundPoll });
     if (isTimeOver.possible == false) return isTimeOver;
 
-    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return { error: searchError("O020") };
+    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchError("O020");
 
     // makes sure its only within poll
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
@@ -332,7 +339,7 @@ async function removePollVote({ pollID, userID, pollOptionID }) {
     const userVoted = await checkUserVote({ userID, pollID });
     if (userVoted.error) return userVoted.error;
     if (userVoted.voted) {
-        if (userVoted.foundVote.pollOptionID != pollOptionID) return { error: searchError("O021") };
+        if (userVoted.foundVote.pollOptionID != pollOptionID) return searchError("O021");
 
         // remove vote
         const removedVote = await removeVoteDB({ userVote: userVoted.foundVote });
@@ -346,7 +353,7 @@ async function removePollVote({ pollID, userID, pollOptionID }) {
 
 // removes current user vote
 async function removeVoteDB({ userVote }) {
-    if (!userVote) return { error: searchError("O022") };
+    if (!userVote) return searchError("O022");
 
     const removedVote = await removeVoteToIndexDB({ 
         pollVoteID: userVote._id, 
@@ -368,7 +375,7 @@ function findOption({ pollData, pollOptionID }) {
     if (!pollData || !pollData.pollOptions || !pollData.pollOptions[0]) return { error: "what" };
 
     const foundOption = pollData.pollOptions.find(option => option._id == pollOptionID);
-    if (!foundOption) return { error: searchError("O020") };
+    if (!foundOption) return searchError("O020");
     return foundOption;
 }
 
@@ -409,7 +416,7 @@ async function createNewVoteDB({ userID, pollID, pollIndexID, pollOptionID }) {
         timestamp: checktime()
     });
     
-    if (!newVote) return { error: searchError("Z002", [{"name": "msg", "data" : "error creating new vote"} ])};
+    if (!newVote) return searchError("Z002", [{"name": "msg", "data" : "error creating new vote"} ]);
 
     const addedVote = await addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID });
     if (addedVote?.error) return { error: addedVote }
@@ -419,13 +426,13 @@ async function createNewVoteDB({ userID, pollID, pollIndexID, pollOptionID }) {
 // add vote to index
 async function addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID }) {
     const foundPoll = await findPoll({ pollID });
-    if (!foundPoll) return { error: searchError("O019")};
+    if (!foundPoll) return searchError("O019");
 
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
     if (!foundOption) return foundOption;
 
     // if (!foundOption.currentIndexID) 
-    if (foundOption.currentIndexID != pollIndexID) return { error: searchError("O022"), "where": "adding"  };
+    if (foundOption.currentIndexID != pollIndexID) return searchError("O022");
 
     await interactPollVoteIndexSchema.findOneAndUpdate(
         { _id: pollIndexID },
@@ -446,22 +453,22 @@ async function addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID 
 // remove vote from index
 async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID }) {
     const foundPoll = await findPoll({ pollID });
-    if (!foundPoll) return { error: searchError("O019")};
+    if (!foundPoll) return searchError("O019");
 
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
     if (!foundOption) return foundOption;
 
-    if (foundOption.currentIndexID != pollIndexID) return { error: searchError("O022"), "where": "removing" };
+    if (foundOption.currentIndexID != pollIndexID) return searchError("O022");
 
     await interactPollVoteIndexSchema.findOneAndUpdate(
         { _id: pollIndexID },
-        { $push : { "votes" : { _id: pollVoteID } } }
+        { $pull : { "votes" : { _id: pollVoteID } } }
     );
 
     var amountVoted = 0;
     
     if (!foundOption.amountVoted) amountVoted = foundOption.amountVoted = 0;
-    else if (foundOption.amountVoted == 0) return { error: searchError("O023") };
+    else if (foundOption.amountVoted == 0) return searchError("O023");
     else amountVoted = foundOption.amountVoted - 1;
     
     await interactPollSchema.findOneAndUpdate(
@@ -470,11 +477,38 @@ async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOption
     );
 }
 
+// get all user votes
+async function getUserVotes({ userID }) {
+    const foundVotes = await interactPollVoteSchema.find({ userID });
+    return foundVotes;
+}
+
 // findPoll
 async function findPoll({ pollID }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return { error: searchError("O019")};
+    if (!pollFound) return searchError("O019");
     return pollFound;
+}
+
+// get any polls from a certian user
+async function getPollsFromUser({ userID }) {
+    const pollsFound = await interactPollSchema.find({ userID });
+    if (!pollsFound) return searchError("O019");
+
+    return pollsFound;
+}
+
+// delete all user votes
+async function deleteUserVotes({ userID }) {
+    const foundVotes = await getUserVotes({ userID });
+    const returnArr = [];
+
+    for (const vote of foundVotes) {
+        const delVote = await removePollVote({ pollID: vote.pollID, userID, pollOptionID: vote.pollOptionID });
+        returnArr.push(delVote);
+    }
+
+    return returnArr;
 }
 
 module.exports = {
@@ -485,5 +519,8 @@ module.exports = {
     createNewPollOption,
     createPollVote,
     removePollVote,
-    findUserVote
+    findUserVote,
+    getPollsFromUser,
+    getUserVotes,
+    deleteUserVotes
 }

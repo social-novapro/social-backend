@@ -284,7 +284,7 @@ async function checkEmailInUse({ email }) {
 
     // if pending verification
     const foundVerification = await interactEmailVerificationSchema.findOne({ email });
-    if (foundVerification) return searchError("N006");
+    if (foundVerification?.verified) return searchError("N006");
 
     return { success: true };
 }
@@ -540,7 +540,7 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
         content: `Please verify your removal request. Open: ${verURL} to verify. Thank you.`,
         htmlElement: {
             h1: "Verify email removal at Interact",
-            p: "Please confirm your removal request, open link to verify.",
+            p: "Please confirm your removal request, open the link to verify.",
             a: `${verURL}`,
         }
     });
@@ -548,7 +548,33 @@ async function sendEmailRemoveVer({ email, userID, emailVerID }) {
     return { "status": "success" };
 }
 
+/**
+ * wipe email DBs
+ */
+async function deleteEmailDBs({ userID }) {
+    // remove veriifcation
+    const foundVer = await interactEmailVerificationSchema.findOne({ userID });
+    if (!foundVer) return searchError("N020")
+    const deletedVer = await interactEmailVerificationSchema.findOneAndDelete({ userID });
+    
+    // wipe from priv
+    if (foundVer.email) await removeEmailPriv({ email: foundVer.email, userID });
+    
+    // remove settings
+    const foundSettings = await interactEmailSettingSchema.findOneAndDelete({ _id: userID });
+    if (!foundSettings) return {
+        deletedVer,
+        error: searchError("N010")
+    };
+
+    return {
+        foundVer,
+        foundSettings
+    }
+}
+
 module.exports = { 
     setEmail, validEmail, sendVerReplaceEmail,
-    confirmRemove, requestRemove
+    confirmRemove, requestRemove,
+    deleteEmailDBs
 }
