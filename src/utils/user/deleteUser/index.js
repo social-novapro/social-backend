@@ -75,6 +75,7 @@ async function sendDeletionEmail({ email, userID, delAccVerID}) {
 async function sendCompletionEmail({ email, username, userID }) {
     const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
     const sendURL = `${mainURL}/`
+
     await emailSender({
         users: [{
             email: email,
@@ -234,8 +235,9 @@ async function deleteUser({ userID, username }) {
         allData: deleteData
     });
 
+    const emailSending = delEmails?.foundVer?.email ? delEmails.foundVer.email : demoEmailAdr;
     // sends email to user with completion confirmation
-    await sendCompletionEmail({ email: demoEmailAdr, username, userID });
+    await sendCompletionEmail({ email: emailSending, username: delPublicUser?.foundUser?.username, userID });
 
     return {
         newID,
