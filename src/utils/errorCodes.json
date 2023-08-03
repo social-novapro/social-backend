@@ -393,6 +393,10 @@
                     "msg" : "Please use /v1/notifications/getList instead of /v1/get/notifications."
                 },
                 {
+                    "code" : "I008",
+                    "msg" : "Please use /v1/feeds/allPosts instead of /v1/get/allPosts."
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },
@@ -790,6 +794,10 @@
                 {
                     "code" : "Q002",
                     "msg" : "Provided feed preference was not valid"
+                },
+                {
+                    "code" : "Q003",
+                    "msg" : "There was no found post data"
                 },
                 {
                     "code" : "Z001",

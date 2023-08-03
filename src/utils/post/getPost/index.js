@@ -1,9 +1,11 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { findPoll, findUserVote } = require("../../polls");
-const { isLiked } = require("../../post/isLiked");
+const { searchError } = require("../../searchError");
+const { isLiked } = require("../isLiked");
 
 async function getPostWithData({ userID, postID, post }) {
+    if (!postID && !post) return searchError("Q003")
     var type = { "type": "post" };
     var postData = post;
     var userData = null;
@@ -11,14 +13,14 @@ async function getPostWithData({ userID, postID, post }) {
     var voteData = null;
 
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
-
-    if (post.content) {
-        const foundLike = await isLiked({ postID: post._id, userID });
+    if (!postData) return searchError("Q003")
+    if (postData.content) {
+        const foundLike = await isLiked({ postID: postData._id, userID });
         if (foundLike) postData.liked = true;
 
         // has userid
-        if (post.userID) {
-            const UserDataFound = await interactUserSchema.findOne({_id: post.userID});
+        if (postData.userID) {
+            const UserDataFound = await interactUserSchema.findOne({_id: postData.userID});
             if (UserDataFound) {
                 userData = UserDataFound;
                 type["user"] = "included";
@@ -26,13 +28,13 @@ async function getPostWithData({ userID, postID, post }) {
         }
 
         // has linked poll
-        if (post.pollID) {
-            const foundPoll = await findPoll({ pollID: post.pollID });
+        if (postData.pollID) {
+            const foundPoll = await findPoll({ pollID: postData.pollID });
             if (foundPoll && !foundPoll.error) {
                 pollData = foundPoll;
                 type["poll"] = "included";
 
-                const foundVote = await findUserVote({ userID, pollID: post.pollID});
+                const foundVote = await findUserVote({ userID, pollID: postData.pollID});
                 if (foundVote && !foundVote?.error && foundVote.voted) {
                     voteData = foundVote.foundVote;
                     type["vote"] = "included";
@@ -51,7 +53,7 @@ async function getPostWithData({ userID, postID, post }) {
         return dataSend;
     }
 
-    return null;
+    return searchError("Z001");
 }
 
 async function getPostBaiscData({ postID, postData }) {

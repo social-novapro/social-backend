@@ -1,7 +1,7 @@
 const interactPostSchema = require("../../schemas/interactPostSchema");
 const { getSubscriptions } = require("../notifications/subscriptions");
 const { getPostsFromUser } = require("../post/main");
-const { getPostWithData } = require("./getpost");
+const { getPostWithData } = require("../post/getPost");
 
 async function allPostsFeed({ userID }) {
     const AllPosts = await interactPostSchema.find();
@@ -29,9 +29,7 @@ async function subscriptionFeed({ userID }) {
         const foundPosts = await getPostsFromUser({ userID: sub._id});
         for (const post of foundPosts) {
             const data = await getPostWithData({ userID, postID: post._id, post })
-            if (data && !data.error) {
-                sendPosts.push(data)
-            }
+            if (data && !data.error) sendPosts.push(data)
         }
     }
 

@@ -16,4 +16,4 @@ const intearctUserFeedSchema = mongoose.Schema({
     preferredFeed: reqString // name of feed
 });
 
-module.exports = mongoose.model('interact-user-feed-schema', intearctUserFeedSchema);
+module.exports = mongoose.model('interact-user-feed', intearctUserFeedSchema);
