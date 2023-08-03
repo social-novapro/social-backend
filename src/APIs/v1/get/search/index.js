@@ -2,6 +2,7 @@ const router = require('express').Router();
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
+const { getPostWithData } = require('../../../../utils/post/getPost');
 
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -38,7 +39,7 @@ router.get('/', async (req, res) => {
     };
 
     var postsFound = [];
-
+    
     for (post of PostData) {
         var username;
         var displayname;
@@ -47,18 +48,8 @@ router.get('/', async (req, res) => {
             content = post.content.toLowerCase();
 
             if (content.toLowerCase().startsWith(lookupKeylower) || lookupkey == post._id) {
-                var type;
-                var postData = post;
-                var userData;
-
-                if (post.userID) {
-                    type = { "type" : "post", "user" : "included" };
-                    userData = await interactUserSchema.findOne({ _id: post.userID});
-                } else type = { "type" : "post" };
-
-                var sendPost = { type, postData, userData};
-
-                postsFound.push(sendPost);
+                const fullPost = await getPostWithData({ userID: req.headers.userid, post });
+                if (!fullPost.error) postsFound.push(fullPost);
             };
         };
     };

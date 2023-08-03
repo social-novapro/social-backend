@@ -64,6 +64,10 @@
                     "msg" : "Error with deleting account"
                 },
                 {
+                    "code" : "Q",
+                    "msg" : "Error with feeds"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -387,6 +391,10 @@
                 {
                     "code" : "I007",
                     "msg" : "Please use /v1/notifications/getList instead of /v1/get/notifications."
+                },
+                {
+                    "code" : "I008",
+                    "msg" : "Please use /v1/feeds/allPosts instead of /v1/get/allPosts."
                 },
                 {
                     "code" : "J001",
@@ -778,6 +786,18 @@
                 {
                     "code" : "P008",
                     "msg" : "User has no posts to be deleted"
+                },
+                {
+                    "code" : "Q001",
+                    "msg" : "No provided feed preference to set."
+                },
+                {
+                    "code" : "Q002",
+                    "msg" : "Provided feed preference was not valid"
+                },
+                {
+                    "code" : "Q003",
+                    "msg" : "There was no found post data"
                 },
                 {
                     "code" : "Z001",

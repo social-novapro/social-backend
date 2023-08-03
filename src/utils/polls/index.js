@@ -77,9 +77,9 @@ async function createPoll({ userID, pollOptions }) {
 
 // checks if the time is over, possible:false==over, possible:true==not over
 function timeOver({ pollData }) {
-    if (pollData.timestampEnding < checktime()) return { possible: false, error: searchError("O009") };
+    if (pollData.timestampEnding < checktime()) return searchError("O009");
     if (pollData.lastEdited) {
-        if (pollData.lastEdited + 1800000 > checktime()) return { possible: false, error: searchError("0O10") };
+        if (pollData.lastEdited + 1800000 > checktime()) return searchError("0O10");
     }
     
     return { possible: true }
@@ -90,7 +90,7 @@ function canEditPoll({ pollData, userID }) {
     if (pollData.userID != userID) return { possible: false, error: searchError("O008")};
 
     const isTimeOver = timeOver({ pollData });
-    if (isTimeOver.possible==false) return isTimeOver;
+    if (isTimeOver.error) return isTimeOver;
 
     return { possible: true }
 }
@@ -285,7 +285,7 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     if (foundPoll.error) return foundPoll;
 
     const isTimeOver = timeOver({ pollData: foundPoll });
-    if (isTimeOver.possible == false) return isTimeOver;
+    if (isTimeOver.error) return isTimeOver;
 
     if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchError("O020");
     
@@ -309,10 +309,10 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
 
         // change vote
         const removedVote = await removeVoteDB({ userID, userVote: userVoted.foundVote });
-        if (removedVote.error) return { error: removedVote.error };
+        if (removedVote.error) return removedVote;
         const newVote = await createNewVoteDB({ pollID, userID, pollIndexID: voteIndexID, pollOptionID });
 
-        if (newVote.error) return { error: newVote }; // error here
+        if (newVote.error) return newVote; // error here
         return { newVote, oldVote: userVoted?.foundVote };
     }
     else {
@@ -327,7 +327,7 @@ async function removePollVote({ pollID, userID, pollOptionID }) {
     if (foundPoll.error) return foundPoll;
 
     const isTimeOver = timeOver({ pollData: foundPoll });
-    if (isTimeOver.possible == false) return isTimeOver;
+    if (isTimeOver.error) return isTimeOver;
 
     if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchError("O020");
 
@@ -337,17 +337,17 @@ async function removePollVote({ pollID, userID, pollOptionID }) {
 
     // check if user already voted (if so, change and done)
     const userVoted = await checkUserVote({ userID, pollID });
-    if (userVoted.error) return userVoted.error;
+    if (userVoted.error) return userVoted;
     if (userVoted.voted) {
         if (userVoted.foundVote.pollOptionID != pollOptionID) return searchError("O021");
 
         // remove vote
         const removedVote = await removeVoteDB({ userVote: userVoted.foundVote });
-        if (removedVote.error) return removedVote.error ;
+        if (removedVote.error) return removedVote;
 
         return { removedVote };
     } else {
-        return userVoted.error;
+        return userVoted;
     }
 }
 
@@ -362,7 +362,7 @@ async function removeVoteDB({ userVote }) {
         pollOptionID: userVote.pollOptionID 
     });
 
-    if (removedVote?.error) return { error: removedVote, msg: "removeUserVote() remove" }
+    if (removedVote?.error) return removedVote;
     
     // deletes vote from user
     const deleteUserVote = await interactPollVoteSchema.findOneAndDelete({ _id: userVote._id });
@@ -419,7 +419,7 @@ async function createNewVoteDB({ userID, pollID, pollIndexID, pollOptionID }) {
     if (!newVote) return searchError("Z002", [{"name": "msg", "data" : "error creating new vote"} ]);
 
     const addedVote = await addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID });
-    if (addedVote?.error) return { error: addedVote }
+    if (addedVote?.error) return addedVote;
     return newVote;
 }
 
