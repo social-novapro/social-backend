@@ -100,9 +100,22 @@ async function setPreference({ newPref, userID, pref }) {
     }
 }
 
+/**
+ * deletes user feed preference
+ */
+async function deleteFeedPreference({ userID }) {
+    if (!userID) return searchError("B009")
+    const foundPref = await getPreference({ userID });
+    
+    await interactUserFeedSchema.findOneAndDelete({ userID });
+
+    return foundPref;
+}
+
 module.exports = {
     getFeed,
     getPossiblePreferences,
     getPreference,
     setPreference,
+    deleteFeedPreference
 }
