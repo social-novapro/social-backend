@@ -9,6 +9,7 @@ const polls = require('./polls');
 const emails = require('./emails');
 const users = require('./users');
 const notifications = require('./notifications');
+const feeds = require('./feeds');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -24,5 +25,6 @@ router.use('/emails', emails);
 router.use('/users', users);
 router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
+router.use('/feeds', feeds);
 
 module.exports = router;

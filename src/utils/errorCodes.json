@@ -64,6 +64,10 @@
                     "msg" : "Error with deleting account"
                 },
                 {
+                    "code" : "Q",
+                    "msg" : "Error with feeds"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -778,6 +782,14 @@
                 {
                     "code" : "P008",
                     "msg" : "User has no posts to be deleted"
+                },
+                {
+                    "code" : "Q001",
+                    "msg" : "No provided feed preference to set."
+                },
+                {
+                    "code" : "Q002",
+                    "msg" : "Provided feed preference was not valid"
                 },
                 {
                     "code" : "Z001",
