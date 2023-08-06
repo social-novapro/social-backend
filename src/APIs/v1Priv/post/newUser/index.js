@@ -8,6 +8,7 @@ const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
 const SHA1 = require("crypto-js/sha1");
 const { setEmail } = require('../../../../utils/email/setEmail');
+const { setPassword } = require('../../../../utils/userAuth');
 
 router.post('/', async (req, res) => {
     const tokenData = await checkDevTokens(req.headers.devtoken, req.headers.apptoken);
@@ -35,31 +36,15 @@ router.post('/', async (req, res) => {
     const foundUsername = await interactUserSchema.findOne({username});
     if (!foundUsername) return res.status(403).send(searchError("G003"));
     
-    const foundPrivUser = await interactUserPrivSchema.findOne({_id: foundUsername._id});
-    if (!foundPrivUser) return res.status(403).send(searchError("G004"));
+    const privUserPass = await setPassword({ userID: foundUsername._id, password })
+    if (privUserPass.error) return res.status(400).send(privUserPass);
 
-    var passwordCorrect = false;
-    if (foundPrivUser.salted) {
-        const [salt, key] = foundPrivUser.password.split(":");
-        const saltedPassword = SHA1(password).toString();
-        if (key != saltedPassword) return res.status(403).send(searchError("G005"));
-        passwordCorrect=true
-    }
-    else {
-        if (foundPrivUser.password != password) return res.status(403).send(searchError("G005"));
-        passwordCorrect=true
-    }
-
-    if (!passwordCorrect) return res.status(403).send(searchError("G005"));
-    
     if (email) {
         await setEmail({ email, userID: foundUsername._id, password });
         // no error handling done
     }
-
-
-
-    const accessTokenFound = await createAccessToken(foundPrivUser._id, foundPrivUser.userToken, apptoken);
+ 
+    const accessTokenFound = await createAccessToken(privUserPass._id, privUserPass.userToken, apptoken);
 
     const sendData = {
         "login" : true,
