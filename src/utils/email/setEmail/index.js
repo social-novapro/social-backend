@@ -317,7 +317,7 @@ async function validEmail({ email }) {
 // REMOVE EMAIL
 
 // need to test properly
-async function confirmRemove({ removeEmailVerID }) {
+async function confirmRemove({ removeEmailVerID, password }) {
     const foundRemove = await interactEmailVerificationSchema.findOne({ removeEmailVerID });
     //console.log("foundRemove", foundRemove)
     if (!foundRemove) return searchError("N014");
@@ -325,6 +325,10 @@ async function confirmRemove({ removeEmailVerID }) {
     //await removeRemoveEmailVerID({ removeEmailVerID });
 
     const { userID, email } = foundRemove;
+
+    // check password
+    const passwordCorrect = await checkPassword({ userID, password });
+    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
 
     const removed = await removeEmail({ email, userID });
     if (!removed || removed.error) return removed;
@@ -479,7 +483,7 @@ async function removeCurrentEmail({ email, userID }) {
 async function requestRemove({ currentEmail, userID, password }) {
     // checks password 
     const passwordCorrect = await checkPassword({ userID: userID, password: password });
-    if (!passwordCorrect || passwordCorrect.error) return { error: searchError("G005") };
+    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
    
     const VerData = await interactEmailVerificationSchema.findOne({
         userID: userID

@@ -54,9 +54,7 @@ async function checkPassword({ userID, password }) {
     }
 
     if (passwordCorrect!=true) {
-        returnValue.error = true
-        returnValue.msg = searchError("G005")
-        return returnValue
+        return searchError("G005");
     }
 
     if (passwordCorrect == true){
