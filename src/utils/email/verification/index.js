@@ -5,11 +5,18 @@ const { searchError } = require('../../searchError');
 const { v4: uuidv4 } = require('uuid');
 const { emailSender } = require('../send');
 const { checktime } = require('../../checktime');
+const { checkPassword } = require('../../userAuth');
 
-async function verifyEmail({ emailVerID }) {
+async function verifyEmail({ emailVerID, password }) {
     const emailReqFound = await interactEmailVerificationSchema.findOne({ verificationID: emailVerID });
     if (!emailReqFound) return searchError("N001");
     if (emailReqFound.verified) return searchError("N009");
+
+    const { userID } = emailReqFound;
+
+    // check password
+    const passwordCorrect = await checkPassword({ userID, password });
+    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
     
     // verified = true for verificatino Schema
     const accept = await interactEmailVerificationSchema.findOneAndUpdate(

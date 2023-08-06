@@ -121,14 +121,19 @@ async function cancelDelete({ deleteID }) {
 /**
  * confirms delete request, deletes all data
  */
-async function confirmDelete({ deleteID }) {
+async function confirmDelete({ deleteID, password }) {
     const foundVer = await interactEmailVerificationSchema.findOne({ deleteAccountVerID: deleteID });
     if (!foundVer) return searchError("P004");
+
+    const { userID } = foundVer;
+
+    // check password
+    const passwordCorrect = await checkPassword({ userID, password });
+    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
 
     const checkExpired = checkIfRequestExpired(foundVer.timestampDeleteAccount);
     if (checkExpired.error) return checkExpired;
 
-    // NOT DONE
     // AFTER TEST:
     const deleted = await deleteUser({ userID: foundVer.userID });
     return deleted;
@@ -175,7 +180,6 @@ async function deleteUser({ userID, username }) {
         username
     });
 
-    
     const delPublicUser = await deletePublicUser({ userID });
 
     const delFeedPref = await deleteFeedPreference({ userID });
