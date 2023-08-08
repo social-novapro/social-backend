@@ -4,6 +4,10 @@ const { v4: uuidv4 } = require("uuid");
 const { checktime } = require("../../../checktime");
 const { getCurrentErrorIndex, setCurrentErrorIndex } = require("../../indexesAdmin");
 
+var currentCount = 0;
+var currentIndex = null;
+var currentIndexID = null;
+
 /* saves error to the db */
 async function saveErrorToDB({ errorCode, errorMsg, userID }) {
     const errorID = uuidv4();
@@ -40,41 +44,45 @@ async function createIndex({ prevIndexID }) {
     })
 
     await setCurrentErrorIndex({ indexID });
+    
     return indexID;
 }
 
 /* adds an error to an index */
 async function addToIndex({ errorID }) {
-    const indexID = await getCurrentErrorIndex();
-    var usedIndexID;
 
-    // creates index
-    if (!indexID) usedIndexID = await createIndex({ prevIndexID: null });
-
-    // finds the index for its data
-    var foundIndex = await interactAdminErrorIndexSchema.findOne({ _id: indexID });
-    
-    // no index was found OR amount is over 50
-    if (!foundIndex || foundIndex.errorIssues?.length >= 50) {
-        const newIndexID = await createIndex({ prevIndexID: foundIndex?._id ? foundIndex._id : null });
-        usedIndexID = newIndexID;
-
-        // finds the index
-        foundIndex = await interactAdminErrorIndexSchema.findOne({ _id: indexID });
-    } else {
-        usedIndexID = foundIndex._id;
+    console.log("currentIndexID " + currentIndexID + " count " + currentCount);
+    // no set index
+    if (!currentIndexID || !currentIndex) {
+        currentIndexID = await getCurrentErrorIndex();
+        
+        // creates new if no indexID, 
+        if (!currentIndexID) currentIndexID = await createIndex({ prevIndexID: null });
+        
+        currentIndex = await interactAdminErrorIndexSchema.findOne({ _id: currentIndexID})
+        currentCount = currentIndex.amount;
     }
 
+    // array to long
+    if (currentCount >= 50) {
+        currentIndexID = await createIndex({ prevIndexID: currentIndex?._id ? currentIndex._id : null });
+        currentIndex = await interactAdminErrorIndexSchema.findOne({ _id: currentIndexID });
+        currentCount = 0;
+    }
+
+    currentCount++;
+
+    // saves to DB
     await interactAdminErrorIndexSchema.findOneAndUpdate({ 
-        _id: usedIndexID 
+        _id: currentIndexID 
     },{ 
-        amount: foundIndex.amount+1,
+        amount: currentCount,
         $push : { "errorIssues" : {
             _id: errorID
         }}
     })
 
-    return usedIndexID;
+    return currentIndexID;
 }
 
 module.exports = { saveErrorToDB };
