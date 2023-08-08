@@ -21,17 +21,22 @@ const nonreqNum = {
     required: false
 }
 
-const interactErrorSchema = mongoose.Schema({
+const interactAdminErrorSchema = mongoose.Schema({
     _id: reqString, // errorID
     userID: reqString,
     errorCode: reqString,
     errorMsg: reqString,
     timestamp: reqNum,
+    /*
+        issue is in review
+        then is resolved (or resolved if nothing to do)
+    */
     resolved: reqBool,
-    reviewed: reqBool,
+    resolvedTimestamp: nonreqNum,
+    
+    inReview: reqBool,
     reviewedBy: nonreqString,
-    reviewedTimestamp: nonreqNum
-    /* errorID	userID	username	errorCode	timestamp	reviewed	resolved	reviewedBy	reviewedTimestamp */
+    reviewTimestamp: nonreqNum
 });
 
-module.exports = mongoose.model('interact-error', interactErrorSchema);
+module.exports = mongoose.model('interact-admin-error', interactAdminErrorSchema);

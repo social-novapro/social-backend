@@ -68,6 +68,10 @@
                     "msg" : "Error with feeds"
                 },
                 {
+                    "code" : "R",
+                    "msg" : "Error with admin actions."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -798,6 +802,26 @@
                 {
                     "code" : "Q003",
                     "msg" : "There was no found post data"
+                },
+                {
+                    "code" : "R001",
+                    "msg" : "No errorID was provided."
+                },
+                {
+                    "code" : "R002",
+                    "msg" : "No admin userID was provided."
+                },
+                {
+                    "code" : "R003",
+                    "msg" : "Provided userID was not an admin was provided."
+                },
+                {
+                    "code" : "R004",
+                    "msg" : "The provided errorID was not found."
+                },
+                {
+                    "code" : "R005",
+                    "msg" : "There was no error index found"
                 },
                 {
                     "code" : "Z001",
