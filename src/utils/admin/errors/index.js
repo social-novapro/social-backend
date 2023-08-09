@@ -1,6 +1,8 @@
+const interactAdminErrorIndexSchema = require("../../../schemas/admin/interactAdminErrorIndexSchema");
 const interactAdminErrorSchema = require("../../../schemas/admin/interactAdminErrorSchema");
 const { checktime } = require('../../checktime');
 const { searchErrorV2 } = require("../../searchError");
+const { getCurrentErrorIndex } = require("../indexesAdmin");
 
 /* public function to set a error to resolved */
 async function resolveError({ errorID, adminID }) {
@@ -61,13 +63,30 @@ async function reviewErrorDB({ errorID, adminID }) {
 }
 
 /* gets all errors, and you can change the type of sorting */
-async function getAllErrors({ adminID, indexID, sort }) {
+async function getErrorIssues({ adminID, indexID, sort }) {
     const isAdmin = await isUserAdmin({ userID: adminID })
     if (isAdmin.error) return isAdmin;
 
-    const allErrors = await interactAdminErrorSchema.find();
+    var returnData = [];
+    var foundIndex = {};
 
+    if (indexID) {
+        foundIndex = await interactAdminErrorIndexSchema.findOne({ _id: indexID });
+    } else {
+        const currentIndexID = await getCurrentErrorIndex();
+        foundIndex = await interactAdminErrorIndexSchema.findOne({ _id: currentIndexID });
+    }
 
+    if (!foundIndex || !foundIndex[0]) return;
+
+    for (const issue of foundIndex.errorIssues) {
+        const issueID = issue._id;
+        const foundIssue = await interactAdminErrorSchema.findOne({ _id: issueID });
+
+        returnData.push(foundIssue);
+    }
+
+    return returnData;
 }
 
 /* gets a given error issue from DB */
@@ -95,5 +114,6 @@ async function isUserAdmin({ userID }) {
 module.exports = {
     resolveError,
     reviewError,
-    findErrorIssue
+    findErrorIssue,
+    getErrorIssues,
 }

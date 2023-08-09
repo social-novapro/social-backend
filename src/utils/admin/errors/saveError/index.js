@@ -36,12 +36,23 @@ async function saveErrorToDB({ errorCode, errorMsg, userID }) {
 async function createIndex({ prevIndexID }) {
     const indexID = uuidv4();
 
+    currentCount = 0;
+    currentIndexID = indexID;
+    
     await interactAdminErrorIndexSchema.create({
         _id: indexID,
         timestamp: checktime(),
         amount: 0,
         prevIndexID: prevIndexID ? prevIndexID : null
     })
+
+    if (prevIndexID) {
+        await interactAdminErrorIndexSchema.findOneAndUpdate({
+            _id: prevIndexID
+        }, {
+            nextIndexID: indexID
+        })
+    }
 
     await setCurrentErrorIndex({ indexID });
     
@@ -50,24 +61,21 @@ async function createIndex({ prevIndexID }) {
 
 /* adds an error to an index */
 async function addToIndex({ errorID }) {
-
-    console.log("currentIndexID " + currentIndexID + " count " + currentCount);
     // no set index
     if (!currentIndexID || !currentIndex) {
         currentIndexID = await getCurrentErrorIndex();
         
         // creates new if no indexID, 
-        if (!currentIndexID) currentIndexID = await createIndex({ prevIndexID: null });
-        
-        currentIndex = await interactAdminErrorIndexSchema.findOne({ _id: currentIndexID})
-        currentCount = currentIndex.amount;
+        if (!currentIndexID) await createIndex({ prevIndexID: null });
+        else {
+            currentIndex = await interactAdminErrorIndexSchema.findOne({ _id: currentIndexID})
+            currentCount = currentIndex.amount;
+        }
     }
 
     // array to long
     if (currentCount >= 50) {
-        currentIndexID = await createIndex({ prevIndexID: currentIndex?._id ? currentIndex._id : null });
-        currentIndex = await interactAdminErrorIndexSchema.findOne({ _id: currentIndexID });
-        currentCount = 0;
+        await createIndex({ prevIndexID: currentIndex?._id ? currentIndex._id : null });
     }
 
     currentCount++;

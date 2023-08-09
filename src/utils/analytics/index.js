@@ -8,7 +8,7 @@ function getTime() {
 }
 
 async function analytics(req) {
-    console.log(`action taken\n${req.originalUrl}\n---`)
+    //console.log(`action taken\n${req.originalUrl}\n---`)
 
     
     /*

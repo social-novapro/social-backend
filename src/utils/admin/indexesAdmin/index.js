@@ -3,6 +3,7 @@ const interactAdminIndexSchema = require("../../../schemas/admin/interactAdminIn
 async function createAdminIndex({ name }) {
     await interactAdminIndexSchema.create({ _id: name ? name : "main" });
 }
+
 async function getAdminIndex({ name }) {
     const foundIndexes = await interactAdminIndexSchema.findOne({_id: name ? name : "main" });
     return foundIndexes;
