@@ -824,6 +824,14 @@
                     "msg" : "There was no error index found"
                 },
                 {
+                    "code" : "R006",
+                    "msg" : "There was no found data with indexID provided"
+                },
+                {
+                    "code" : "R007",
+                    "msg" : "There was no index assigned to the admin index grouping."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

@@ -4,8 +4,10 @@ const { v4: uuidv4 } = require("uuid");
 const { checktime } = require("../../../checktime");
 const { getCurrentErrorIndex, setCurrentErrorIndex } = require("../../indexesAdmin");
 
+/* these must always be set */
 var currentCount = 0;
 var currentIndex = null;
+/* pretty sure this does not matter, but ill keep it, cause it works */
 var currentIndexID = null;
 
 /* saves error to the db */
@@ -36,6 +38,7 @@ async function saveErrorToDB({ errorCode, errorMsg, userID }) {
 async function createIndex({ prevIndexID }) {
     const indexID = uuidv4();
 
+    // manages varibles to be used by rest of file
     currentCount = 0;
     currentIndexID = indexID;
     
@@ -75,9 +78,10 @@ async function addToIndex({ errorID }) {
 
     // array to long
     if (currentCount >= 50) {
-        await createIndex({ prevIndexID: currentIndex?._id ? currentIndex._id : null });
+        await createIndex({ prevIndexID: currentIndexID ? currentIndexID : null });
     }
 
+    // manages the count
     currentCount++;
 
     // saves to DB

@@ -15,7 +15,8 @@ const nonreqString = {
 
 const interactAdminIndexSchema = mongoose.Schema({
     _id: reqString, // "main"
-    issueErrorIndex: nonreqString
+    issueErrorIndex: nonreqString,
+    timestamp: reqNum
 });
 
 module.exports = mongoose.model('interact-admin-index', interactAdminIndexSchema);

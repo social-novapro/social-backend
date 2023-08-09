@@ -67,7 +67,15 @@ async function getErrorIssues({ adminID, indexID, sort }) {
     const isAdmin = await isUserAdmin({ userID: adminID })
     if (isAdmin.error) return isAdmin;
 
-    var returnData = [];
+    var returnData = {
+        "indexID": null,
+        "nextIndexID": null,
+        "prevIndexID": null,
+        "amount" : null,
+        "timestamp" : null,
+        "foundIssues": []
+    };
+
     var foundIndex = {};
 
     if (indexID) {
@@ -77,13 +85,19 @@ async function getErrorIssues({ adminID, indexID, sort }) {
         foundIndex = await interactAdminErrorIndexSchema.findOne({ _id: currentIndexID });
     }
 
-    if (!foundIndex || !foundIndex[0]) return;
+    if (!foundIndex || !foundIndex.errorIssues[0] || !foundIndex.errorIssues[0]) return searchErrorV2("R006", { userID: adminID });
+
+    returnData.indexID = foundIndex._id;
+    returnData.amount = foundIndex.errorIssues.length;
+    returnData.timestamp = foundIndex.timestamp;
+    if (foundIndex.nextIndexID) returnData.nextIndexID = foundIndex.nextIndexID;
+    if (foundIndex.prevIndexID) returnData.prevIndexID = foundIndex.prevIndexID;
 
     for (const issue of foundIndex.errorIssues) {
         const issueID = issue._id;
         const foundIssue = await interactAdminErrorSchema.findOne({ _id: issueID });
 
-        returnData.push(foundIssue);
+        returnData.foundIssues.push(foundIssue);
     }
 
     return returnData;
@@ -105,7 +119,7 @@ async function findErrorIssue({ errorID, adminID }) {
 
 /* checks if user is admin ***TODO: to be updated */
 async function isUserAdmin({ userID }) {
-    /* will be updated to check */
+    /* will be updated to check once admin is complete */
     return true;
 
     // return searchErrorV2("R003", { userID });

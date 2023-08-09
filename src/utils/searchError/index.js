@@ -18,7 +18,7 @@ function searchErrorV2(errorCode, { userID, options, usedAPIversion, lookup }) {
         };
     };
     
-    return exportErrorV2("Z001",{ userID, usedAPIversion: apiVersionLookup, lookup });
+    return searchErrorV2("Z001",{ userID, usedAPIversion: apiVersionLookup, lookup });
 }
 
 /* original searchError, is harder to mange other values needed, as its one by one */
