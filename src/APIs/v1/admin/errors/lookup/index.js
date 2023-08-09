@@ -1,10 +1,10 @@
+const { searchErrorV2 } = require('../../../../../utils/searchError');
 const router = require('express').Router();
 
-router.get('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
-    return res.status(200).send("deniedRequest");
+router.get('/:errorCode', async (req, res) => {
+    const { errorCode } = req.params;
+    const foundErrorCode = searchErrorV2(errorCode, { lookup: true })
+    return res.status(200).send(foundErrorCode);
 });
 
 module.exports = router;

@@ -1,10 +1,14 @@
+const { resolveError } = require('../../../../../utils/admin/errors');
 const router = require('express').Router();
 
-router.get('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
+router.post('/:errorID', async (req, res) => {
+    const { userid: userID } = req.headers;
+    const { errorID } = req.params;
 
-    return res.status(200).send(deniedRequest);
+    const resolved = await resolveError({ errorID, admin: userID });
+    
+    if (resolved.error) return res.status(400).send(resolved);
+    return res.status(200).send(resolved);
 });
 
 module.exports = router;

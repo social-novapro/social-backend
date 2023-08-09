@@ -2,9 +2,6 @@ const router = require('express').Router();
 const { findErrorIssue } = require('../../../../../utils/admin/errors');
 
 router.get('/:errorID', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { errorID } = req.params;
     
     const foundIssue = await findErrorIssue({ errorID, adminID: req.headers.userid });
