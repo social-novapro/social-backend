@@ -21,6 +21,13 @@ const nonreqNum = {
     required: false
 }
 
+const reviewHistorySchema = mongoose.Schema({ 
+    _id: reqString, //random ID
+    reviewBy: reqString,
+    reviewStart: reqNum, // timestamp orignally started
+    reviewEnd: reqNum // timestamp replaced
+});
+
 const interactAdminErrorSchema = mongoose.Schema({
     _id: reqString, // errorID
     userID: reqString,
@@ -36,7 +43,9 @@ const interactAdminErrorSchema = mongoose.Schema({
     
     inReview: reqBool,
     reviewedBy: nonreqString,
-    reviewTimestamp: nonreqNum
+    reviewTimestamp: nonreqNum,
+
+    reviewHistory: [reviewHistorySchema]
 });
 
 module.exports = mongoose.model('interact-admin-error', interactAdminErrorSchema);

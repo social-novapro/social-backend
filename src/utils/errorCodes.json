@@ -832,6 +832,22 @@
                     "msg" : "There was no index assigned to the admin index grouping."
                 },
                 {
+                    "code" : "R008",
+                    "msg" : "Only the reviewer can mark an error issue as resolved, please override or wait for reviewer to mark as resolved."
+                },
+                {
+                    "code" : "R009",
+                    "msg" : "Can not change reviewer of error issue, as admin is already reviewer."
+                },
+                {
+                    "code" : "R010",
+                    "msg" : "Error issue is not currently in review."
+                },
+                {
+                    "code" : "R011",
+                    "msg" : "Error issue is already in review, please override the reviewer first instead."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

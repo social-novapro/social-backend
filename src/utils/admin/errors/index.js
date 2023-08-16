@@ -3,11 +3,27 @@ const interactAdminErrorSchema = require("../../../schemas/admin/interactAdminEr
 const { checktime } = require('../../checktime');
 const { searchErrorV2 } = require("../../searchError");
 const { getCurrentErrorIndex } = require("../indexesAdmin");
+const { v4: uuidv4 } = require("uuid");
+
+/* notes 
+    resolving should be done by same user who is reviewing 
+
+    can have an override review, which changes who is reviewing the error issue
+
+    to change maybe
+        reviewError() could auto activate override, instead of giving error right away
+*/
 
 /* public function to set a error to resolved */
 async function resolveError({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
+
+    const foundError = await findErrorIssue({ errorID });
+    if (foundError.error) return foundError;
+
+    if (!foundError.reviewedBy) return searchErrorV2("R010", { userID, adminID });
+    if (foundError.reviewedBy != adminID) return searchErrorV2("R008", { userID: adminID });
 
     await resolveErrorDB({ errorID, adminID });
 
@@ -20,6 +36,28 @@ async function reviewError({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
 
+    const foundError = await findErrorIssue({ errorID });
+    if (foundError.error) return foundError;
+    if (foundError.reviewedBy) return searchErrorV2("R011", { userID: adminID });
+    await reviewErrorDB({ errorID, adminID });
+
+    const updatedError = await interactAdminErrorSchema.findOne({ _id: errorID })
+    return updatedError;
+}
+
+/* public functino to replace the current reviewer for an error */
+async function overrideError({ errorID, adminID }) {
+    if (!errorID) return searchErrorV2("R001", { userID: adminID });
+    if (!adminID) return searchErrorV2("R002", { userID: adminID });
+
+    const foundError = await findErrorIssue({ errorID });
+    if (foundError.error) return foundError;
+
+    if (!foundError.reviewedBy) return searchErrorV2("R010", { userID, adminID });
+    if (foundError.reviewedBy == adminID) return searchErrorV2("R009", { userID: adminID });
+
+    await updateErrorHistoryDB({ errorID, reviewedBy: foundError.reviewedBy, reviewTimestamp: foundError.reviewTimestamp })
+    
     await reviewErrorDB({ errorID, adminID });
 
     const updatedError = await interactAdminErrorSchema.findOne({ _id: errorID })
@@ -59,6 +97,22 @@ async function reviewErrorDB({ errorID, adminID }) {
         inReview: true,
         reviewedBy: adminID,
         reviewTimestamp: checktime()
+    })
+}
+
+/* pushes previous review data to db */
+async function updateErrorHistoryDB({ errorID, reviewedBy, reviewTimestamp}) {
+    await interactAdminErrorSchema.findOneAndUpdate({ 
+        _id: errorID, 
+    }, { $push : { 
+        "reviewHistory" : {
+            _id: uuidv4(),
+            reviewBy: reviewedBy,
+            reviewStart: reviewTimestamp,
+            reviewEnd: checktime()
+        }
+    }}, {
+        upsert: true
     })
 }
 
@@ -130,4 +184,5 @@ module.exports = {
     reviewError,
     findErrorIssue,
     getErrorIssues,
+    overrideError
 }
