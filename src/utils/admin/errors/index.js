@@ -12,6 +12,10 @@ const { v4: uuidv4 } = require("uuid");
 
     to change maybe
         reviewError() could auto activate override, instead of giving error right away
+
+
+    todo
+    if reviewerror gets reactivated, then start a new review process
 */
 
 /* public function to set a error to resolved */
@@ -19,7 +23,7 @@ async function resolveError({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
 
-    const foundError = await findErrorIssue({ errorID });
+    const foundError = await findErrorIssue({ errorID, adminID });
     if (foundError.error) return foundError;
 
     if (!foundError.reviewedBy) return searchErrorV2("R010", { userID, adminID });
@@ -35,8 +39,7 @@ async function resolveError({ errorID, adminID }) {
 async function reviewError({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
-
-    const foundError = await findErrorIssue({ errorID });
+    const foundError = await findErrorIssue({ errorID, adminID });
     if (foundError.error) return foundError;
     if (foundError.reviewedBy) return searchErrorV2("R011", { userID: adminID });
     await reviewErrorDB({ errorID, adminID });
@@ -50,7 +53,7 @@ async function overrideError({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
 
-    const foundError = await findErrorIssue({ errorID });
+    const foundError = await findErrorIssue({ errorID, adminID });
     if (foundError.error) return foundError;
 
     if (!foundError.reviewedBy) return searchErrorV2("R010", { userID, adminID });
