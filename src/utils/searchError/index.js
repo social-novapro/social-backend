@@ -64,8 +64,8 @@ function exportError(error) {
     to be used with all functions, async or not async
     v2 is not async (was going to be)
 */
-async function saveError({ code, msg, userID }) {
-    await saveErrorToDB({ errorCode: code, errorMsg: msg, userID: userID ? userID: "unkown userID" });
+async function saveError({ code, msg, userID, version }) {
+    await saveErrorToDB({ errorCode: code, errorMsg: msg, userID: userID ? userID: "unkown userID", version: version ? version : 0 });
 }
 
 function textReplacements({ error, optionsInput }) {

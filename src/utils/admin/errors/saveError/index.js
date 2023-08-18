@@ -17,7 +17,7 @@ async function saveErrorToDB({ errorCode, errorMsg, userID, version }) {
     await interactAdminErrorSchema.create({
         _id: errorID,
         userID: userID ? userID : "unknown",
-        errorVersion: version,
+        errorVersion: version ? version : 0,
         timestamp: checktime(),
         errorCode,
         errorMsg,
