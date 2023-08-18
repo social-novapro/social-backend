@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const interactPostEditSchema = require('../../../../schemas/postSchemas/interactPostEditSchema');
-const {searchError} = require('../../../../utils/searchError');
+const {searchErrorV2} = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.get('/:postID', async (req, res) => {
@@ -11,7 +11,7 @@ router.get('/:postID', async (req, res) => {
     
     const PostData = await interactPostEditSchema.findOne({_id: postID});
 
-    if (!PostData) return res.status(404).send(searchError("D004"));
+    if (!PostData) return res.status(404).send(searchErrorV2("D004", { userID: req.headers.userid }));
     else return res.status(200).send(PostData);
 })
 

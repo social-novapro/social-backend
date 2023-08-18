@@ -14,7 +14,6 @@ router.get('/:userID', async (req, res) => {
     const FollowData = await interactFollowSchema.findOne({_id: userID});
     if (!FollowData) return res.status(404).send({"error" : "could not find user"})
     if (!FollowData.follow) return res.status(404).send({"error" : "User was not followed by anybody."})
-    // if (!UserData) return res.status(400).send(searchError("B001"));
 
     return res.status(200).send(FollowData);
 });

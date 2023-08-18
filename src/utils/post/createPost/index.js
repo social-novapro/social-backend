@@ -52,7 +52,7 @@ async function newPostIndex(userID, data) {
         // else return res.status(404).send(searchError("D002"));
     }
     if (linkedPollID) {
-        const foundPoll = await findPoll({pollID: linkedPollID});
+        const foundPoll = await findPoll({pollID: linkedPollID, userID });
         if (!foundPoll.error) await linkedPollSetup(linkedPollID, postID, userID);
         // else return res.status(404).send(searchError("O000"));
     }

@@ -68,6 +68,10 @@
                     "msg" : "Error with feeds"
                 },
                 {
+                    "code" : "R",
+                    "msg" : "Error with admin actions."
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -327,6 +331,10 @@
                 {
                     "code" : "E009",
                     "msg" : "The userID provided in header is not the same as userID in header."
+                },
+                {
+                    "code" : "E010",
+                    "msg" : "postID is required to edit a post."
                 },
                 {
                     "code" : "F001",
@@ -798,6 +806,50 @@
                 {
                     "code" : "Q003",
                     "msg" : "There was no found post data"
+                },
+                {
+                    "code" : "R001",
+                    "msg" : "No errorID was provided."
+                },
+                {
+                    "code" : "R002",
+                    "msg" : "No admin userID was provided."
+                },
+                {
+                    "code" : "R003",
+                    "msg" : "Provided userID was not an admin was provided."
+                },
+                {
+                    "code" : "R004",
+                    "msg" : "The provided errorID was not found."
+                },
+                {
+                    "code" : "R005",
+                    "msg" : "There was no error index found"
+                },
+                {
+                    "code" : "R006",
+                    "msg" : "There was no found data with indexID provided"
+                },
+                {
+                    "code" : "R007",
+                    "msg" : "There was no index assigned to the admin index grouping."
+                },
+                {
+                    "code" : "R008",
+                    "msg" : "Only the reviewer can mark an error issue as resolved, please override or wait for reviewer to mark as resolved."
+                },
+                {
+                    "code" : "R009",
+                    "msg" : "Can not change reviewer of error issue, as admin is already reviewer."
+                },
+                {
+                    "code" : "R010",
+                    "msg" : "Error issue is not currently in review."
+                },
+                {
+                    "code" : "R011",
+                    "msg" : "Error issue is already in review, please override the reviewer first instead."
                 },
                 {
                     "code" : "Z001",

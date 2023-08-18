@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { newUserIndex } = require('../../../../utils/user/createUser');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
-const { searchError } = require('../../../../utils/searchError/');
+const { searchErrorV2 } = require('../../../../utils/searchError/');
 const { checkUsername, checkPassword } = require('../../../../utils/checks/');
 const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
@@ -16,10 +16,10 @@ router.post('/', async (req, res) => {
 
     const { username, displayName, password, description, pronouns, statusTitle, email } = req.body;
 
-    if (!username && !displayName) return res.status(400).send(searchError("C002"));
-    else if (!username) return res.status(400).send(searchError("C003"));
-    else if (!displayName) return res.status(400).send(searchError("C004"));
-    else if (!password) return res.status(400).send(searchError("C006"));
+    if (!username && !displayName) return res.status(400).send(searchErrorV2("C002", { userID: null }));
+    else if (!username) return res.status(400).send(searchErrorV2("C003", { userID: null }));
+    else if (!displayName) return res.status(400).send(searchErrorV2("C004", { userID: null }));
+    else if (!password) return res.status(400).send(searchErrorV2("C006", { userID: null }));
 
     const checkedUser = await checkUsername(username);
     if (checkedUser.error) return res.status(400).send(checkedUser.error);
@@ -34,8 +34,8 @@ router.post('/', async (req, res) => {
     if (newUserID.error) return res.status("400").send(newUserID.error);
 
     const foundUsername = await interactUserSchema.findOne({username});
-    if (!foundUsername) return res.status(403).send(searchError("G003"));
-    
+    if (!foundUsername) return res.status(403).send(searchErrorV2("G003", { userID: newUserID })); 
+
     const privUserPass = await setPassword({ userID: foundUsername._id, password })
     if (privUserPass.error) return res.status(400).send(privUserPass);
 

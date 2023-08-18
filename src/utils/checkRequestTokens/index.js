@@ -12,7 +12,6 @@ async function checkRequestTokens(req, withoutAnalytic) {
     if (userTokensCheck) if (userTokensCheck.authorized == false) return userTokensCheck;
 
     if (withoutAnalytic == true ) {
-        console.log("without analytics")
         return { "authrized" : true };
     } else {
         await analytics(req);

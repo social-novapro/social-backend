@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { checktime } = require('../../../../utils/checktime');
 const { checkUsername } = require('../../../../utils/checks');
@@ -26,16 +26,16 @@ router.put('/', async (req, res) => {
     ]
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userid});
-    if (!userIDCheck) return res.status(403).send(searchError("E004"));
+    if (!userIDCheck) return res.status(403).send(searchErrorV2("E004", { userID: userid }));
 
     var foundHeader = false
     for(const editableAttribute of editableAttributes) {
         if (headers[editableAttribute] || headers[editableAttribute.toLowerCase()]) foundHeader = true;
         // if(!headers.contains(editableAttribute))
-        // return res.status(400).send(searchError("E010"));
+        // return res.status(400).send(searchErrorV2("E010"));
     }
 
-    if (!foundHeader) return res.status(400).send(searchError("C011"));// searchError("E010")
+    if (!foundHeader) return res.status(400).send(searchErrorV2("C011", { userID: userid }));// searchErrorV2("E010", {})
 
     var lastEdited = 0;
     if (!userIDCheck.lastEdit) lastEdited = 0;
@@ -95,9 +95,9 @@ router.put('/', async (req, res) => {
     
     // if (headers.userage)  
 
-    if (acceptedChange!=true) res.status(400).send(searchError("D011"));
+    if (acceptedChange!=true) res.status(400).send(searchErrorV2("D011", { userID: userid }));
 
-    // if (timediff < 1800000) return res.status(400).send({"error" : `You must wait ${timeuntil} before changing again.`});//searchError("E004"))
+    // if (timediff < 1800000) return res.status(400).send({"error" : `You must wait ${timeuntil} before changing again.`});//searchErrorV2("E004", {}))
 
     await interactUserSchema.findOneAndUpdate(
         { _id: userid }, 
@@ -115,7 +115,7 @@ router.put('/', async (req, res) => {
     );
 
     const UserData = await interactUserSchema.findOne({ _id: userid });
-    if (!UserData) return res.status(404).send(searchError("E004"));//searchError("D002"))
+    if (!UserData) return res.status(404).send(searchErrorV2("E004", { userID: userid }));
     else return res.status(200).send({"new" : userIDCheck, "before" : UserData});
 })
 

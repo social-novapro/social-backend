@@ -2,7 +2,7 @@ const router = require('express').Router();
 const interactPostLikeSchema = require('../../../../schemas/postSchemas/interactPostLikeSchema');
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const { checkRequestTokens } = require('./../../../../utils/checkRequestTokens');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.delete('/:postID', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -10,7 +10,7 @@ router.delete('/:postID', async (req, res) => {
 
     const { postID } = req.params;
     const postFound = await interactPostSchema.findOne({ _id: postID});
-    if (!postFound) return res.status(404).send(searchError("K002"));
+    if (!postFound) return res.status(404).send(searchErrorV2("K002", { userID: req.headers.userid }));
 
     // look if user has liked the post
    // //const userLiked = await interactPostLikeSchema.findOne({ _id: postID, peopleLiked: { $elemMatch: { _id: tokenData.userID } } });

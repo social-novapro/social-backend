@@ -1,5 +1,5 @@
 const { checktime } = require('../checktime');
-const { searchError } = require('../searchError');
+const { searchError, searchErrorV2 } = require('../searchError');
 const { v4: uuidv4 } = require('uuid');
 
 const { SCHEMA_VERSIONS } = require('../../../config.json');
@@ -23,12 +23,12 @@ const MAX_POLL_OPTION_LENGTH = 50;
 // logic behind creating polls
 async function createPoll({ userID, pollOptions }) {
     const { pollName, timeLive, options } = pollOptions;
-    if (!pollName) return searchError("O001");
-    if (!options) return searchError("O004");
+    if (!pollName) return searchErrorV2("O001", { userID });
+    if (!options) return searchErrorV2("O004", { userID });
 
     // must have more than 2 options
-    if (options.length < 2) return searchError("O002", [{ name: "min", data: MIN_AMOUNT_OPTIONS }, { name: "max", data: MAX_AMOUNT_OPTIONS }])
-    if (options.length > MAX_AMOUNT_OPTIONS) return searchError("O003");
+    if (options.length < 2) return searchErrorV2("O002", { userID, options: [{ name: "min", data: MIN_AMOUNT_OPTIONS }, { name: "max", data: MAX_AMOUNT_OPTIONS }]})
+    if (options.length > MAX_AMOUNT_OPTIONS) return searchErrorV2("O003");
 
     const validateTitle = validTitle({ type: "poll", title: pollName})
     if (validateTitle.possible==false) return validateTitle;
@@ -51,10 +51,10 @@ async function createPoll({ userID, pollOptions }) {
 
     // must have more than 2 options
     if (validatedOptions.length < 2) return {
-        error: searchError("O006", [{ name: "min", data: MIN_AMOUNT_OPTIONS }]),
+        error: searchErrorV2("O006", [{ name: "min", data: MIN_AMOUNT_OPTIONS }]),
         errors: foundErrors
     }
-    if (validatedOptions.length > MAX_AMOUNT_OPTIONS) return searchError("O003", [{ name: "max", data: MAX_AMOUNT_OPTIONS }])
+    if (validatedOptions.length > MAX_AMOUNT_OPTIONS) return searchErrorV2("O003", { userID, options: [{ name: "max", data: MAX_AMOUNT_OPTIONS }]})
 
     const pollData = await createPollDB({ userID, pollName, timeLive: timeLive || 86400000 });
     if (!pollData) return { error: "no new poll data"}
@@ -66,7 +66,7 @@ async function createPoll({ userID, pollOptions }) {
         const { optionTitle } = option;
 
         const pollOption = await createPollOptionDB({ pollID: pollData._id, optionTitle });
-        if (!pollOption) return searchError("O007", [{ name : "title", data: optionTitle}])
+        if (!pollOption) return searchErrorV2("O007", { userID, options: [{ name : "title", data: optionTitle}]})
         pollOptionsData.push(pollOption);
     }
 
@@ -87,7 +87,7 @@ function timeOver({ pollData }) {
 
 // check if poll can be edited, possible:true=can, possible:false=cant
 function canEditPoll({ pollData, userID }) {
-    if (pollData.userID != userID) return { possible: false, error: searchError("O008")};
+    if (pollData.userID != userID) return { possible: false, error: searchError("O008", { userID })};
 
     const isTimeOver = timeOver({ pollData });
     if (isTimeOver.error) return isTimeOver;
@@ -97,12 +97,12 @@ function canEditPoll({ pollData, userID }) {
 
 // create poll option
 async function createNewPollOption({ userID, pollID, optionTitle }) {
-    if (!pollID) return searchError("O012");
-    if (!optionTitle) return searchError("O013");
+    if (!pollID) return searchErrorV2("O012", { userID });
+    if (!optionTitle) return searchErrorV2("O013", { userID });
     
     const pollData = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollData) return searchError("O011");
-    if (pollData.pollOptions.length > MAX_AMOUNT_OPTIONS) return searchError("O003", [ { name: "max", data: MAX_AMOUNT_OPTIONS }])
+    if (!pollData) return searchErrorV2("O011", { userID });
+    if (pollData.pollOptions.length > MAX_AMOUNT_OPTIONS) return searchErrorV2("O003", {userID, options: [ { name: "max", data: MAX_AMOUNT_OPTIONS }]})
 
     const canEdit = canEditPoll({ pollData, userID })
     if (canEdit.possible==false) return canEdit;
@@ -177,9 +177,9 @@ function validTitle({ type, title }) {
 // delete poll
 async function deletePoll({ userID, pollID }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return searchError("O019");
+    if (!pollFound) return searchErrorV2("O019", { userID });
 
-    if (pollFound.userID != userID) return searchError("O008");
+    if (pollFound.userID != userID) return searchErrorV2("O008", { userID });
 
     // finding each option
     for (const option of pollFound.pollOptions) {
@@ -228,7 +228,7 @@ async function deleteVote({ voteID }) {
 // change title of poll
 async function editPollTitle({ userID, pollID, pollName }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return searchError("O019");
+    if (!pollFound) return searchErrorV2("O019", { userID });
 
     const canEdit = canEditPoll({ pollData: pollFound, userID })
     if (canEdit.possible==false) return canEdit;
@@ -279,15 +279,15 @@ async function createPollVoteIndex({ pollID, userID, pollOptionID }) {
 // checks if theres already a vote index
 async function createPollVote({ pollID, userID, pollOptionID }) {
     // create a proper error
-    if (!pollID || !userID || !pollOptionID) return searchError("O014");
+    if (!pollID || !userID || !pollOptionID) return searchErrorV2("O014", { userID : userID ? userID : null });
 
-    const foundPoll = await findPoll({ pollID });
+    const foundPoll = await findPoll({ pollID, userID });
     if (foundPoll.error) return foundPoll;
 
     const isTimeOver = timeOver({ pollData: foundPoll });
     if (isTimeOver.error) return isTimeOver;
 
-    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchError("O020");
+    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchErrorV2("O020", { userID });
     
     // makes sure its only within poll
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
@@ -305,7 +305,7 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
     const userVoted = await checkUserVote({ userID, pollID });
     if (userVoted.voted) {
         // user already voted for same option
-        if (userVoted.foundVote.pollOptionID == pollOptionID) return searchError("O021");
+        if (userVoted.foundVote.pollOptionID == pollOptionID) return searchErrorV2("O021", { userID });
 
         // change vote
         const removedVote = await removeVoteDB({ userID, userVote: userVoted.foundVote });
@@ -323,13 +323,13 @@ async function createPollVote({ pollID, userID, pollOptionID }) {
 
 // api call to remove a vote
 async function removePollVote({ pollID, userID, pollOptionID }) {
-    const foundPoll = await findPoll({ pollID });
+    const foundPoll = await findPoll({ pollID, userID });
     if (foundPoll.error) return foundPoll;
 
     const isTimeOver = timeOver({ pollData: foundPoll });
     if (isTimeOver.error) return isTimeOver;
 
-    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchError("O020");
+    if (!foundPoll.pollOptions || !foundPoll.pollOptions[0]) return searchErrorV2("O020", { userID });
 
     // makes sure its only within poll
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
@@ -339,10 +339,10 @@ async function removePollVote({ pollID, userID, pollOptionID }) {
     const userVoted = await checkUserVote({ userID, pollID });
     if (userVoted.error) return userVoted;
     if (userVoted.voted) {
-        if (userVoted.foundVote.pollOptionID != pollOptionID) return searchError("O021");
+        if (userVoted.foundVote.pollOptionID != pollOptionID) return searchErrorV2("O021", { userID });
 
         // remove vote
-        const removedVote = await removeVoteDB({ userVote: userVoted.foundVote });
+        const removedVote = await removeVoteDB({ userID, userVote: userVoted.foundVote });
         if (removedVote.error) return removedVote;
 
         return { removedVote };
@@ -352,14 +352,15 @@ async function removePollVote({ pollID, userID, pollOptionID }) {
 }
 
 // removes current user vote
-async function removeVoteDB({ userVote }) {
-    if (!userVote) return searchError("O022");
+async function removeVoteDB({ userID, userVote }) {
+    if (!userVote) return searchErrorV2("O022", { userID });
 
     const removedVote = await removeVoteToIndexDB({ 
         pollVoteID: userVote._id, 
         pollIndexID: userVote.pollIndexID, 
         pollID: userVote.pollID, 
-        pollOptionID: userVote.pollOptionID 
+        pollOptionID: userVote.pollOptionID,
+        userID
     });
 
     if (removedVote?.error) return removedVote;
@@ -375,13 +376,13 @@ function findOption({ pollData, pollOptionID }) {
     if (!pollData || !pollData.pollOptions || !pollData.pollOptions[0]) return { error: "what" };
 
     const foundOption = pollData.pollOptions.find(option => option._id == pollOptionID);
-    if (!foundOption) return searchError("O020");
+    if (!foundOption) return searchErrorV2("O020", { userID });
     return foundOption;
 }
 
 // proper find user vote
 async function findUserVote({ userID, pollID }) {
-    const foundPoll = await findPoll({ pollID });
+    const foundPoll = await findPoll({ pollID, userID });
     if (foundPoll.error) return foundPoll;
 
     // could hide or not from public
@@ -398,7 +399,7 @@ async function checkUserVote({ userID, pollID }) {
     }
     else return {
         voted: false,
-        error: searchError("O024")
+        error: searchErrorV2("O024", { userID })
     }
 }
 
@@ -416,23 +417,23 @@ async function createNewVoteDB({ userID, pollID, pollIndexID, pollOptionID }) {
         timestamp: checktime()
     });
     
-    if (!newVote) return searchError("Z002", [{"name": "msg", "data" : "error creating new vote"} ]);
+    if (!newVote) return searchErrorV2("Z002", {userID, options: [{"name": "msg", "data" : "error creating new vote"} ]});
 
-    const addedVote = await addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID });
+    const addedVote = await addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID, userID });
     if (addedVote?.error) return addedVote;
     return newVote;
 }
 
 // add vote to index
-async function addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID }) {
-    const foundPoll = await findPoll({ pollID });
-    if (!foundPoll) return searchError("O019");
+async function addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID, userID }) {
+    const foundPoll = await findPoll({ pollID, userID });
+    if (!foundPoll) return searchErrorV2("O019", { userID });
 
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
     if (!foundOption) return foundOption;
 
     // if (!foundOption.currentIndexID) 
-    if (foundOption.currentIndexID != pollIndexID) return searchError("O022");
+    if (foundOption.currentIndexID != pollIndexID) return searchErrorV2("O022", { userID });
 
     await interactPollVoteIndexSchema.findOneAndUpdate(
         { _id: pollIndexID },
@@ -451,14 +452,14 @@ async function addVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID 
 }
 
 // remove vote from index
-async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID }) {
-    const foundPoll = await findPoll({ pollID });
-    if (!foundPoll) return searchError("O019");
+async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOptionID, userID }) {
+    const foundPoll = await findPoll({ pollID, userID });
+    if (!foundPoll) return searchErrorV2("O019", { userID });
 
     const foundOption = findOption({ pollData: foundPoll, pollOptionID });
     if (!foundOption) return foundOption;
 
-    if (foundOption.currentIndexID != pollIndexID) return searchError("O022");
+    if (foundOption.currentIndexID != pollIndexID) return searchErrorV2("O022", { userID });
 
     await interactPollVoteIndexSchema.findOneAndUpdate(
         { _id: pollIndexID },
@@ -468,7 +469,7 @@ async function removeVoteToIndexDB({ pollVoteID, pollIndexID, pollID, pollOption
     var amountVoted = 0;
     
     if (!foundOption.amountVoted) amountVoted = foundOption.amountVoted = 0;
-    else if (foundOption.amountVoted == 0) return searchError("O023");
+    else if (foundOption.amountVoted == 0) return searchErrorV2("O023", { userID });
     else amountVoted = foundOption.amountVoted - 1;
     
     await interactPollSchema.findOneAndUpdate(
@@ -484,16 +485,16 @@ async function getUserVotes({ userID }) {
 }
 
 // findPoll
-async function findPoll({ pollID }) {
+async function findPoll({ pollID, userID }) {
     const pollFound = await interactPollSchema.findOne({ _id: pollID });
-    if (!pollFound) return searchError("O019");
+    if (!pollFound) return searchErrorV2("O019", { userID : userID ? userID : null });
     return pollFound;
 }
 
 // get any polls from a certian user
 async function getPollsFromUser({ userID }) {
     const pollsFound = await interactPollSchema.find({ userID });
-    if (!pollsFound) return searchError("O019");
+    if (!pollsFound) return searchErrorV2("O019", { userID });
 
     return pollsFound;
 }

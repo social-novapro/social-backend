@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.get('/', async (req, res) => {
@@ -17,8 +17,8 @@ router.get('/', async (req, res) => {
     sendPosts = [ ]
     for (post of AllPosts) if (post.content) sendPosts.push(post);
     
-    if (!AllUsers) return res.status(404).send(searchError("C005"));
-    else if (!AllPosts) return res.status(404).send(searchError("D003"));
+    if (!AllUsers) return res.status(404).send(searchErrorV2("C005", { userID : req.headers.userid }));
+    else if (!AllPosts) return res.status(404).send(searchErrorV2("D003", { userID : req.headers.userid }));
     
     const sendData = {
         "posts" : sendPosts,

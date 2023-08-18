@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checktime } = require('../../../../utils/checktime');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { createNewPollOption, findPoll } = require('../../../../utils/polls');
@@ -12,15 +12,15 @@ router.post('/', async (req, res) => {
     // option_#num = option title
     const userID = req.headers.userid;
     const { optionAmount, pollID } = req.body;
-    if (!pollID) return res.status(400).send(searchError("O012"))
+    if (!pollID) return res.status(400).send(searchErrorV2("O012", { userID }))
 
-    const pollExists = await findPoll({ pollID });
+    const pollExists = await findPoll({ pollID, userID });
     if (pollExists.error) return res.status(404).send(pollExists)
 
     var options = [];
 
     for (var i = 0; i < optionAmount; i++) {
-        if (!req.body[`option_${i+1}`]) return res.status(400).send(searchError("O013"));
+        if (!req.body[`option_${i+1}`]) return res.status(400).send(searchErrorV2("O013", { userID }));
         
         const optionTitle = req.body[`option_${i+1}`];
 
@@ -28,8 +28,8 @@ router.post('/', async (req, res) => {
         options.push(newOption)
     }
 
-    const foundPoll = await findPoll({ pollID });
-    if (!options[0]) return res.status(400).send(searchError("O014"));
+    const foundPoll = await findPoll({ pollID, userID });
+    if (!options[0]) return res.status(400).send(searchErrorV2("O014", { userID }));
     else return res.status(200).send({ finalPoll: foundPoll, addedOptions: options, oldPoll: pollExists});
 });
 

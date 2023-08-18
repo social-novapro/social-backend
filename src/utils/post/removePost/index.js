@@ -33,7 +33,7 @@ async function removePost(postData) {
     await deletePostNotifications({ postID: postData._id });
 
     // pulls previously saved bookmarks
-    await pullPostBookmarks({ postID: postData._id });
+    await pullPostBookmarks({ postID: postData._id, userID: postData.userID });
     
     return true;
 };

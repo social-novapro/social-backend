@@ -1,6 +1,5 @@
 const interactUserPrivSchema = require('../../schemas/interactUserPrivSchema');
-const interactUserSchema = require('../../schemas/interactUserSchema');
-const { searchError } = require('../../utils/searchError');
+const { searchErrorV2 } = require('../../utils/searchError');
 const SHA1 = require("crypto-js/sha1");
 const { useID } = require("@dothq/id")
 
@@ -12,7 +11,7 @@ async function checkPassword({ userID, password }) {
         password = password of
     */
     const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
-    if (!foundPrivUser) return searchError("G004");
+    if (!foundPrivUser) return searchErrorV2("G004", { userID });
 
     var returnValue = {
         error: false,
@@ -25,17 +24,13 @@ async function checkPassword({ userID, password }) {
         const saltedPassword = SHA1(password).toString();
 
         if (key != saltedPassword) {
-            returnValue.error = true
-            returnValue.msg = searchError("G005")
-            return returnValue
+            return searchErrorV2("G005", { userID });
         }
         passwordCorrect=true
     }
     else {
         if (foundPrivUser.password != password) {
-            returnValue.error = true
-            returnValue.msg = searchError("G005")
-            return returnValue
+            return searchErrorV2("G005", { userID });
         }
         else {
             const foundUsername = await interactUserSchema.findOne({ _id: userID });
@@ -55,7 +50,7 @@ async function checkPassword({ userID, password }) {
     }
 
     if (passwordCorrect!=true) {
-        return searchError("G005");
+        return searchErrorV2("G005", { userID });
     }
 
     if (passwordCorrect == true){

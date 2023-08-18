@@ -1,12 +1,12 @@
 const interactPostBookmarks = require('../../schemas/postSchemas/interactPostBookmarks')
-const { searchError } = require('../searchError');
+const { searchErrorV2 } = require('../searchError');
 
 /**
  * deletes all bookmarks from a user
  */
 async function deleteAllBookmarks({ userID }) {
     const userBookmarks = await interactPostBookmarks.findOne({ _id: userID });
-    if (!userBookmarks) return searchError("K004");
+    if (!userBookmarks) return searchErrorV2("K004", { userID });
 
     await interactPostBookmarks.findOneAndDelete({ _id: userID });
 
@@ -16,12 +16,12 @@ async function deleteAllBookmarks({ userID }) {
 /**
  * removes all bookmarks of a certian post, for example after deletion
  */
-async function pullPostBookmarks({ postID }) {
+async function pullPostBookmarks({ postID, userID }) {
     const bookmarkData = await interactPostBookmarks.find({
         "saves._id" : postID,
     });
 
-    if (!bookmarkData || !bookmarkData[0]) return searchError("K005")
+    if (!bookmarkData || !bookmarkData[0]) return searchErrorV2("K005", { userID })
 
     const pulledBookmarks = [];
     for (const bookmark of bookmarkData) {
