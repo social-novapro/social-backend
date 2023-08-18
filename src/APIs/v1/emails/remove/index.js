@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { requestRemove } = require('../../../../utils/email/setEmail');
 
@@ -10,7 +10,7 @@ router.delete('/', async (req, res) => {
     const { email, password } = req.body;
     const { userid } = req.headers;
 
-    if (!email) return res.status(400).send(searchError("N004"));
+    if (!email) return res.status(400).send(searchErrorV2("N004", { userID: userid }));
 
     const emailRequest = await requestRemove({ currentEmail: email, userID: userid, password });
 

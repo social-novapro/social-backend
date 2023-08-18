@@ -2,11 +2,11 @@ const {pushNotification} = require('../pushNotification')
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const interactUserNotifications = require('../../../schemas/notifications/interactUserNotifications');
 const {emailNotification} = require('../emailNotification');
-const { searchError } = require('../../searchError');
+const { searchErrorV2 } = require('../../searchError');
 
 async function pushNewPost(userID, postID) {
     const hasFound = await interactSubscribeNotification.findOne({_id: userID})
-    if (!hasFound || !hasFound.subscribed || !hasFound.subscribed[0]) return searchError("L012")
+    if (!hasFound || !hasFound.subscribed || !hasFound.subscribed[0]) return searchErrorV2("L012", { userID })
 
     const pushNoti = await pushNotification({ userID, postID, type: 5 })
 

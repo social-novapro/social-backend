@@ -1,10 +1,10 @@
 // const {pushNotification} = require('../pushNotification')
 // const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const interactUserNotifications = require('../../../schemas/notifications/interactUserNotifications');
-const { searchError } = require('../../searchError');
+const { searchErrorV2 } = require('../../searchError');
 
 async function dismissNotification({userID, notificationID}) {
-    if (!notificationID) return searchError("L003");
+    if (!notificationID) return searchErrorV2("L003", { userID });
 
     await interactUserNotifications.findOneAndUpdate( 
         { _id: userID },
@@ -21,7 +21,7 @@ async function dismissNotification({userID, notificationID}) {
 
 async function dismissAllNotifications({ userID }) {
     const found = await interactUserNotifications.findOne({ _id: userID }); 
-    if (!found) return searchError("L001");
+    if (!found) return searchErrorV2("L001", { userID });
 
     // deletes notification schema, and all attached notifications for user
     // keeps original notifications 
@@ -29,7 +29,7 @@ async function dismissAllNotifications({ userID }) {
 
     const stillAlive = await interactUserNotifications.findOne({ _id: userID }); 
 
-    if (stillAlive) return searchError("L004");
+    if (stillAlive) return searchErrorV2("L004", { userID });
     else return {
         "success" : true,
         "data" : found

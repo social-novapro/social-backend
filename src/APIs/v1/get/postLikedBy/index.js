@@ -2,7 +2,7 @@ const router = require('express').Router();
 const interactPostLikeSchema = require('../../../../schemas/postSchemas/interactPostLikeSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.get('/:postID', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -16,7 +16,7 @@ router.get('/:postID', async (req, res) => {
         peopleLiked: []
     };
 
-    if (!foundPost) return res.status(404).send(searchError("D005"));
+    if (!foundPost) return res.status(404).send(searchErrorV2("D005", { userID: req.headers.userid }));
 
     for (const people of foundPost.peopleLiked) {
         const user = await interactUserSchema.findOne({_id: people._id});

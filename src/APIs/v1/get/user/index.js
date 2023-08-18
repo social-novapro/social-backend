@@ -2,7 +2,7 @@ const router = require('express').Router();
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.get('/:userID', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -13,7 +13,7 @@ router.get('/:userID', async (req, res) => {
     const PostData = await interactPostSchema.find({userID});
 
 
-    if (!UserData) return res.status(400).send(searchError("B001"));
+    if (!UserData) return res.status(400).send(searchErrorV2("B001", { userID: req.headers.userid }));
 
     var send = {
         included: {

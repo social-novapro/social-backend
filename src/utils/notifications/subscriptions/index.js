@@ -1,5 +1,5 @@
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification')
-const { searchError } = require('../../searchError');
+const { searchErrorV2 } = require('../../searchError');
 const { checktime } = require("../../checktime");
 
 /**
@@ -22,12 +22,12 @@ async function unsubFromAll({ userID }) {
  */
 async function subToUser({ userID, subUserID }) {
     var checkIfSubbed = await lookForSub(subUserID, userID)
-    if (checkIfSubbed.found) return searchError("L009");
+    if (checkIfSubbed.found) return searchErrorV2("L009", { userID });
     
     await pushToDB({ userID, subUserID });
 
     var sending = await lookForSub(subUserID, userID)
-    if (!sending.found) return searchError("L002");
+    if (!sending.found) return searchErrorV2("L002", { userID });
     else return sending;
 }
 
@@ -38,7 +38,7 @@ async function subToUser({ userID, subUserID }) {
 async function isSubbed({ userID, subUserID }) {
     var checkIfSubbed = await lookForSub(subUserID, userID)
     
-    if (!checkIfSubbed.found) return searchError("L005");
+    if (!checkIfSubbed.found) return searchErrorV2("L005", { userID });
     else return checkIfSubbed;
 }
 
@@ -52,7 +52,7 @@ async function getSubscriptions({ userID }) {
         "subscribed._id" : userID,
     });
 
-    if (!subData || !subData[0]) return searchError("L007")
+    if (!subData || !subData[0]) return searchErrorV2("L007", { userID })
     const returnData = [];
 
     for (const subbed of subData) {
@@ -78,14 +78,14 @@ async function unsubFromUser({ userID, subUserID }) {
     if (!subUserID) return;
 
     var checkIfSubbed = await lookForSub(subUserID, userID)
-    if (!checkIfSubbed.found) return searchError("L005");
+    if (!checkIfSubbed.found) return searchErrorV2("L005", { userID });
 
     await pullFromDB({ userID, subUserID});
 
     var sending = await lookForSub(subUserID, userID)
     if (!sending.found) return { "success" : true, "subdata": checkIfSubbed };
     
-    return searchError("L006");
+    return searchErrorV2("L006", { userID });
 }
 
 /**
@@ -125,7 +125,7 @@ async function lookForSub(subUserID, userID) {
         obj: {}
     };
     
-    if (!Subscribers) return searchError("L008")
+    if (!Subscribers) return searchErrorV2("L008", { userID })
     for (const sub of Subscribers.subscribed) {
         if (sub._id==userID) {
             sending.obj={

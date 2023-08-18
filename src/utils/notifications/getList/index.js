@@ -1,10 +1,10 @@
 const interactNotifications = require('../../../schemas/notifications/interactNotifications');
 const interactUserNotifications = require('../../../schemas/notifications/interactUserNotifications');
-const { searchError } = require('../../searchError');
+const { searchErrorV2 } = require('../../searchError');
 
 async function getNotifications({ userID }) {
     const foundNotifications = await interactUserNotifications.findOne({ _id: userID });
-    if (!foundNotifications || !foundNotifications.notifications) return searchError("L001");
+    if (!foundNotifications || !foundNotifications.notifications) return searchErrorV2("L001", { userID });
 
     var returnData = {
         amountFound: foundNotifications.notifications.length ? foundNotifications.notifications.length : 0,
@@ -16,7 +16,7 @@ async function getNotifications({ userID }) {
         if (fullNotif) returnData.notifications.push(fullNotif);
     };
 
-    if (!returnData.notifications || !returnData.notifications[0]) return searchError("L001");
+    if (!returnData.notifications || !returnData.notifications[0]) return searchErrorV2("L001", { userID });
 
     return returnData;
 };

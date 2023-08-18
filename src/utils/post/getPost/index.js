@@ -1,11 +1,11 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { findPoll, findUserVote } = require("../../polls");
-const { searchError } = require("../../searchError");
+const { searchErrorV2 } = require("../../searchError");
 const { isLiked } = require("../isLiked");
 
 async function getPostWithData({ userID, postID, post }) {
-    if (!postID && !post) return searchError("Q003")
+    if (!postID && !post) return searchErrorV2("Q003", { userID })
     var type = { "type": "post" };
     var postData = post;
     var userData = null;
@@ -13,7 +13,7 @@ async function getPostWithData({ userID, postID, post }) {
     var voteData = null;
 
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
-    if (!postData) return searchError("Q003")
+    if (!postData) return searchErrorV2("Q003", { userID })
     if (postData.content) {
         const foundLike = await isLiked({ postID: postData._id, userID });
         if (foundLike) postData.liked = true;
@@ -29,7 +29,7 @@ async function getPostWithData({ userID, postID, post }) {
 
         // has linked poll
         if (postData.pollID) {
-            const foundPoll = await findPoll({ pollID: postData.pollID });
+            const foundPoll = await findPoll({ pollID: postData.pollID, userID });
             if (foundPoll && !foundPoll.error) {
                 pollData = foundPoll;
                 type["poll"] = "included";
@@ -53,7 +53,7 @@ async function getPostWithData({ userID, postID, post }) {
         return dataSend;
     }
 
-    return searchError("Z001");
+    return searchErrorV2("Z001", { userID });
 }
 
 async function getPostBaiscData({ postID, postData }) {

@@ -2,7 +2,7 @@ const developerAppToken = require("../../../schemas/developer/developerAppToken"
 const developerToken = require("../../../schemas/developer/developerToken");
 const interactUserAccessSchema = require("../../../schemas/interactUserAccessSchema");
 const interactUserPrivSchema = require("../../../schemas/interactUserPrivSchema");
-const { searchError } = require("../../searchError");
+const { searchErrorV2 } = require("../../searchError");
 
 /**
  * get all access tokens from a client
@@ -100,7 +100,7 @@ async function deleteDevAppTokens({ devToken }) {
  */
 async function deleteDevAcc({ userID }) {
     const userPrivFound = await interactUserPrivSchema.findOne({ _id: userID });
-    if (userPrivFound.devToken == null) return searchError("A012");
+    if (userPrivFound.devToken == null) return searchErrorV2("A012", { userID });
 
     // user is dev
     // find and remove all apps (and accesses)user created

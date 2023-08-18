@@ -2,10 +2,10 @@ const router = require('express').Router();
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.get('/:userid', async (req, res) => {
-    return res.status(400).send(searchError("I002"));
+    return res.status(400).send(searchErrorV2("I002", { userID: req.headers.userid }));
     
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);

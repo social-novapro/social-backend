@@ -6,7 +6,7 @@ const { searchErrorV2 } = require("../searchError");
 
 async function allPostsFeed({ userID }) {
     const AllPosts = await interactPostSchema.find();
-    if (!AllPosts) return res.status(404).send(searchError("D003"));
+    if (!AllPosts) return res.status(404).send(searchErrorV2("D003", { userID }));
 
     const sendPosts = [ ];
 
