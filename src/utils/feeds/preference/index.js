@@ -1,7 +1,7 @@
 const { subscriptionFeed, allPostsFeed } = require("../");
 const interactUserFeedSchema = require("../../../schemas/user/interactUserFeedSchema")
 const {checktime} = require('../../checktime');
-const { searchError } = require("../../searchError");
+const { searchError, searchErrorV2 } = require("../../searchError");
 
 const defaultPref = "allPosts";
 
@@ -69,7 +69,7 @@ async function getPreference({ userID }) {
 
 async function setPreference({ newPref, userID, pref }) {
     if (!userID) return searchError("B009")
-    if (!pref) return searchError("Q001");
+    if (!pref) return searchErrorV2("Q001", { userID });
     
     if (newPref) {
         const newPref = await interactUserFeedSchema.create({
@@ -104,7 +104,7 @@ async function setPreference({ newPref, userID, pref }) {
  * deletes user feed preference
  */
 async function deleteFeedPreference({ userID }) {
-    if (!userID) return searchError("B009")
+    if (!userID) return searchErrorV2("B009", { userID })
     const foundPref = await getPreference({ userID });
     
     await interactUserFeedSchema.findOneAndDelete({ userID });

@@ -1,9 +1,9 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
-const { searchError } = require("../../searchError");
+const { searchErrorV2 } = require("../../searchError");
 
 async function getPostsFromUser({ userID }) {
     const foundPosts = await interactPostSchema.find({ userID });
-    if (foundPosts == null) return searchError("D013");
+    if (foundPosts == null) return searchErrorV2("D013", { userID });
     else return foundPosts;
 }
 

@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checktime } = require('../../../../utils/checktime');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { editPollTitle } = require('../../../../utils/polls');
@@ -16,7 +16,7 @@ router.put('/', async (req, res) => {
         if (editPoll.error) return res.status(400).send(editPoll)
         else return res.status(200).send(editPoll);
     } else {
-        return res.status(400).send(searchError("O015"));
+        return res.status(400).send(searchErrorV2("O015", { userID }));
     }
 });
 

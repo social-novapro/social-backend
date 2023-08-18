@@ -1,7 +1,7 @@
 const interactEmailVerificationSchema = require('../../../schemas/emails/interactEmailVerificationSchema');
 const interactEmailSettingSchema = require('../../../schemas/emails/interactEmailSettingSchema');
 const interactUserPrivSchema = require('../../../schemas/interactUserPrivSchema');
-const { searchError } = require('../../searchError');
+const { searchError, searchErrorV2 } = require('../../searchError');
 const { v4: uuidv4 } = require('uuid');
 const { emailSender } = require('../send');
 const { checktime } = require('../../checktime');
@@ -10,13 +10,15 @@ const { checkPassword } = require('../../userAuth');
 async function verifyEmail({ emailVerID, password }) {
     const emailReqFound = await interactEmailVerificationSchema.findOne({ verificationID: emailVerID });
     if (!emailReqFound) return searchError("N001");
-    if (emailReqFound.verified) return searchError("N009");
 
     const { userID } = emailReqFound;
 
+    if (emailReqFound.verified) return searchErrorV2("N009", { userID });
+
+
     // check password
     const passwordCorrect = await checkPassword({ userID, password });
-    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
+    if (!passwordCorrect || passwordCorrect.error) return searchErrorV2("G005", { userID });
     
     // verified = true for verificatino Schema
     const accept = await interactEmailVerificationSchema.findOneAndUpdate(

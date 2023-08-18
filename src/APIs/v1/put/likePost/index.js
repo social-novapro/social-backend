@@ -2,7 +2,7 @@ const router = require('express').Router();
 const interactPostLikeSchema = require('../../../../schemas/postSchemas/interactPostLikeSchema');
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const { checkRequestTokens } = require('./../../../../utils/checkRequestTokens');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 function checktime() {
     var d = new Date();
@@ -17,7 +17,7 @@ router.put('/:postID', async (req, res) => {
 
     const { postID } = req.params;
     const postFound = await interactPostSchema.findOne({ _id: postID});
-    if (!postFound) return res.status(404).send(searchError("K002"));
+    if (!postFound) return res.status(404).send(searchErrorV2("K002", { userID: req.headers.userid }));
 
     // look if user has liked the post
    // //const userLiked = await interactPostLikeSchema.findOne({ _id: postID, peopleLiked: { $elemMatch: { _id: tokenData.userID } } });
@@ -31,7 +31,7 @@ router.put('/:postID', async (req, res) => {
 
     if (postLikes)  {
         for (const like of postLikes.peopleLiked) {
-            if (like._id == userID) return res.status(400).send(searchError("D010"));
+            if (like._id == userID) return res.status(400).send(searchErrorV2("D010", { userID: req.headers.userid }));
             //operation = "sub";
         };
     };

@@ -1,8 +1,8 @@
 const router = require('express').Router();
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.get('/', async (req, res) => {
-    return res.status(400).send(searchError("I003"));
+    return res.status(400).send(searchErrorV2("I003", { userID: req.headers.userid }));
 });
 
 module.exports = router;

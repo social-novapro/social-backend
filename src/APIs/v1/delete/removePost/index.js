@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
-const {searchError} = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 // const interactRepliesSchema = require('../../../../schemas/postSchemas/interactRepliesSchema');
 const { removePost } = require('../../../../utils/post/removePost');
@@ -12,12 +12,12 @@ router.delete('/:postID', async (req, res) => {
     const { postID } = req.params;
     const { userid } = req.headers;
     
-    if (!postID) return res.status(400).send(searchError("D006")); //searchError("E003"))
+    if (!postID) return res.status(400).send(searchErrorV2("D006", {userID: userid}));
 
     // check if post exists
     const PostData = await interactPostSchema.findOne({_id: postID});
-    if (!PostData) return res.status(404).send(searchError("D001"));
-    else if (PostData.userID != userid) return res.status(403).send(searchError("D007"));
+    if (!PostData) return res.status(404).send(searchErrorV2("D001", {userID: userid}));
+    else if (PostData.userID != userid) return res.status(403).send(searchErrorV2("D007", {userID: userid}));
 
     const deleted = await removePost(PostData);
     if (deleted.error) return res.status(500).send("error");

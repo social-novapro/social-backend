@@ -1,6 +1,6 @@
 const interactEmailVerificationSchema = require('../../../schemas/emails/interactEmailVerificationSchema');
 const interactEmailSettingSchema = require("../../../schemas/emails/interactEmailSettingSchema");
-const { searchError } = require("../../searchError");
+const { searchErrorV2 } = require("../../searchError");
 
 const possibleOptions = [
     { name: "Notifications", option: "notifications", description: "Receive notifications" },
@@ -23,10 +23,10 @@ const possibleSettings = [
 async function settings({ userID, options }) {
     // options = [ { option: "notifications", value: true }]
     const foundVerification = await interactEmailVerificationSchema.findOne({ userID: userID });
-    if (!foundVerification) return searchError("N027")
+    if (!foundVerification) return searchErrorV2("N027", { userID })
 
     const foundSettings = await interactEmailSettingSchema.findOne({ _id: userID });
-    if (!foundSettings) return searchError("N010");
+    if (!foundSettings) return searchErrorV2("N010", { userID });
 
     var foundOption = false;
     var foundOptions = {};
@@ -39,7 +39,7 @@ async function settings({ userID, options }) {
         validOptions[option.option] = true;
     }
 
-    if (!foundOption) return searchError("N025");
+    if (!foundOption) return searchErrorV2("N025", { userID });
 
     await interactEmailSettingSchema.findOneAndUpdate(
         { _id: userID },

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const interactBrandAccountSchema = require('../../../../schemas/user/interactBrandAccountSchema');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { checktime } = require('../../../../utils/checktime');
 
@@ -33,7 +33,7 @@ router.put('/', async (req, res) => {
         "4" : 4
     }
     const userIDCheck = await interactUserSchema.findOne({ _id: userid });
-    if (!userIDCheck) return res.status(403).send(searchError("E004"));
+    if (!userIDCheck) return res.status(403).send(searchErrorV2("E004", { userID: userid }));
     if (!userIDCheck.brandAccount) return res.status(403).send({"error" : "is not brand account"});
 
     const foundAddingUserID = await interactUserSchema.findOne({ _id: addingUserID});
@@ -62,7 +62,7 @@ router.put('/', async (req, res) => {
     //     }
     // }
 
-    if (!foundHeader) return res.status(400).send({"error" : "access type not accepted"});// searchError("E010")
+    if (!foundHeader) return res.status(400).send({"error" : "access type not accepted"})
 
 
     const currenttime = checktime();
@@ -71,7 +71,7 @@ router.put('/', async (req, res) => {
     //     reason: {},
     //     types: []
     // }
-    // if (timediff < 1800000) return res.status(400).send({"error" : `You must wait ${timeuntil} before changing again.`});//searchError("E004"))
+    // if (timediff < 1800000) return res.status(400).send({"error" : `You must wait ${timeuntil} before changing again.`})
     // const beforeSchema = await interactBrandAccountSchema({ _id: userid, _id: { $in : users }})
     const beforeSchema = await interactBrandAccountSchema.findOne({_id: userid})
     const foundUser = beforeSchema.users.find(({ _id }) => _id==addingUserID);
@@ -92,7 +92,7 @@ router.put('/', async (req, res) => {
     );
 
     const UserData = await interactBrandAccountSchema.findOne({ _id: userid });
-    if (!UserData) return res.status(404).send(searchError("E004"));//searchError("D002"))
+    if (!UserData) return res.status(404).send(searchErrorV2("E004", { userID: userid }))
     else return res.status(200).send({"new" : userIDCheck, "before" : UserData});
 });
 

@@ -3,7 +3,7 @@ const { newDeveloperToken } = require('../../../../utils/developer/create/devTok
 const developerToken = require('../../../../schemas/developer/developerToken');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.post('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -13,13 +13,13 @@ router.post('/', async (req, res) => {
     const userID = userid;
     // const { userID } = req.params;
 
-    if (!userID) return res.status(400).send(searchError("B009"));
+    if (!userID) return res.status(400).send(searchErrorV2("B009", { userID }));
 
     const userData = await interactUserSchema.findOne({_id: userID});
-    if (!userData) return res.status(400).send(searchError("C009"));
+    if (!userData) return res.status(400).send(searchErrorV2("C009", { userID }));
 
     const tokenSearch = await developerToken.findOne({userID});
-    if (tokenSearch) return res.status(400).send(searchError("A009"));
+    if (tokenSearch) return res.status(400).send(searchErrorV2("A009", { userID }));
 
     const newDevToken = await newDeveloperToken(userID);
     const newTokenData = await developerToken.findOne({ _id: newDevToken }); 

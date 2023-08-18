@@ -12,7 +12,7 @@ const { deleteDevAcc, deleteUserAccesses } = require('../../developer/delete');
 const { deleteAllBookmarks } = require('../../bookmarks');
 const { deleteEmailDBs } = require('../../email/setEmail');
 const { unsubFromAll } = require('../../notifications/subscriptions');
-const { searchError } = require('../../searchError');
+const { searchError, searchErrorV2 } = require('../../searchError');
 const { checktime, timeSinceEpoch } = require('../../checktime');
 const { emailSender } = require('../../email/send');
 const { current, demoEmailAdr } = require("../../../../config.json");
@@ -25,14 +25,14 @@ const { deleteFeedPreference } = require('../../feeds/preference');
  * user requests to delete, makes an email
  */
 async function requestDelete({ userID, password }) {
-    if (!password) return searchError("Z002", [{ name: "msg", data: "no passsword provided"}] );
+    if (!password) return searchErrorV2("Z002", { userID, options: [{ name: "msg", data: "no passsword provided"}]} );
     
     const passwordCorrect = await checkPassword({ userID: userID, password: password });
-    if (!passwordCorrect || passwordCorrect.error) return searchError("G005");
+    if (!passwordCorrect || passwordCorrect.error) return searchErrorV2("G005", { userID });
 
     const foundVer = await interactEmailVerificationSchema.findOne({ userID });
-    if (!foundVer) return searchError("P001");
-    if (!foundVer.verified) return searchError("P002");
+    if (!foundVer) return searchErrorV2("P001", { userID });
+    if (!foundVer.verified) return searchErrorV2("P002", { userID });
 
     var delAccVerID = uuidv4();
     await interactEmailVerificationSchema.findOneAndUpdate({ 
@@ -258,7 +258,7 @@ async function deleteUser({ userID, username }) {
  */
 async function deletePublicUser({ userID }) {
     const foundUser = await interactUserSchema.findOne({ _id: userID });
-    if (!foundUser) return searchError("P007")
+    if (!foundUser) return searchErrorV2("P007", { userID })
 
     const deletedUser = await interactUserSchema.findOneAndDelete({ _id: userID })
 
@@ -297,7 +297,7 @@ async function deleteDev({ userID }) {
  */
 async function deletePosts({ userID }) {
     const foundPosts = await getPostsFromUser({ userID });
-    if (!foundPosts || foundPosts.error) return searchError("P008");
+    if (!foundPosts || foundPosts.error) return searchErrorV2("P008", { userID });
 
     const data = [];
 
