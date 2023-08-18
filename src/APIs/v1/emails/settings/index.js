@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
 const { settings, possibleOptions } = require('../../../../utils/email/settings/');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 /**
  * get possible email settings
@@ -24,7 +24,7 @@ router.put('/', async (req, res) => {
         foundOptions.push(option);
     };
     
-    if (!foundOptions[0]) return searchError("N025");
+    if (!foundOptions[0]) return searchErrorV2("N025", { userID });
 
     const returnData = await settings({ userID, options: foundOptions });
 

@@ -11,8 +11,8 @@ function searchErrorV2(errorCode, { userID, options, usedAPIversion, lookup }) {
         if (APIVersion.API == apiVersionLookup) {
             for (error of APIVersion.errorCodes) {
                 if (error.code == errorCode){
-                    if (error.options && error.options[0]) return exportErrorV2({ error: textReplacements({ error, optionsInput: options }), userID, lookup });
-                    else return exportErrorV2({ error, userID, lookup });
+                    if (error.options && error.options[0]) return exportErrorV2({ error: textReplacements({ error, optionsInput: options }), userID : userID ? userID : null, lookup });
+                    else return exportErrorV2({ error, userID : userID ? userID : null, lookup });
                 }
             };
         };
@@ -43,7 +43,7 @@ function searchError(errorCode, options, usedAPIversion) {
 function exportErrorV2({ error, userID, lookup }) {
     const { code, msg } = error;
     
-    if (!lookup) saveErrorToDB({ errorCode: code, errorMsg: msg, userID });
+    if (!lookup) saveErrorToDB({ errorCode: code, errorMsg: msg, userID, version: 2 });
 
     return { code, msg, error: true };
 }
@@ -52,7 +52,7 @@ function exportErrorV2({ error, userID, lookup }) {
 function exportError(error) {
     const { code, msg } = error;
 
-    saveError({ code, msg, userID: "Unknown - V1 search error export "});
+    saveError({ code, msg, userID: "Unknown - V1 search error export ", version: 1 });
 
     return { code, msg, error: true };
 }

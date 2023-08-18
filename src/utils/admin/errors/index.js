@@ -9,13 +9,13 @@ const { v4: uuidv4 } = require("uuid");
     resolving should be done by same user who is reviewing 
 
     can have an override review, which changes who is reviewing the error issue
+    if reviewerror gets reactivated, then start a new review process
 
     to change maybe
         reviewError() could auto activate override, instead of giving error right away
 
-
+    possible: return username?
     todo
-    if reviewerror gets reactivated, then start a new review process
 */
 
 /* public function to set a error to resolved */
@@ -39,9 +39,11 @@ async function resolveError({ errorID, adminID }) {
 async function reviewError({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
+
     const foundError = await findErrorIssue({ errorID, adminID });
     if (foundError.error) return foundError;
     if (foundError.reviewedBy) return searchErrorV2("R011", { userID: adminID });
+
     await reviewErrorDB({ errorID, adminID });
 
     const updatedError = await interactAdminErrorSchema.findOne({ _id: errorID })
@@ -57,9 +59,9 @@ async function overrideError({ errorID, adminID }) {
     if (foundError.error) return foundError;
 
     if (!foundError.reviewedBy) return searchErrorV2("R010", { userID, adminID });
-    if (foundError.reviewedBy == adminID) return searchErrorV2("R009", { userID: adminID });
+    if (foundError.reviewedBy == adminID && !foundError.resolved) return searchErrorV2("R009", { userID: adminID });
 
-    await updateErrorHistoryDB({ errorID, reviewedBy: foundError.reviewedBy, reviewTimestamp: foundError.reviewTimestamp })
+    await updateErrorHistoryDB({ errorID, reviewedBy: foundError.reviewedBy, reviewTimestamp: foundError.reviewTimestamp, resolvedTimestamp : foundError.resolved ? foundError.resolvedTimestamp : null })
     
     await reviewErrorDB({ errorID, adminID });
 
@@ -99,12 +101,14 @@ async function reviewErrorDB({ errorID, adminID }) {
     }, {
         inReview: true,
         reviewedBy: adminID,
-        reviewTimestamp: checktime()
+        reviewTimestamp: checktime(),
+        resolved: false,
+        resolvedTimestamp: null
     })
 }
 
 /* pushes previous review data to db */
-async function updateErrorHistoryDB({ errorID, reviewedBy, reviewTimestamp}) {
+async function updateErrorHistoryDB({ errorID, reviewedBy, reviewTimestamp, resolvedTimestamp }) {
     await interactAdminErrorSchema.findOneAndUpdate({ 
         _id: errorID, 
     }, { $push : { 
@@ -112,7 +116,8 @@ async function updateErrorHistoryDB({ errorID, reviewedBy, reviewTimestamp}) {
             _id: uuidv4(),
             reviewBy: reviewedBy,
             reviewStart: reviewTimestamp,
-            reviewEnd: checktime()
+            reviewEnd: checktime(),
+            resolvedTimestamp: resolvedTimestamp ? resolvedTimestamp : null
         }
     }}, {
         upsert: true

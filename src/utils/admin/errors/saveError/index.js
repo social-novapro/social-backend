@@ -11,12 +11,13 @@ var currentIndex = null;
 var currentIndexID = null;
 
 /* saves error to the db */
-async function saveErrorToDB({ errorCode, errorMsg, userID }) {
+async function saveErrorToDB({ errorCode, errorMsg, userID, version }) {
     const errorID = uuidv4();
 
     await interactAdminErrorSchema.create({
         _id: errorID,
-        userID: userID || "unknown",
+        userID: userID ? userID : "unknown",
+        errorVersion: version,
         timestamp: checktime(),
         errorCode,
         errorMsg,
