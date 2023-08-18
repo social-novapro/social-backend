@@ -33,6 +33,7 @@ async function checkPassword({ userID, password }) {
             return searchErrorV2("G005", { userID });
         }
         else {
+            const foundUsername = await interactUserSchema.findOne({ _id: userID });
             const saltedPassword = `${useID(2)}:${SHA1(password).toString()}`
     
             await interactUserPrivSchema.findOneAndUpdate({
@@ -56,6 +57,28 @@ async function checkPassword({ userID, password }) {
         returnValue.correctPassword = true
         return returnValue
     }
+
+    return searchError("G005");
 }
 
-module.exports = { checkPassword };
+async function setPassword({ userID, password }) {
+    const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
+    if (!foundPrivUser) return searchError("G004");
+
+    var passwordCorrect = false;
+    if (foundPrivUser.salted) {
+        const [salt, key] = foundPrivUser.password.split(":");
+        const saltedPassword = SHA1(password).toString();
+        if (key != saltedPassword) return searchError("G005");
+        passwordCorrect=true
+    }
+    else {
+        if (foundPrivUser.password != password) return searchError("G005");
+        passwordCorrect=true
+    }
+
+    if (!passwordCorrect) return searchError("G005");
+    else return foundPrivUser;
+}
+
+module.exports = { checkPassword, setPassword };
