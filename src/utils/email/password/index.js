@@ -4,12 +4,36 @@ const { checkPassword, setPassword } = require("../../userAuth");
 const { checktime } = require("../../checktime");
 const { searchError } = require("../../searchError");
 
-async function requestForgotPass({ }) {
+async function requestForgotPass({ email }) {
+    if (!email) return searchError("Z002", [{ name: "msg", data: "no email provided while changing password"}] );
 
+    const foundEmailVer = await interactEmailVerificationSchema.findOne({ email });
+    if (!foundEmailVer) return searchError("N014");
+    const {userID} = foundEmailVer;
+    // will still allow if not verified, due to forgot password
+    
+    const passVerID = await createPassVerID({ emailID: foundEmailVer._id, action: "forget" });
+    await sendEmailForgotPass({ email: foundEmailVer.email, userID, passVerID })
+
+    return { "status" : "success" };
 }
 
-async function confirmForgotPass({ }) {
+async function confirmForgotPass({ passVerID }) {
+    if (!passVerID) return searchError("Z002", [{ name: "msg", data: "no passVerID provided"}] );
+    
+    const foundEmailVer = await interactEmailVerificationSchema.findOne({ replacePassVerID: passVerID });
+    if (!foundEmailVer) return searchError("N014");
 
+    const { email, userID } = foundEmailVer;
+
+    // sets new password
+    const newPass = uuidv4()
+    const setPass = await setPassword({ userID, newPass });
+    if (setPass.error) return setPass;
+
+    await emailConfirmForgotPassword({ email, userID, newPassword: newPass })
+    
+    return { "status" : "success", "msg" : "Check your email for the new password." };
 }
 
 /*
@@ -23,6 +47,7 @@ async function requestChangePass({ userID, password }) {
 
     const foundEmailVer = await interactEmailVerificationSchema.findOne({ userID });
     if (!foundEmailVer) return searchError("N014");
+    if (!foundEmailVer.verified) return searchError("N028")
     
     const passwordCorrect = await checkPassword({ userID, password});
     if (passwordCorrect.error) return passwordCorrect;
@@ -42,14 +67,14 @@ async function confirmChangePass({ passVerID, newPass, oldPass }) {
     const foundEmailVer = await interactEmailVerificationSchema.findOne({ replacePassVerID: passVerID });
     if (!foundEmailVer) return searchError("N014");
 
-    const { userID } = foundEmailVer;
-
+    const { userID, email } = foundEmailVer;
+    
     const passwordCorrect = await checkPassword({ userID, oldPass });
     if (passwordCorrect.error) return passwordCorrect;
 
     const setPass = await setPassword({ userID, newPass });
     if (setPass.error) return setPass;
-
+    await emailConfirmChangePassword({ email, userID })
     return { "status" : "success" };
 }
 
@@ -69,7 +94,51 @@ async function createPassVerID({ emailID, action }) {
     return verificationID;
 }
 
-// send password verification
+// send password change confirmation
+async function emailConfirmChangePassword({ email, userID }) {
+    const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
+    
+    await emailSender({
+        users: [{
+            email: email,
+            userID: userID,
+            bbc: false
+        }],
+        type: 0,
+        subject: "Password Updated",
+        content: `Your password has been updated. Open: ${mainURL} to proceed to Interact. Thank you.`,
+        htmlElement: {
+            h1: "Password Updated",
+            p: `Your password was updated, you can now proceed to Interact, and it is recommended to change the password after logging back in.`,
+            a: `${mainURL}`,
+        }
+    });
+
+    return { "status": "success"  };
+}
+
+// send password forgot confirmation
+async function emailConfirmForgotPassword({ email, userID, newPassword }) {
+    await emailSender({
+        users: [{
+            email: email,
+            userID: userID,
+            bbc: false
+        }],
+        type: 0,
+        subject: "Password Updated",
+        content: `Your password has been updated. Your new password is ${newPassword} Open: ${mainURL} to proceed to Interact. Thank you.`,
+        htmlElement: {
+            h1: "Password Updated",
+            p: `Your password was updated to <b>${newPassword}</b> please proceed to Interact, and it is recommended to change the password after logging back in.`,
+            a: `${mainURL}`,
+        }
+    });
+
+    return { "status": "success"  };
+}
+
+// send password forgot verification
 async function sendEmailForgotPass({ email, userID, passVerID }) {
     const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
     const verURL = `${mainURL}/emails/?forgotPassword=${passVerID}/`;
@@ -85,8 +154,8 @@ async function sendEmailForgotPass({ email, userID, passVerID }) {
         subject: "Forgot Password Interact",
         content: `Please update your password. Open: ${verURL} to verify. Thank you.`,
         htmlElement: {
-            h1: "Verify your email at Interact",
-            p: "Please verify your email",
+            h1: "Confirm forget password.",
+            p: "Please update your password",
             a: `${verURL}`,
         }
     });
@@ -95,7 +164,7 @@ async function sendEmailForgotPass({ email, userID, passVerID }) {
 }
 
 
-// send password verification
+// send password change verification
 async function sendEmailChangePass({ email, userID, passVerID }) {
     const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
     const verURL = `${mainURL}/emails/?replacePassword=${passVerID}/`;
@@ -111,8 +180,8 @@ async function sendEmailChangePass({ email, userID, passVerID }) {
         subject: "Change Password Interact",
         content: `Please update your password. Open: ${verURL} to verify. Thank you.`,
         htmlElement: {
-            h1: "Verify your email at Interact",
-            p: "Please verify your email",
+            h1: "Confirm change password.",
+            p: "Please update your password",
             a: `${verURL}`,
         }
     });

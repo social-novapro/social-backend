@@ -7,7 +7,8 @@ async function authV1(req, res, next) {
     if ( 
         req.originalUrl.startsWith('/v1/get/analyticTrend') ||
         req.originalUrl.startsWith('/v1/emails/requests') ||
-        req.originalUrl.startsWith('/v1/users/public')
+        req.originalUrl.startsWith('/v1/users/public') || 
+        req.originalUrl.startsWith('/v1/auth/password/requests')
     ) {
         console.log("authV1: bypassing auth")
         return next();
@@ -15,7 +16,9 @@ async function authV1(req, res, next) {
         req.originalUrl == '/v1/auth/userLogin' || 
         req.originalUrl == '/v1/auth/userLogin/' ||
         req.originalUrl == '/v1Priv/post/newUser' ||
-        req.originalUrl == '/v1Priv/post/newUser/'
+        req.originalUrl == '/v1Priv/post/newUser/' || 
+        req.originalUrl == '/v1/auth/password/forgot' ||
+        req.originalUrl == '/v1/auth/password/forgot/'
     ) {
         console.log("authV1: bypassing user auth")
         const { devtoken, apptoken } = req.headers;
