@@ -58,27 +58,44 @@ async function checkPassword({ userID, password }) {
         return returnValue
     }
 
-    return searchError("G005");
+    return searchErrorV2("G005", { userID });
 }
-
-async function setPassword({ userID, password }) {
+async function quickCheckPassword({ userID, password }) {
     const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
-    if (!foundPrivUser) return searchError("G004");
+    if (!foundPrivUser) return searchErrorV2("G004", { userID });
 
     var passwordCorrect = false;
     if (foundPrivUser.salted) {
         const [salt, key] = foundPrivUser.password.split(":");
         const saltedPassword = SHA1(password).toString();
-        if (key != saltedPassword) return searchError("G005");
+        if (key != saltedPassword) return searchErrorV2("G005", { userID });
         passwordCorrect=true
     }
     else {
-        if (foundPrivUser.password != password) return searchError("G005");
+        if (foundPrivUser.password != password) return searchErrorV2("G005", { userID });
         passwordCorrect=true
     }
 
-    if (!passwordCorrect) return searchError("G005");
+    if (!passwordCorrect) return searchErrorV2("G005", { userID });
     else return foundPrivUser;
 }
 
-module.exports = { checkPassword, setPassword };
+async function setPassword({ userID, password }) {
+    const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
+    if (!foundPrivUser) return searchErrorV2("G004", { userID });
+
+    const saltedPassword = `${useID(2)}:${SHA1(password).toString()}`;
+
+    await interactUserPrivSchema.findOneAndUpdate({
+        _id: userID
+    }, {        
+        salted: true,
+        password: saltedPassword
+    }, {
+        upsert: true
+    });
+
+    return { "success" : true };
+}
+
+module.exports = { checkPassword, quickCheckPassword, setPassword };

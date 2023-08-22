@@ -3,6 +3,8 @@ const { v4: uuidv4 } = require("uuid");
 const { checkPassword, setPassword } = require("../../userAuth");
 const { checktime } = require("../../checktime");
 const { searchError } = require("../../searchError");
+const { emailSender } = require('../send/')
+const { current } = require("../../../../config.json");
 
 async function requestForgotPass({ email }) {
     if (!email) return searchError("Z002", [{ name: "msg", data: "no email provided while changing password"}] );
@@ -48,6 +50,9 @@ async function requestChangePass({ userID, password }) {
     const foundEmailVer = await interactEmailVerificationSchema.findOne({ userID });
     if (!foundEmailVer) return searchError("N014");
     if (!foundEmailVer.verified) return searchError("N028")
+    // could have it reject if already should change pass
+    // currently it doesnt reject, as if it fails you can resend it
+    //if (foundEmailVer.shouldChangePass) return searchError("N029")
     
     const passwordCorrect = await checkPassword({ userID, password});
     if (passwordCorrect.error) return passwordCorrect;
@@ -59,22 +64,24 @@ async function requestChangePass({ userID, password }) {
     return { "status" : "success" };
 }
 
-async function confirmChangePass({ passVerID, newPass, oldPass }) {
+async function confirmChangePass({ passVerID, newPass, conNewPass, curPass }) {
     if (!passVerID) return searchError("Z002", [{ name: "msg", data: "no passVerID provided"}] );
     if (!newPass) return searchError("Z002", [{ name: "msg", data: "new passsword was not provided"}] );
-    if (!oldPass) return searchError("Z002", [{ name: "msg", data: "old passsword was not provided"}] );
+    if (!conNewPass) return searchError("Z002", [{ name: "msg", data: "confirmation passsword was not provided"}] );
+    if (newPass != conNewPass) return searchError("Z002", [{ name: "msg", data: "new password and confirmation passsword was not equal"}] );
+    if (!curPass) return searchError("Z002", [{ name: "msg", data: "old passsword was not provided"}] );
     
     const foundEmailVer = await interactEmailVerificationSchema.findOne({ replacePassVerID: passVerID });
     if (!foundEmailVer) return searchError("N014");
 
     const { userID, email } = foundEmailVer;
     
-    const passwordCorrect = await checkPassword({ userID, oldPass });
+    const passwordCorrect = await checkPassword({ userID, password: curPass });
     if (passwordCorrect.error) return passwordCorrect;
 
-    const setPass = await setPassword({ userID, newPass });
+    const setPass = await setPassword({ userID, password: newPass });
     if (setPass.error) return setPass;
-    await emailConfirmChangePassword({ email, userID })
+    await emailConfirmChangePassword({ email, userID });
     return { "status" : "success" };
 }
 
