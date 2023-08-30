@@ -30,11 +30,11 @@ async function confirmForgotPass({ passVerID }) {
 
     // sets new password
     const newPass = uuidv4()
-    const setPass = await setPassword({ userID, newPass });
+    const setPass = await setPassword({ userID, password: newPass });
     if (setPass.error) return setPass;
 
     await emailConfirmForgotPassword({ email, userID, newPassword: newPass })
-    
+    await removePassVerID({ emailID: foundEmailVer._id });
     return { "status" : "success", "msg" : "Check your email for the new password." };
 }
 
@@ -82,7 +82,22 @@ async function confirmChangePass({ passVerID, newPass, conNewPass, curPass }) {
     const setPass = await setPassword({ userID, password: newPass });
     if (setPass.error) return setPass;
     await emailConfirmChangePassword({ email, userID });
+    await removePassVerID({ emailID: foundEmailVer._id});
     return { "status" : "success" };
+}
+
+async function removePassVerID({ emailID }) {
+    await interactEmailVerificationSchema.findOneAndUpdate({
+        _id: emailID
+    }, {
+        _id: emailID,
+        shouldForgotPass: false,
+        shouldChangePass: false,
+        replacePassVerID: null,
+        timestampReplacePass: null
+    })
+
+    return true;
 }
 
 async function createPassVerID({ emailID, action }) {
@@ -126,6 +141,8 @@ async function emailConfirmChangePassword({ email, userID }) {
 
 // send password forgot confirmation
 async function emailConfirmForgotPassword({ email, userID, newPassword }) {
+    const mainURL = current == "prod" ? `https://interact.novapro.net` : "http://localhost:5500";
+
     await emailSender({
         users: [{
             email: email,

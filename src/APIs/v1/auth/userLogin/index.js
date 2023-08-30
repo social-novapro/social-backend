@@ -7,7 +7,7 @@ const { createAccessToken } = require('../../../../utils/user/createAccessToken'
 const SHA1 = require("crypto-js/sha1");
 const { useID } = require("@dothq/id");
 const interactEmailVerificationSchema = require('../../../../schemas/emails/interactEmailVerificationSchema');
-const {checkPassword} = require('../../../../utils/userAuth/');
+const {checkPassword, checkTypeLogin} = require('../../../../utils/userAuth/');
 
 router.get('/', async (req, res) => {
     const { devtoken, apptoken, username, password } = req.headers;
@@ -15,40 +15,19 @@ router.get('/', async (req, res) => {
     if (!username) return res.status(403).send(searchErrorV2("G001"), { userID: username });
     if (!password) return res.status(403).send(searchErrorV2("G002"), { userID: username });
 
-    // if email regex
-    const emailRegex = /\S+@\S+\.\S+/;
-    const emailUsed = emailRegex.test(username) ? true : false;
-
     const tokenData = await checkDevTokens(devtoken, apptoken);
     if (tokenData.authorized === false) return res.status(401).send(tokenData);
 
-    var foundUserID = null;
-    var usernameFound = null;
-    var foundUser = null;
-    // username login
-    if (!emailUsed) {
-        const foundUsername = await interactUserSchema.findOne({ username });
-        if (!foundUsername) return res.status(403).send(searchErrorV2("G003", { userID: username }));
 
-        foundUserID = foundUsername._id;
-        usernameFound = foundUsername.username;
-        foundUser = foundUsername;
-    }
+    const checkLoginUsername = await checkTypeLogin({ username });
+    if (checkLoginUsername.error) return res.status(403).send(checkLoginUsername);
 
-    // email login
-    if (emailUsed) {
-        const email = username;
-        const foundEmailUser = await interactEmailVerificationSchema.findOne({ email });
-        if (!foundEmailUser) return res.status(403).send(searchErrorV2("G003", { userID: "unknown" }));
-        if (foundEmailUser.verified != true) return res.status(403).send(searchErrorV2("G006"), { userID: foundEmailUser.userID });
+    const { 
+        foundUserID,
+        usernameFound,
+        foundUser
+    } = checkLoginUsername;
 
-        const foundUsername = await interactUserSchema.findOne({ _id: foundEmailUser.userID });
-        if (!foundUsername) return res.status(403).send(searchErrorV2("G003"), { userID: foundEmailUser._id });
-
-        foundUserID = foundUsername._id;
-        usernameFound = foundUsername.username;
-        foundUser = foundUsername;
-    }
   
     const foundPassword = await checkPassword({ userID: foundUserID, password });
     if (foundPassword.error) return res.status(403).send(foundPassword);
