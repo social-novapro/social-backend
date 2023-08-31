@@ -4,7 +4,8 @@ const errorCodes = require('../errorCodes.json');
 
 
 /* updated searchError, so is easier to mange more external values */
-function searchErrorV2(errorCode, { userID, options, usedAPIversion, lookup }) {
+function searchErrorV2(errorCode, data) {
+    var { userID, options, usedAPIversion, lookup } = data || {};
     const apiVersionLookup = usedAPIversion || LATEST_API;
 
     for (APIVersion of errorCodes.APIversions) {
