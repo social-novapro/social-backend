@@ -8,6 +8,7 @@ const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
 const SHA1 = require("crypto-js/sha1");
 const { setEmail } = require('../../../../utils/email/setEmail');
+const { quickCheckPassword } = require('../../../../utils/userAuth');
 
 router.post('/', async (req, res) => {
     const tokenData = await checkDevTokens(req.headers.devtoken, req.headers.apptoken);
@@ -33,33 +34,17 @@ router.post('/', async (req, res) => {
     if (newUserID.error) return res.status("400").send(newUserID.error);
 
     const foundUsername = await interactUserSchema.findOne({username});
-    if (!foundUsername) return res.status(403).send(searchErrorV2("G003", { userID: newUserID }));
-    
-    const foundPrivUser = await interactUserPrivSchema.findOne({_id: foundUsername._id});
-    if (!foundPrivUser) return res.status(403).send(searchErrorV2("G004", { userID: newUserID }));
+    if (!foundUsername) return res.status(403).send(searchErrorV2("G003", { userID: newUserID })); 
 
-    var passwordCorrect = false;
-    if (foundPrivUser.salted) {
-        const [salt, key] = foundPrivUser.password.split(":");
-        const saltedPassword = SHA1(password).toString();
-        if (key != saltedPassword) return res.status(403).send(searchErrorV2("G005", { userID: newUserID }));
-        passwordCorrect=true
-    }
-    else {
-        if (foundPrivUser.password != password) return res.status(403).send(searsearchErrorV2chError("G005", { userID: newUserID }));
-        passwordCorrect=true
-    }
+    const privUserPass = await quickCheckPassword({ userID: foundUsername._id, password })
+    if (privUserPass.error) return res.status(400).send(privUserPass);
 
-    if (!passwordCorrect) return res.status(403).send(searchErrorV2("G005", { userID: newUserID }));
-    
     if (email) {
         await setEmail({ email, userID: foundUsername._id, password });
         // no error handling done
     }
-
-
-
-    const accessTokenFound = await createAccessToken(foundPrivUser._id, foundPrivUser.userToken, apptoken);
+ 
+    const accessTokenFound = await createAccessToken(privUserPass._id, privUserPass.userToken, apptoken);
 
     const sendData = {
         "login" : true,

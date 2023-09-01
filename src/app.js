@@ -33,10 +33,11 @@ test()*/
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-var mongoURL
+const { MONGO_URL_PROD, MONGO_URL_DEV } = process.env;
 
-if (config.current == "dev") mongoURL = config.dev.mongo_url;
-else mongoURL = config.prod.mongo_url;
+var mongoURL
+if (config.current == "prod") mongoURL = MONGO_URL_PROD;
+else mongoURL = MONGO_URL_DEV;
 
 mongoose.connect(mongoURL, {
     useNewUrlParser: true,

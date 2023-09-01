@@ -601,6 +601,10 @@
                     "msg" : "Email was not verified, please verify before editing settings"
                 },
                 {
+                    "code" : "N028",
+                    "msg" : "Email is not verified, please verify email before changing password."
+                },
+                {
                     "code" : "O001",
                     "msg" : "Please insert a poll name."
                 },

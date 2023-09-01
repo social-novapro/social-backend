@@ -28,7 +28,7 @@ async function createPoll({ userID, pollOptions }) {
 
     // must have more than 2 options
     if (options.length < 2) return searchErrorV2("O002", { userID, options: [{ name: "min", data: MIN_AMOUNT_OPTIONS }, { name: "max", data: MAX_AMOUNT_OPTIONS }]})
-    if (options.length > MAX_AMOUNT_OPTIONS) return searchErrorV2("O003");
+    if (options.length > MAX_AMOUNT_OPTIONS) return searchErrorV2("O003", { userID });
 
     const validateTitle = validTitle({ type: "poll", title: pollName})
     if (validateTitle.possible==false) return validateTitle;

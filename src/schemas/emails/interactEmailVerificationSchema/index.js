@@ -62,8 +62,14 @@ const interactEmailVerificationSchema = mongoose.Schema({
     // delete account
     shouldDelAcc: nonreqBool,
     deleteAccountVerID: nonreqString, // delAccVerID
-    timestampDeleteAccount: nonreqNum
+    timestampDeleteAccount: nonreqNum,
+
     // change password - do in future pr
+    // forgot password 
+    shouldForgotPass: nonreqBool, // if user knows password
+    shouldChangePass: nonreqBool, // if user does not know the password
+    replacePassVerID: nonreqString, // passVerID
+    timestampReplacePass: nonreqNum
 });
 
 
