@@ -2,10 +2,10 @@
     "current" : "prod",
     "demoEmailAdr" : "daniel@novapro.net",
     "dev" : {
-        "mongo_url" : "mongodb://localhost:27017/Kate"
+        "mongo_url" : "deprecated"
     },
     "prod" : {
-        "mongo_url" : "mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate" 
+        "mongo_url" : "deprecated" 
     },
     "PORT" : 5002,
     "LATEST_API" : "v1",
