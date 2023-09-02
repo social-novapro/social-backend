@@ -5,11 +5,13 @@ const deleteAPI = require('./delete');
 const putAPI = require('./put');
 const authAPI = require('./auth');
 const adminAPI = require('./admin');
+
 const polls = require('./polls');
 const emails = require('./emails');
 const users = require('./users');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
+const alert = require('./alert');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -26,5 +28,7 @@ router.use('/users', users);
 router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
+router.use('/admin', adminAPI);
+router.use('/alert', alert);
 
 module.exports = router;

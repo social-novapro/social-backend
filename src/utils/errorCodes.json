@@ -71,6 +71,10 @@
                     "code" : "R",
                     "msg" : "Error with admin actions."
                 },
+                {                        
+                    "code" : "M",
+                    "msg" : "Error with Alert System"
+                },
                 {
                     "code" : "Z",
                     "msg" : "Unknown errors."
@@ -491,6 +495,50 @@
                 {
                     "code" : "L012",
                     "msg" : "There was no subscriptions found for user."
+                },
+                }
+                  "code" : "M001",
+                    "msg" : "No content for alert was provided, and no user was provided."
+                },
+                {
+                    "code" : "M002",
+                    "msg" : "No content for alert was provided."
+                },
+                {
+                    "code" : "M003",
+                    "msg" : "No user was provided."
+                },
+                {
+                    "code" : "M004",
+                    "msg" : "The provided user is not admin."
+                },
+                {
+                    "code" : "M005",
+                    "msg" : "The provided user was not able to create an alert. Insufficient permissions."
+                },
+                {
+                    "code" : "M006",
+                    "msg" : "The provided alertID was not found in the database."
+                },
+                {
+                    "code" : "M007",
+                    "msg" : "The provided indexID was not found in the database"
+                },
+                {
+                    "code" : "M008",
+                    "msg" : "You can not delete an alert that is not yours."
+                },
+                {
+                    "code" : "M009",
+                    "msg" : "You can not delete an alert that was uploaded over 30 minutes ago, please archive instead."
+                },
+                {
+                    "code" : "M010",
+                    "msg" : "The provided systemID was not found in the database."
+                },
+                {
+                    "code" : "M011",
+                    "msg" : "The system does not have any current alerts."
                 },
                 {
                     "code" : "N001",
