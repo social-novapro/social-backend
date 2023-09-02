@@ -1,10 +1,11 @@
 {
     "current" : "prod",
+    "demoEmailAdr" : "daniel@novapro.net",
     "dev" : {
-        "mongo_url" : "mongodb://localhost:27017/Kate"
+        "mongo_url" : "deprecated"
     },
     "prod" : {
-        "mongo_url" : "mongodb://novauser:ladPOCKS@mongo.xnet.com:27017/Kate" 
+        "mongo_url" : "deprecated" 
     },
     "PORT" : 5002,
     "LATEST_API" : "v1",
@@ -20,6 +21,11 @@
         },
         "notifications" : {
                 
+        },
+        "polls" : {
+            "interactPollSchema" : 1.00,
+            "interactPollVoteSchema" : 1.00,
+            "interactPollVoteIndexSchema" : 1.00
         },
         "interactPostSchema" : "1.000",
         "interactUserSchema" : "1.000",

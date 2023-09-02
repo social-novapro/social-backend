@@ -2,7 +2,7 @@ const router = require('express').Router();
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const { newPostIndex } = require('../../../../utils/post/createPost');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkPostContent } = require('../../../../utils/checks');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { pushNewPost } = require('../../../../utils/notifications/pushNewPost'); 
@@ -14,61 +14,39 @@ router.post('/', async (req, res) => {
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
     
     const { content, userID } = req.body
-    if (userID != req.headers.userid) return res.status(400).send(searchError("E009"));
+    if (userID != req.headers.userid) return res.status(400).send(searchErrorV2("E009", { userID: req.headers.userid }));
     var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : undefined;
     var replyingPostID = req.body.replyingPostID ? req.body.replyingPostID : undefined;
-
+    var linkedPollID = req.body.linkedPollID ? req.body.linkedPollID : undefined;
+   
     // marked.setOptions({
     //     gfm: true,
     //     breaks: true,
     //     sanitizer: (text) => sanitizeHtml(text),
     // });
     
-    if (!content && !userID) return res.status(400).send(searchError("E001"));
-    else if (!content) return res.status(400).send(searchError("E002"));
-    else if (!userID) return res.status(400).send(searchError("E003"));
+    if (!content && !userID) return res.status(400).send(searchErrorV2("E001", { userID }));
+    else if (!content) return res.status(400).send(searchErrorV2("E002", { userID }));
+    else if (!userID) return res.status(400).send(searchErrorV2("E003", { userID }));
 
     const checkedContent = await checkPostContent(content);
     if (checkedContent) return res.status(400).send(checkedContent.error);
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID});
   
-    if (!userIDCheck) return res.status(403).send(searchError("E004"));
+    if (!userIDCheck) return res.status(403).send(searchErrorV2("E004", { userID }));
 
     // const markdownContent = marked.parse(content)
     // const markdownContent = sanitizeHtml(marked.parse(content))
     // console.log(markdownContent)
 
-    const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID});
-    if (replyingPostID) {
-        const replyingPost = await interactPostSchema.findOne({ _id: replyingPostID });
-        if (!replyingPost) return res.status(404).send(searchError("D002"));
-
-        await interactPostSchema.findOneAndUpdate(
-            { _id: replyingPostID },
-            {
-                totalReplies: replyingPost.totalReplies ? replyingPost.totalReplies++ : 1,
-            }
-        );  
-    };
-
-    if (quoteReplyPostID) {
-        const quoteReplyPost = await interactPostSchema.findOne({ _id: quoteReplyPostID });
-        if (!quoteReplyPost) return res.status(404).send(searchError("D002"));
-
-        await interactPostSchema.findOneAndUpdate(
-            { _id: quoteReplyPostID },
-            {
-                totalQuotes: quoteReplyPost.totalQuotes ? quoteReplyPost.totalQuotes++ : 1,
-            }
-        );
-    };
-
+    const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID, linkedPollID});
+    
     const PostData = await interactPostSchema.findOne({_id: postID});
-    if (!PostData) return res.status(404).send(searchError("D002"));
+    if (!PostData) return res.status(404).send(searchErrorV2("D002", { userID }));
 
     await pushNewPost(userID, postID)
     return res.status(200).send(PostData);
-})
+});
 
 module.exports = router;

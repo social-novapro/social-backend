@@ -21,7 +21,6 @@ router.get('/:userID', async (req, res) => {
     
     if (!FollowData) return res.status(404).send({"error" : "could not find user"})
     if (!FollowData[0]) return res.status(404).send({"error" : "User was not followed by anybody."})
-    // if (!UserData) return res.status(400).send(searchError("B001"));
 
     return res.status(200).send(FollowData);
 });

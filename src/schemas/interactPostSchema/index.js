@@ -12,6 +12,10 @@ const reqBool = {
     type: Boolean,
     required: true
 };
+const nonreqBool = {
+    type: Boolean,
+    required: false
+};
 
 const interactPostSchemaForQuote = mongoose.Schema({
     _id: reqString,
@@ -92,18 +96,22 @@ const interactPostSchema = mongoose.Schema({
     quotedUser: interactUserSchemaForQuote, // legacy
 
     isQuote: reqBool,
-    quoteData: postQuoteSchema,
+    quoteData: postQuoteSchema, // will remove
 
     isReply: reqBool,
-    replyData: postReplySchema,
-    replyIndexID: reqString,
+    replyData: postReplySchema, // will remove
+    replyIndexID: reqString, 
     
     deleted: reqBool,
+
+    hasPoll: reqBool,
+    pollID: reqString,
 
     hasMentions: reqBool,
     mentionData: [mentionDataSchema], // max 10 ideally
 
-    replyingPostID: reqString // legacy
+    replyingPostID: reqString, // legacy
+    liked: nonreqBool // this stays null, but is used to check if the user liked the post
 });
 
 

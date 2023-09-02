@@ -1,60 +1,45 @@
 const router = require('express').Router();
 const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken');
 const SHA1 = require("crypto-js/sha1");
-const { useID } = require("@dothq/id")
+const { useID } = require("@dothq/id");
+const interactEmailVerificationSchema = require('../../../../schemas/emails/interactEmailVerificationSchema');
+const {checkPassword, checkTypeLogin} = require('../../../../utils/userAuth/');
 
 router.get('/', async (req, res) => {
     const { devtoken, apptoken, username, password } = req.headers;
 
+    if (!username) return res.status(403).send(searchErrorV2("G001"), { userID: username });
+    if (!password) return res.status(403).send(searchErrorV2("G002"), { userID: username });
+
     const tokenData = await checkDevTokens(devtoken, apptoken);
     if (tokenData.authorized === false) return res.status(401).send(tokenData);
 
-    if (!username) return res.status(403).send(searchError("G001"));
-    if (!password) return res.status(403).send(searchError("G002"));
 
-    const foundUsername = await interactUserSchema.findOne({username});
-    if (!foundUsername) return res.status(403).send(searchError("G003"));
+    const checkLoginUsername = await checkTypeLogin({ username });
+    if (checkLoginUsername.error) return res.status(403).send(checkLoginUsername);
+
+    const { 
+        foundUserID,
+        usernameFound,
+        foundUser
+    } = checkLoginUsername;
+
+  
+    const foundPassword = await checkPassword({ userID: foundUserID, password });
+    if (foundPassword.error) return res.status(403).send(foundPassword);
+    if (foundPassword.correctPassword != true) return res.status(403).send(searchErrorV2("G005"), { userID: foundUserID });
     
-    const foundPrivUser = await interactUserPrivSchema.findOne({_id: foundUsername._id});
-    if (!foundPrivUser) return res.status(403).send(searchError("G004"));
-
-    var passwordCorrect = false;
-    if (foundPrivUser.salted) {
-        const [salt, key] = foundPrivUser.password.split(":");
-        const saltedPassword = SHA1(password).toString();
-
-        if (key != saltedPassword) return res.status(403).send(searchError("G005"));
-        passwordCorrect=true
-    }
-    else {
-        if (foundPrivUser.password != password) return res.status(403).send(searchError("G005"));
-        else {
-            const saltedPassword = `${useID(2)}:${SHA1(password).toString()}`
+    const foundPrivUser = await interactUserPrivSchema.findOne({_id: foundUserID });
+    if (!foundPrivUser) return res.status(403).send(searchErrorV2("G004"), { userID: foundUserID });
     
-            await interactUserPrivSchema.findOneAndUpdate({
-                _id: foundUsername._id
-            }, {        
-                salted: true,
-                password: saltedPassword
-            }, {
-                upsert: true
-            });
-        }
-
-        passwordCorrect=true
-    }
-
-    if (!passwordCorrect) return res.status(403).send(searchError("G005"));
-    
-    const accessTokenFound = await createAccessToken(foundPrivUser._id, foundPrivUser.userToken, apptoken);
-
+    const accessTokenFound = await createAccessToken(foundUserID, foundPrivUser.userToken, apptoken);
     const sendData = {
         "login" : true,
-        "publicData" : foundUsername,
+        "publicData" : foundUser,
         "accessToken" : accessTokenFound._id,
         "userToken" : accessTokenFound.userToken,
         "userID" : accessTokenFound.userID,

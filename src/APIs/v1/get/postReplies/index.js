@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const interactRepliesSchema = require('../../../../schemas/postSchemas/interactRepliesSchema');
-const {searchError} = require('../../../../utils/searchError');
+const {searchErrorV2} = require('../../../../utils/searchError');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const interactPostSchema = require('../../../../schemas/interactPostSchema');
 
@@ -11,8 +11,8 @@ router.get('/:postID', async (req, res) => {
     const { postID } = req.params;
     
     const postData = await interactPostSchema.findOne({_id: postID});
-    if (!postData) return res.status(404).send(searchError("D001"));
-    else if (!postData.replyIndexID) return res.status(404).send(searchError("D012"));
+    if (!postData) return res.status(404).send(searchErrorV2("D001", { userID: req.headers.userid }));
+    else if (!postData.replyIndexID) return res.status(404).send(searchErrorV2("D012", { userID: req.headers.userid }));
 
     const replyIndex = await interactRepliesSchema.findOne({ _id: postData.replyIndexID });
     const dataArr = [];
@@ -26,8 +26,6 @@ router.get('/:postID', async (req, res) => {
         'replies': dataArr
     }
 
-
-    // if (!PostData) return res.status(404).send(searchError("D001"));
     return res.status(200).send(dataSend);
 })
 

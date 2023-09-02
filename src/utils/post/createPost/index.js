@@ -5,6 +5,7 @@ const { checktime } = require('../../checktime');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const {pushQuotePost} = require('../../../utils/notifications/pustQuotePost');
 const interactRepliesSchema = require('../../../schemas/postSchemas/interactRepliesSchema');
+const { findPoll } = require('../../polls');
 
 async function newPostID() {
     const newID = uuidv4();
@@ -18,7 +19,7 @@ async function doubleCheckNewID(newID) {
 };
 
 async function newPostIndex(userID, data) {
-    const { content, quoteReplyPostID, replyingPostID } = data
+    const { content, quoteReplyPostID, replyingPostID, linkedPollID } = data
     const postID = await newPostID();
     const currentTime = checktime();
     // const newIndex = await newReplyIndex(postID);
@@ -42,13 +43,18 @@ async function newPostIndex(userID, data) {
 
     if (quoteReplyPostID) {
         const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
-        if (quotingPost) return quotingPostSetup(quotingPost, postID, userID);
-        else return res.status(404).send(searchError("D002"));
+        if (quotingPost) await quotingPostSetup(quotingPost, postID, userID);
+        // else return res.status(404).send(searchError("D002"));
     }
     if (replyingPostID) {
         const replyingPost = await interactPostSchema.findOne({_id: replyingPostID});
         if (replyingPost) await replyingPostSetup(replyingPost, postID, userID);
-        else return res.status(404).send(searchError("D002"));
+        // else return res.status(404).send(searchError("D002"));
+    }
+    if (linkedPollID) {
+        const foundPoll = await findPoll({pollID: linkedPollID, userID });
+        if (!foundPoll.error) await linkedPollSetup(linkedPollID, postID, userID);
+        // else return res.status(404).send(searchError("O000"));
     }
     
     return postID;
@@ -94,9 +100,23 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     await interactPostSchema.findOneAndUpdate({
         _id: postID
     }, {
+        isQuote: true,
         quoteReplyPostID: `${quotingPost ? quotingPost._id : null}`,
         quotedPost: quotingPost,
-        quotedUser: quotingUser
+        quotedUser: quotingUser,
+        quoteData : {
+            postID: quotingPost._id,
+            userID: quotingPost.userID
+        }
+    }, {
+        upsert: true
+    });
+
+    // add to the main post's quote count
+    await interactPostSchema.findOneAndUpdate({
+        _id: quotingPost._id//postID
+    }, {        
+        totalQuotes: quotingPost.totalQuotes ? quotingPost.totalQuotes + 1 : 1,
     }, {
         upsert: true
     });
@@ -145,6 +165,18 @@ async function replyingPostSetup(replyingPost, postID, userID) {
     }, {
         upsert: true
     })
+    return postID;
+}
+
+async function linkedPollSetup(linkedPollID, postID) {
+    // link the poll to the post
+    await interactPostSchema.findOneAndUpdate({
+        _id: postID
+    }, {     
+        hasPoll: true,   
+        pollID: linkedPollID
+    });
+
     return postID;
 }
 

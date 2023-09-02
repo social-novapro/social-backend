@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
-const { searchError } = require('../../../../utils/searchError');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.get('/:userID', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -10,7 +10,7 @@ router.get('/:userID', async (req, res) => {
     const { userID } = req.params;
     const UserData = await interactUserSchema.findOne({_id: userID});
 
-    if (!UserData) return res.status(400).send(searchError("B001"));
+    if (!UserData) return res.status(400).send(searchErrorV2("B001", { userID }));
     else return res.status(200).send(UserData);
 });
 

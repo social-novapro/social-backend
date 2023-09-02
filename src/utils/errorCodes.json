@@ -49,7 +49,27 @@
                 },
                 {
                     "code" : "L",
-                    "msg" : "Error with notifications"
+                    "msg" : "Error with notifications or subscriptions"
+                },
+                {
+                    "code" : "N",
+                    "msg" : "Error with emails"
+                },
+                {
+                    "code" : "O",
+                    "msg" : "Error with Polls"
+                },
+                {
+                    "code" : "P",
+                    "msg" : "Error with deleting account"
+                },
+                {
+                    "code" : "Q",
+                    "msg" : "Error with feeds"
+                },
+                {
+                    "code" : "R",
+                    "msg" : "Error with admin actions."
                 },
                 {                        
                     "code" : "M",
@@ -104,6 +124,10 @@
                 {
                     "code" : "A011",
                     "msg" : "You did not input an appname in the request to create an application."
+                },
+                {
+                    "code" : "A012",
+                    "msg" : "User was not a developer."
                 },
                 {
                     "code" : "B001",
@@ -206,6 +230,25 @@
                     "msg" : "Username does not reach rules"
                 },
                 {
+                    "code" : "C013",
+                    "msg" : "demoCreate- Please use only in developer backend mode."
+                },
+                {
+                    "code" : "C014",
+                    "msg" : "demoCreate- error creating user"
+                },
+                {
+                    "code" : "C015",
+                    "msg" : "error parsing json -demoCreate- for url: %url",
+                    "options" : [
+                        {
+                            "name" : "url",
+                            "replacement" : "%url",
+                            "default" : "null"
+                        }
+                    ]
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -254,6 +297,10 @@
                     "msg" : "Post has no replies"
                 },
                 {
+                    "code" : "D013",
+                    "msg" : "User has no posts"
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
@@ -290,12 +337,16 @@
                     "msg" : "The userID provided in header is not the same as userID in header."
                 },
                 {
+                    "code" : "E010",
+                    "msg" : "postID is required to edit a post."
+                },
+                {
                     "code" : "F001",
                     "msg" : "An error while creating a new User; Didn't provide argument for newUUID function."
                 },
                 {
                     "code" : "G001",
-                    "msg" : "no username provided"
+                    "msg" : "no username or email provided"
                 }, 
                 {
                     "code" : "G002",
@@ -311,8 +362,12 @@
                 }, 
                 {
                     "code" : "G005",
-                    "msg" : "password provided was incorreect"
+                    "msg" : "Password provided was incorreect"
                 }, 
+                {
+                    "code" : "G006",
+                    "msg" : "Unable to find email provided"
+                },
                 {
                     "code" : "H001",
                     "msg" : "You tried to delete a post that is not yours."
@@ -328,6 +383,30 @@
                 {
                     "code" : "I002",
                     "msg" : "not done route"
+                },
+                {
+                    "code" : "I003",
+                    "msg" : "Please use /v1/notifications/subscriptions instead of /v1/get/subscriptions."
+                },
+                {
+                    "code" : "I004",
+                    "msg" : "Please use /v1/notifications/sub instead of /v1/post/subUser."
+                },
+                {
+                    "code" : "I005",
+                    "msg" : "Please use /v1/notifications/unsub instead of /v1/delete/unsubUser."
+                },
+                {
+                    "code" : "I006",
+                    "msg" : "Please use /v1/notifications/dissmiss instead of /v1/delete/dismissNotification."
+                },
+                {
+                    "code" : "I007",
+                    "msg" : "Please use /v1/notifications/getList instead of /v1/get/notifications."
+                },
+                {
+                    "code" : "I008",
+                    "msg" : "Please use /v1/feeds/allPosts instead of /v1/get/allPosts."
                 },
                 {
                     "code" : "J001",
@@ -366,6 +445,10 @@
                     "msg" : "no bookmarks for this user found"
                 },
                 {
+                    "code" : "K005",
+                    "msg" : "There was no bookmark data found for this post."
+                },
+                {
                     "code" : "L001",
                     "msg" : "No found notifications for user."
                 },
@@ -374,7 +457,47 @@
                     "msg" : "Error while saving notification sub."
                 },
                 {
-                    "code" : "M001",
+                    "code" : "L003",
+                    "msg" : "There was no notificationID provided"
+                },
+                {
+                    "code" : "L004",
+                    "msg" : "Could not delete notifications properly."
+                },
+                {
+                    "code" : "L005",
+                    "msg" : "Client was not subscribed to the user"
+                },
+                {
+                    "code" : "L006",
+                    "msg" : "Unknown error while unsubscribing"
+                },
+                {
+                    "code" : "L007",
+                    "msg" : "No subscriptions found"
+                },
+                {
+                    "code" : "L008",
+                    "msg" : "No subs for user searching"
+                },
+                {
+                    "code" : "L009",
+                    "msg" : "Client was already subscribed to the user"
+                },
+                {
+                    "code" : "L010",
+                    "msg" : "There were no found notifications found for the post."
+                },
+                {
+                    "code" : "L011",
+                    "msg" : "There was no users notified about the post."
+                },
+                {
+                    "code" : "L012",
+                    "msg" : "There was no subscriptions found for user."
+                },
+                }
+                  "code" : "M001",
                     "msg" : "No content for alert was provided, and no user was provided."
                 },
                 {
@@ -418,8 +541,382 @@
                     "msg" : "The system does not have any current alerts."
                 },
                 {
+                    "code" : "N001",
+                    "msg" : "Could not find request for verification of email."
+                },
+                {
+                    "code" : "N002",
+                    "msg" : "There was no email linked to this account."
+                },
+                {
+                    "code" : "N003",
+                    "msg" : "email is already verified."
+                },
+                {
+                    "code" : "N004",
+                    "msg" : "Please provide an email address."
+                },
+                {
+                    "code" : "N005",
+                    "msg" : "Not a valid email address, please try again."
+                },
+                {
+                    "code" : "N006",
+                    "msg" : "Email is already in use."
+                },
+                {
+                    "code" : "N007",
+                    "msg" : "User is already in verification process. Please cancel current request first."
+                }, 
+                {
+                    "code" : "N008",
+                    "msg" : "Email is already in verification process by another user."
+                },
+                {
+                    "code" : "N009",
+                    "msg" : "User already authenticated"
+                },
+                {
+                    "code" : "N010",
+                    "msg" : "Email settings for this account was not found."
+                },
+                {
+                    "code" : "N011",
+                    "msg" : "Found email settings was not equal to provided email."
+                },
+                {
+                    "code" : "N012",
+                    "msg" : "Email in private schema was not equal to provided email."
+                },
+                {
+                    "code" : "N013",
+                    "msg" : "Email in verification schema is not equal to provided email."
+                },
+                {
+                    "code" : "N014",
+                    "msg" : "Email verification schema was not found."
+                },
+                {
+                    "code" : "N015",
+                    "msg" : "Error occured while creating email verification ID."
+                },
+                {
+                    "code" : "N016",
+                    "msg" : "Error occured while creating email settings."
+                },
+                {
+                    "code" : "N017",
+                    "msg" : "Email is aleady set to provided email."
+                },
+                {
+                    "code" : "N018",
+                    "msg" : "There was an error updating email verification"
+                },
+                {
+                    "code" : "N019",
+                    "msg" : "You got an error where email is not completed, or maybe check your email."
+                },
+                {
+                    "code" : "N020",
+                    "msg" : "There is no email in verification schema."
+                },
+                {
+                    "code" : "N021",
+                    "msg" : "Provided email is not equal to email in verification schema."
+                },
+                {
+                    "code" : "N022",
+                    "msg" : "Email is not verified, please verify email before removing. Or change email directly."
+                },
+                {
+                    "code" : "N023",
+                    "msg" : "Email already requested to be removed"
+                },
+                {
+                    "code" : "N024",
+                    "msg" : "Please add an amount of email settings to change."
+                },
+                {
+                    "code" : "N025",
+                    "msg" : "Please inset a valid setting to change."
+                },
+                {
+                    "code" : "N026",
+                    "msg" : "Did not find data to replace email in email ver schema."
+                },
+                {
+                    "code" : "N027",
+                    "msg" : "Email was not verified, please verify before editing settings"
+                },
+                {
+                    "code" : "N028",
+                    "msg" : "Email is not verified, please verify email before changing password."
+                },
+                {
+                    "code" : "O001",
+                    "msg" : "Please insert a poll name."
+                },
+                {
+                    "code" : "O002",
+                    "msg" : "Not enough options, min is %m, max is %ma",
+                    "options" : [
+                        {
+                            "name" : "min",
+                            "replacement" : "%m",
+                            "default" : 2
+                        }, {
+                            "name" : "max",
+                            "replacement" : "%ma",
+                            "default" : 10
+                        }
+                    ]
+                },
+                {
+                    "code" : "O003",
+                    "msg" : "To many options, limit to %m.",
+                    "options" : [
+                        {
+                            "name" : "max",
+                            "replacement" : "%m",
+                            "default" : 10
+                        }
+                    ]
+                },
+                {
+                    "code" : "O004",
+                    "msg" : "Please insert options"
+                },
+                {
+                    "code" : "O005",
+                    "msg" : "Option %o title not found.",
+                    "options" : [
+                        {
+                            "name" : "optionNum",
+                            "replacement" : "%o",
+                            "default" : ""
+                        }
+                    ]
+                },
+                {
+                    "code" : "O006",
+                    "msg" : "Not enough valid options, min is %m",
+                    "options" : [
+                        {
+                            "name" : "min",
+                            "replacement" : "%m",
+                            "default" : 2
+                        }
+                    ]
+                },
+                {
+                    "code" : "O007",
+                    "msg" : "An error accured while saving Poll Option %title",
+                    "options" : [
+                        {
+                            "name" : "title",
+                            "replacement" : "%title",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "O008",
+                    "msg" : "User not authorized to make changes to poll."
+                },
+                {
+                    "code" : "O009",
+                    "msg" : "The poll has ended."
+                },
+                {
+                    "code" : "O010",
+                    "msg" : "poll has been edited too recently"
+                },
+                {
+                    "code" : "O011",
+                    "msg" : "There was no poll found with the pollID"
+                },
+                {
+                    "code" : "O012",
+                    "msg" : "Please provide pollID"
+                },
+                {
+                    "code" : "O013",
+                    "msg" : "There was no option title provided"
+                },
+                {
+                    "code" : "O014",
+                    "msg" : "Unexpected Error"
+                },
+                {
+                    "code" : "O015",
+                    "msg" : "The new pollName not found"
+                },
+                {
+                    "code" : "O016",
+                    "msg" : "Title was not sent to validation"
+                },
+                {
+                    "code" : "O017",
+                    "msg" : "%type is to long, please be under %max_poll characters, message was: %title_l characters.",
+                    "options" : [
+                        {
+                            "name" : "type",
+                            "replacement" : "%type",
+                            "default" : "Poll title"
+                        },
+                        {
+                            "name" : "max_poll",
+                            "replacement" : "%max_poll",
+                            "default" : "Unknown"
+                        },
+                        {
+                            "name" : "title_length",
+                            "replacement" : "%title_l",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "O018",
+                    "msg" : "An unknown eror from validating titles. possibly the type name."
+                },
+                {
+                    "code" : "O019",
+                    "msg" : "The poll was not found."
+                },
+                {
+                    "code" : "O020",
+                    "msg" : "Could not find provided optionID for poll."
+                },
+                {
+                    "code" : "O021",
+                    "msg" : "User already voted for option."
+                },
+                {
+                    "code" : "O022",
+                    "msg" : "pollIndexID is not the same as the pollIndexID in the option ."
+                },
+                {
+                    "code" : "O023",
+                    "msg" : "AmountLike for option was lower than expected"
+                },
+                {
+                    "code" : "O024",
+                    "msg" : "The user has not voted."
+                },
+                {
+                    "code" : "O025",
+                    "msg" : "The poll has ended, user can no longer vote."
+                },
+                {
+                    "code" : "P001",
+                    "msg" : "Please set and verify your email before deleting your account."
+                },
+                {
+                    "code" : "P002",
+                    "msg" : "Please verify your email before deleting your account."
+                },
+                {
+                    "code" : "P003",
+                    "msg" : "Account was not previously set to be deleted."
+                },
+                {
+                    "code" : "P004",
+                    "msg" : "delAccVerID was invalid, try again with another code."
+                },
+                {
+                    "code" : "P005",
+                    "msg" : "Verification expired %time ago.",
+                    "options" : [
+                        {
+                            "name" : "time",
+                            "replacement" : "%time",
+                            "default" : "unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "P006",
+                    "msg" : "User is not a demo"
+                },
+                {
+                    "code" : "P007",
+                    "msg" : "User to be deleted was not found"
+                },
+                {
+                    "code" : "P008",
+                    "msg" : "User has no posts to be deleted"
+                },
+                {
+                    "code" : "Q001",
+                    "msg" : "No provided feed preference to set."
+                },
+                {
+                    "code" : "Q002",
+                    "msg" : "Provided feed preference was not valid"
+                },
+                {
+                    "code" : "Q003",
+                    "msg" : "There was no found post data"
+                },
+                {
+                    "code" : "R001",
+                    "msg" : "No errorID was provided."
+                },
+                {
+                    "code" : "R002",
+                    "msg" : "No admin userID was provided."
+                },
+                {
+                    "code" : "R003",
+                    "msg" : "Provided userID was not an admin was provided."
+                },
+                {
+                    "code" : "R004",
+                    "msg" : "The provided errorID was not found."
+                },
+                {
+                    "code" : "R005",
+                    "msg" : "There was no error index found"
+                },
+                {
+                    "code" : "R006",
+                    "msg" : "There was no found data with indexID provided"
+                },
+                {
+                    "code" : "R007",
+                    "msg" : "There was no index assigned to the admin index grouping."
+                },
+                {
+                    "code" : "R008",
+                    "msg" : "Only the reviewer can mark an error issue as resolved, please override or wait for reviewer to mark as resolved."
+                },
+                {
+                    "code" : "R009",
+                    "msg" : "Can not change reviewer of error issue, as admin is already reviewer."
+                },
+                {
+                    "code" : "R010",
+                    "msg" : "Error issue is not currently in review."
+                },
+                {
+                    "code" : "R011",
+                    "msg" : "Error issue is already in review, please override the reviewer first instead."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
+                },
+                {
+                    "code" : "Z002",
+                    "msg" : "Incorrectly added error: %errormsg",
+                    "options" : [
+                        {
+                            "name" : "msg",
+                            "replacement" : "%errormsg",
+                            "default" : "Unknown"
+                        }
+                    ]
                 }
             ]
         }
