@@ -183,6 +183,7 @@ async function deleteAlert({ alertID, userID }) {
     return alertExists.alert;
 };
 
+/* get current alert */
 async function getCurrentAlert({ systemID }) {
     const system = await interactAlertSystem.findOne({ _id: systemID || mainSystemID });
     if (!system) return searchError("M010");
@@ -197,6 +198,7 @@ async function getCurrentAlert({ systemID }) {
     };
 }
 
+/* get current index of alert*/
 async function getCurrentIndex({ systemID }) {
     const system = await interactAlertSystem.findOne({ _id: systemID || mainSystemID });
     if (!system) return searchError("M010");
@@ -211,11 +213,13 @@ async function getCurrentIndex({ systemID }) {
     };
 };
 
+/* get alerts by id */
 async function getAlert({ alertID }) {
     const alert = await checkIfAlertExists({alertID})
     return alert;
 }
 
+/* spec that is allowed to post and edit alerts */
 async function isUserAdimin({userID}) {
     const isAdmin = await interactAdminSchema.findOne({_id: userID});
     if (!isAdmin) return searchError("M004");
@@ -223,6 +227,7 @@ async function isUserAdimin({userID}) {
     else return true;
 };
 
+/* get new alert id */
 async function getNewAlertID() {
     const newID = uuidv4();
     const exists = await checkIfAlertExists({alertID: newID});
@@ -230,6 +235,7 @@ async function getNewAlertID() {
     else return newID;
 };
 
+/* check if alert exists */
 async function checkIfAlertExists({alertID}) {
     const alert = await interactAlertPost.findOne({_id: alertID});
     if (!alert) return searchError("M006");
@@ -239,6 +245,7 @@ async function checkIfAlertExists({alertID}) {
     };
 };
 
+/* get new alert index id */
 async function getNewAlertIndexID() {
     const newID = uuidv4();
     const exists = await checkIfIndexExists({alertIndexID: newID});
@@ -246,6 +253,7 @@ async function getNewAlertIndexID() {
     else return newID;
 }
 
+/* check if index exists */
 async function checkIfIndexExists({alertIndexID}) {
     const alert = await interactAlertPost.findOne({_id: alertIndexID});
     if (!alert) return searchError("M007");
@@ -255,6 +263,7 @@ async function checkIfIndexExists({alertIndexID}) {
     };
 }
 
+/* add alert to index */
 async function addAlertToIndex({alertID, indexID}) {
     await interactAlertIndex.findOneAndUpdate(
         { _id: indexID },
