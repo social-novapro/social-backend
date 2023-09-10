@@ -33,6 +33,7 @@ const interactAlertPost = mongoose.Schema({
     userID: reqString, // who posted alert
     postID: nonReqstring, // linked post?
     isArchived: reqBool,
+    archived_timestamp: nonReqNum,
     lastEdited: nonReqNum
 });
 

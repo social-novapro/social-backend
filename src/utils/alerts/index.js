@@ -6,6 +6,7 @@ const interactAdminSchema = require('../../schemas/admin/interactAdminSchema');
 const { v4: uuidv4 } = require('uuid');
 const { searchError } = require('../../utils/searchError');
 const { checktime } = require('../../utils/checktime');
+const { getPostWithData } = require('../../utils/post/getPost');
 
 const mainSystemID = "test2"
 
@@ -14,6 +15,15 @@ async function createAlert({userID, alertTitle, alertContent, timeToLive, postID
     if (!alertContent && !userID) return searchError("M001");
     if (!alertContent) return searchError("M002");
     if (!userID) return searchError("M003");
+
+
+    var usingPostID = false;
+    // check if postID exists
+    if (postID) {
+        const foundPost = await getPostWithData({postID})
+        
+        if (!foundPost.error) usingPostID = true;
+    }
 
 
     // check if user is admin
@@ -155,7 +165,8 @@ async function archiveAlert({ alertID, userID }) {
     await interactAlertPost.findOneAndUpdate({
         _id: alertID
     },{
-        isArchived: true
+        isArchived: true,
+        archived_timestamp: checktime()
     }, {
         upsert: true
     });
@@ -214,6 +225,28 @@ async function getCurrentIndex({ systemID }) {
     const index = await interactAlertIndex.findOne({ _id: system.currentIndex });
     if (!index) return searchError("M007");
     return index;
+};
+
+async function getCurrentFullIndex({ systemID }) {
+    const system = await interactAlertSystem.findOne({ _id: systemID || mainSystemID });
+    if (!system) return searchError("M010");
+    if (!system.currentIndex) return searchError("M011")
+
+    const index = await interactAlertIndex.findOne({ _id: system.currentIndex });
+    if (!index) return searchError("M007");
+
+    const alerts = []
+    for (let i = 0; i < index.alerts.length; i++) {
+        const alert = await interactAlertPost.findOne({ _id: index.alerts[i]._id });
+        if (alert) alerts.push(alert)
+    }
+
+    return {
+        _id: index._id,
+        previousIndex: index.previousIndex || null,
+        nextIndex: index.nextIndex || null,
+        alerts
+    }
 };
 
 /* get alerts by id */
@@ -285,5 +318,6 @@ module.exports = {
     archiveAlert,
     getCurrentAlert,
     getCurrentIndex, 
+    getCurrentFullIndex,
     getAlert
 };
