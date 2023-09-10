@@ -496,8 +496,8 @@
                     "code" : "L012",
                     "msg" : "There was no subscriptions found for user."
                 },
-                }
-                  "code" : "M001",
+                {
+                    "code" : "M001",
                     "msg" : "No content for alert was provided, and no user was provided."
                 },
                 {

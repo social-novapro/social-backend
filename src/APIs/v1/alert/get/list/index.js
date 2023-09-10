@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
 
     // get the current index
     const currentIndex = await alertFunctions.getCurrentIndex({systemID: null});
-    if (!currentIndex.success) return res.status(400).send(currentIndex);
+    if (currentIndex.error) return res.status(400).send(currentIndex);
     else return res.status(200).send(currentIndex);
 });
 
@@ -19,7 +19,7 @@ router.get('/:systemID', async (req, res) => {
 
     // get the current index
     const currentIndex = await alertFunctions.getCurrentIndex({systemID: req.query.systemID});
-    if (!currentIndex.success) return res.status(400).send(currentIndex);
+    if (currentIndex.error) return res.status(400).send(currentIndex);
     else return res.status(200).send(currentIndex);
 });
 

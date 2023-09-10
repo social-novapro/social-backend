@@ -23,11 +23,19 @@ async function createAlert({userID, alertTitle, alertContent, timeToLive, postID
 
     const ending_timestamp = getEndingTime({ timeToLive })
     // create alert
+
+    const currentIndex = await getCurrentIndex({ systemID })
+    //console.log(currentIndexID)
+    //const currentIndexID = await getNewAlertIndexID()
+    // if its over 50 make new index
+
+
     const newAlertID = await getNewAlertID();
     await interactAlertPost.create({
         _id: newAlertID,
         type: 0,
         title: alertTitle || null,
+        indexID: currentIndex._id,
         content: alertContent,
         publish_timestamp: checktime(),
         ending_timestamp,
@@ -38,8 +46,7 @@ async function createAlert({userID, alertTitle, alertContent, timeToLive, postID
     });
 
 
-    const currentIndexID = await getNewAlertIndexID()
-    await addAlertToIndex({alertID: newAlertID, indexID: currentIndexID})
+    await addAlertToIndex({alertID: newAlertID, indexID: currentIndex._id})
 
     // index
     // lookup alertsystem with systemID
@@ -66,7 +73,7 @@ async function createAlert({userID, alertTitle, alertContent, timeToLive, postID
             _id: systemID || mainSystemID,
             timestamp: checktime(),
             currentAlert: newAlertID,
-            currentIndex: currentIndexID
+            currentIndex: currentIndex._id
         });
     } else {
         await interactAlertSystem.updateOne({ _id: systemID || mainSystemID}, { currentAlert: newAlertID });
@@ -77,7 +84,7 @@ async function createAlert({userID, alertTitle, alertContent, timeToLive, postID
     // fetch alert
     const alert = await getAlert({alertID: newAlertID})
     const system = await interactAlertSystem.findOne({ _id: systemID})
-    const index = await interactAlertIndex.findOne({ _id: currentIndexID})
+    const index = await interactAlertIndex.findOne({ _id: currentIndex._id})
     return {
         success: true,
         alert,
@@ -206,11 +213,7 @@ async function getCurrentIndex({ systemID }) {
 
     const index = await interactAlertIndex.findOne({ _id: system.currentIndex });
     if (!index) return searchError("M007");
-
-    return {
-        success: true,
-        index
-    };
+    return index;
 };
 
 /* get alerts by id */

@@ -25,6 +25,7 @@ const interactAlertPost = mongoose.Schema({
     _id: reqString,
     type: reqNum, // wont be used yet, but could be used for unqiue styling
     systemID: reqString,
+    indexID: reqString,
     title: nonReqstring,
     content: reqString,
     publish_timestamp: reqNum,
