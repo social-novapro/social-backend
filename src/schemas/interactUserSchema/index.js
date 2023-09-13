@@ -24,6 +24,11 @@ const privacySettingSchema = mongoose.Schema({
     postReplyDefault: reqNum,
 });
 
+const colourThemeSchema = mongoose.Schema({
+    posts: reqString,
+    // can add more later
+});
+
 // 1: public, 2: friends of friends, 3: private
 
 const interactUserSchema = mongoose.Schema({
@@ -34,6 +39,7 @@ const interactUserSchema = mongoose.Schema({
     description: reqString,
     pronouns: reqString,
     statusTitle: reqString,
+    colourTheme: colourThemeSchema, // hex code
     lastEdit: reqNum,
     creationTimestamp: reqString,
     followerCount: reqNum,

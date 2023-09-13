@@ -245,6 +245,17 @@
                     ]
                 },
                 {
+                    "code" : "C016",
+                    "msg" : "Attibute %d provided was not an hex codenwhile editing theme.",
+                    "options" : [
+                        {
+                            "name" : "attribute",
+                            "replacement" : "%d",
+                            "default" : "(unknown)"
+                        }
+                    ]
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
