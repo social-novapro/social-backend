@@ -2,7 +2,8 @@ const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { searchErrorV2 } = require("../../searchError");
 
 const possibleThemes = [
-    { name: "Post", option: "posts", description: "Change the theme of the your posts" }
+    { name: "Post", option: "posts", description: "This will be the post theme of your posts." },
+    { name: "Background", option: "background", description: "This will be the main theme of your client." }
 ]
 
 function isHexColor (hex) {
