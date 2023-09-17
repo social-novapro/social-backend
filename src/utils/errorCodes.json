@@ -903,6 +903,10 @@
                     "msg" : "There was no valid options to edit theme."
                 },
                 {
+                    "code" : "S009",
+                    "msg" : "Can not change name of theme, invalid permission."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

@@ -1,5 +1,14 @@
 const router = require('express').Router();
-const { editTheme, getTheme, getThemes, possibleThemes, getUserTheme, createTheme, getUserThemes, getCurrentTheme, setUserTheme } = require('../../../../../utils/user/editUser');
+const { 
+    possibleThemes, 
+    createTheme, 
+    editTheme, 
+    getTheme, 
+    getUserThemes, 
+    getCurrentTheme, 
+    setUserTheme,
+    changeThemeName
+} = require('../../../../../utils/user/editUser');
 
 /* get possible options */
 router.get('/possible', (req, res) => {
@@ -23,14 +32,30 @@ router.post('/submit/create', async (req, res) => {
     return res.status(200).send(done);
 });
 
+/* changes theme name */
+router.put('/submit/name/', async (req, res) => {
+    const userID = req.headers.userid;
+    const { name, themeID } = req.body;
+
+    const done = await changeThemeName({ 
+        userID, 
+        name, 
+        themeID,
+    });
+
+    if (done.error) return res.status(400).send(done);
+    return res.status(200).send(done);
+});
+
 /* submits changes to theme */
 router.put('/submit/:themeID', async (req, res) => {
     const userID = req.headers.userid;
+    const themeID = req.params.themeID;
 
     const done = await editTheme({ 
         userID, 
         options: req.body, 
-        themeID: req.params.themeID
+        themeID,
     });
 
     if (done.error) return res.status(400).send(done);

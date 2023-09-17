@@ -66,13 +66,30 @@ async function setAsDefaultTheme({ userID, themeID }) {
     return themeData;
 }
 
+/* changes theme name */
+async function changeThemeName({ userID, themeID, name }) {
+    const themeData = await getTheme({themeID: themeID, requestingUser: userID });
+    if (themeData.error) return themeData;
+
+    // check if user is allowed to edit
+    if (themeData.userID !== userID) return searchErrorV2("S007", { userID });
+
+    await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { theme_name: name }});
+    
+    const newThemeData = await getTheme({themeID: themeData._id, requestingUser: userID});
+    return newThemeData
+}
+
 /* edits theme for user */
 async function editTheme({userID, options, themeID }) {
     var themeData;
-    if (!themeID) themeData = await getUserTheme({userID, requestingUser: userID});
+
+    if (!themeID) themeData = await getCurrentTheme({userID, requestingUser: userID});
     else themeData = await getTheme({themeID: themeID, requestingUser: userID});
+
     if (themeData.error) return themeData;
 
+    // check if user is allowed to edit
     if (themeData.userID !== userID) return searchErrorV2("S007", { userID });
 
     // generating possible themes
@@ -160,6 +177,7 @@ module.exports = {
     editTheme, 
     getTheme,
     getUserThemes,
+    changeThemeName,
     getCurrentTheme,
     setUserTheme,
     possibleThemes
