@@ -49,6 +49,13 @@ async function createTheme({ userID, name, privacy, forkID }) {
     return foundTheme;
 }
 
+/* sets theme for user, to be used by router */
+async function setUserTheme({ userID, themeID }) {
+    const changeTheme = await setAsDefaultTheme({ userID, themeID });
+    if (changeTheme.error) return changeTheme;
+    return changeTheme;
+}
+
 /* sets theme as default for user */
 async function setAsDefaultTheme({ userID, themeID }) {
     const themeData = await getTheme({themeID: themeID, requestingUser: userID });
@@ -79,8 +86,6 @@ async function editTheme({userID, options, themeID }) {
     if (!themeData.colourTheme) colourThemes = {};
     else colourThemes = themeData.colourTheme;
 
-    //console.log(colourThemes)
-
     // find if any of the themes are in editing
     
     var foundOption = false;
@@ -96,14 +101,10 @@ async function editTheme({userID, options, themeID }) {
     }
 
     if (!foundOption) return searchErrorV2("S008", { userID });
-    //console.log(colourThemes)
-    //await interactUserSchema.findOneAndUpdate({ _id: userID }, { $set : { colourTheme: colourThemes }})
+
     await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { colourTheme: colourThemes }});
 
-    //await interactUserSchema.findOneAndUpdate({ _id: userID }, { $set : { colourTheme: colourThemes }})
-    //const newUserData = await interactUserSchema.findOne({ _id: userID });
     const newThemeData = await getTheme({themeID: themeData._id, requestingUser: userID});
-
     return newThemeData
 }
 
@@ -114,13 +115,10 @@ async function getTheme({themeID, requestingUser, careEmpty}) {
 
     const validated = await validateTheme({theme: themeData, requestingUser});
     return validated;
-    //if (validated && !validated.error) return validated;
-    //else return {error:true};
 }
 
 /* gets user themes */
 async function getUserThemes({userID, requestingUser}) {
-    //const themeData = await interactThemeSchema.findOne({ _id: themeID });
     const themes = await interactThemeSchema.find({ userID });
     if (!themes || !themes[0]) return searchErrorV2("S003", { userID });
 
@@ -163,5 +161,6 @@ module.exports = {
     getTheme,
     getUserThemes,
     getCurrentTheme,
+    setUserTheme,
     possibleThemes
 }
