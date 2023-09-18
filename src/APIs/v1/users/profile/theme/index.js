@@ -32,21 +32,6 @@ router.post('/submit/create', async (req, res) => {
     return res.status(200).send(done);
 });
 
-/* changes theme name */
-router.put('/submit/name/', async (req, res) => {
-    const userID = req.headers.userid;
-    const { name, themeID } = req.body;
-
-    const done = await changeThemeName({ 
-        userID, 
-        name, 
-        themeID,
-    });
-
-    if (done.error) return res.status(400).send(done);
-    return res.status(200).send(done);
-});
-
 /* submits changes to theme */
 router.put('/submit/:themeID', async (req, res) => {
     const userID = req.headers.userid;
@@ -56,6 +41,21 @@ router.put('/submit/:themeID', async (req, res) => {
         userID, 
         options: req.body, 
         themeID,
+    });
+
+    if (done.error) return res.status(400).send(done);
+    return res.status(200).send(done);
+});
+
+/* forks a theme, could also use /submit/create with a forkID */
+router.post('/fork/:themeID', async (req, res) => {
+    const userID = req.headers.userid;
+    const themeID = req.params.themeID;
+
+    // can set name afterwards
+    const done = await createTheme({ 
+        userID, 
+        forkID: themeID,
     });
 
     if (done.error) return res.status(400).send(done);

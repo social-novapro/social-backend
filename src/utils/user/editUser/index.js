@@ -31,13 +31,13 @@ async function createTheme({ userID, name, privacy, forkID }) {
 
     // add fork data
     if (forkID) {
-        const forkedTheme = await getTheme({themeID: forkID, requestingUser: userID});
+        const forkedTheme = await getTheme({ themeID: forkID, requestingUser: userID });
         if (forkedTheme.error) {
-            await interactThemeSchema.deleteOne({ _id: themeID });
+            await interactThemeSchema.deleteOne({ _id: themeID }); // deletes new
             return searchErrorV2("S006", { userID });
         }; // wont fork
 
-        const forkedThemeData = forkedTheme.colourTheme;
+        const forkedThemeData = forkedTheme.colourTheme; // gets theme data
         await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { colourTheme: forkedThemeData }});
     }
 
@@ -66,20 +66,6 @@ async function setAsDefaultTheme({ userID, themeID }) {
     return themeData;
 }
 
-/* changes theme name */
-async function changeThemeName({ userID, themeID, name }) {
-    const themeData = await getTheme({themeID: themeID, requestingUser: userID });
-    if (themeData.error) return themeData;
-
-    // check if user is allowed to edit
-    if (themeData.userID !== userID) return searchErrorV2("S007", { userID });
-
-    await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { theme_name: name }});
-    
-    const newThemeData = await getTheme({themeID: themeData._id, requestingUser: userID});
-    return newThemeData
-}
-
 /* edits theme for user */
 async function editTheme({userID, options, themeID }) {
     var themeData;
@@ -91,6 +77,7 @@ async function editTheme({userID, options, themeID }) {
 
     // check if user is allowed to edit
     if (themeData.userID !== userID) return searchErrorV2("S007", { userID });
+    var changedData = false;
 
     // generating possible themes
     const editableAttributes = []
@@ -110,16 +97,35 @@ async function editTheme({userID, options, themeID }) {
     var validOptions = {};
 
     for (const option of options) {
+        if (option.option === "name") {
+            // change name
+            if (option.option !== themeData.theme_name) {
+                await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { theme_name: option.value }});
+                changedData = true;
+            }
+            continue;
+        }
+        if (option.option === "privacy") {
+            // change name
+            if (option.option !== themeData.privacy) {
+                await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { privacy: option.value }});
+                changedData = true;
+            }
+            continue;
+        }
+
         if (!editableAttributes.includes(option.option)) continue;
+        
         foundOption = true;
         foundOptions[option.option] = option.value;
         validOptions[option.option] = true;
         colourThemes[option.option] = option.value;
     }
 
-    if (!foundOption) return searchErrorV2("S008", { userID });
-
-    await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { colourTheme: colourThemes }});
+    if (foundOption) await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { colourTheme: colourThemes }});
+    
+    // nothing was updated
+    if (!foundOption && !changedData) return searchErrorV2("S008", { userID });
 
     const newThemeData = await getTheme({themeID: themeData._id, requestingUser: userID});
     return newThemeData
@@ -167,7 +173,7 @@ async function getCurrentTheme({userID}) {
     const userData = await interactUserSchema.findOne({ _id: userID });
     if (!userData || !userData.themeData?.themeID) return searchErrorV2("S004", { userID });
 
-    const themeData = await getTheme({themeID: userData.themeData.themeID, userID});
+    const themeData = await getTheme({themeID: userData.themeData.themeID, requestingUser: userID});
     if (themeData.error) return themeData;
     return themeData;
 }
@@ -177,7 +183,6 @@ module.exports = {
     editTheme, 
     getTheme,
     getUserThemes,
-    changeThemeName,
     getCurrentTheme,
     setUserTheme,
     possibleThemes
