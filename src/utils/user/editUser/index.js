@@ -9,10 +9,8 @@ const possibleThemes = [
     { name: "Background", option: "background", description: "This will be the main theme of your client." }
 ]
 
-function isHexColor (hex) {
-    return typeof hex === 'string'
-        && hex.length === 6
-        && !isNaN(Number('0x' + hex))
+function isHexColor(str) {
+    return /^#([0-9A-F]{3}){1,2}$/i.test(str);
 }
 
 /* creates new theme for user */
@@ -99,7 +97,7 @@ async function editTheme({userID, options, themeID }) {
     for (const option of options) {
         if (option.option === "name") {
             // change name
-            if (option.option !== themeData.theme_name) {
+            if (option.value !== themeData.theme_name) {
                 await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { theme_name: option.value }});
                 changedData = true;
             }
@@ -107,7 +105,7 @@ async function editTheme({userID, options, themeID }) {
         }
         if (option.option === "privacy") {
             // change name
-            if (option.option !== themeData.privacy) {
+            if (option.value !== themeData.privacy) {
                 await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { privacy: option.value }});
                 changedData = true;
             }
@@ -115,15 +113,25 @@ async function editTheme({userID, options, themeID }) {
         }
 
         if (!editableAttributes.includes(option.option)) continue;
-        
+        if (!isHexColor(option.value)) continue;
+
         foundOption = true;
         foundOptions[option.option] = option.value;
         validOptions[option.option] = true;
         colourThemes[option.option] = option.value;
     }
 
-    if (foundOption) await interactThemeSchema.findOneAndUpdate({ _id: themeID }, { $set : { colourTheme: colourThemes }});
-    
+    if (foundOption) {
+        await interactThemeSchema.findOneAndUpdate({ 
+            _id: themeID 
+        }, { 
+            $set : { 
+                colourTheme: colourThemes 
+            },  
+            timestamp_edited: checktime() 
+        });
+    };
+
     // nothing was updated
     if (!foundOption && !changedData) return searchErrorV2("S008", { userID });
 

@@ -25,6 +25,7 @@ const interactThemeSchema = mongoose.Schema({
     userID: reqString, // who created the theme
     theme_name: reqString, // name for theme
     timestamp: reqNum,
+    timestamp_edited: reqNum,
     theme_fork: nonreqString, // theme forked from
     privacy: reqNum, // 1: public, 2: friends of friends, 3: private
     colourTheme: colourThemeSchema, // colour theme
