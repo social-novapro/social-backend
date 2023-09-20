@@ -6,7 +6,11 @@ const { checktime } = require("../../checktime");
 
 const possibleThemes = [
     { name: "Post", option: "posts", description: "This will be the post theme of your posts." },
-    { name: "Background", option: "background", description: "This will be the main theme of your client." }
+    { name: "Background", option: "background", description: "This will be the main theme of your client." },
+    { name: "Navigation", option: "navigation", description: "This will be the theme of your navigation in your client." },
+    { name: "Secondary Navigation", option: "navSecondary", description: "This will be the secondary theme of your navigation in your client." },
+    { name: "Menu", option: "menu", description: "This will be the theme of your menus in your client." },
+    { name: "Menu Button", option: "menuButton", description: "This will be the theme of your menu buttons in your client." },
 ]
 
 function isHexColor(str) {

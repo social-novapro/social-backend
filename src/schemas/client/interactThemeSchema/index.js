@@ -16,7 +16,11 @@ const reqNum = {
 const colourThemeSchema = mongoose.Schema({
     _id: reqString, // id of theme ig
     posts: nonreqString,
-    background: nonreqString
+    background: nonreqString,
+    navigation: nonreqString,
+    navSecondary: nonreqString,
+    menu: nonreqString,
+    menuButton: nonreqString,
     // can add more later
 });
 
