@@ -907,6 +907,22 @@
                     "msg" : "Can not change name of theme, invalid permission."
                 },
                 {
+                    "code" : "S010",
+                    "msg" : "Can not edit theme, theme is locked."
+                },
+                {
+                    "code" : "S011",
+                    "msg" : "Can not delete theme, theme is locked."
+                },
+                {
+                    "code" : "S012",
+                    "msg" : "Can not delete theme, theme is invalid permisssion."
+                },
+                {
+                    "code" : "S013",
+                    "msg" : "Can not unset theme, user did not have any themes set."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

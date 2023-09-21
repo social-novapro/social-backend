@@ -7,14 +7,34 @@ const {
     getUserThemes, 
     getCurrentTheme, 
     setUserTheme,
-    changeThemeName
-} = require('../../../../../utils/user/editUser');
+    exportIndex,
+    deleteTheme,
+    unsetUserTheme,
+} = require('../../../../../utils/user/themes');
 
 /* get possible options */
 router.get('/possible', (req, res) => {
     return res.status(200).send(possibleThemes);
 })
 
+/* gets possible newest themes */
+router.get('/themes', async (req, res) => {
+    const userID = req.headers.userid;
+
+    const result = await exportIndex({ userID });
+    if (result.error) return res.status(400).send(result);
+    else return res.status(200).send(result);
+})
+
+/* gets possible themes with specfic index ID */
+router.get('/themes/:indexID', async (req, res) => {
+    const userID = req.headers.userid;
+    const { indexID } = req.params;
+
+    const result = await exportIndex({ userID, indexID });
+    if (result.error) return res.status(400).send(result);
+    else return res.status(200).send(result);
+})
 /* submits create of a theme */
 router.post('/submit/create', async (req, res) => {
     const userID = req.headers.userid;
@@ -31,6 +51,20 @@ router.post('/submit/create', async (req, res) => {
     if (done.error) return res.status(400).send(done);
     return res.status(200).send(done);
 });
+
+/* deletes a theme */
+router.delete('/submit/delete', async (req, res) => {
+    const userID = req.headers.userid;
+    const themeID = req.body.themeID;
+
+    const done = await deleteTheme({ 
+        userID, 
+        themeID,
+    });
+
+    if (done.error) return res.status(400).send(done);
+    return res.status(200).send(done);
+})
 
 /* submits changes to theme */
 router.put('/submit/:themeID', async (req, res) => {
@@ -58,6 +92,15 @@ router.post('/fork/:themeID', async (req, res) => {
         forkID: themeID,
     });
 
+    if (done.error) return res.status(400).send(done);
+    return res.status(200).send(done);
+});
+
+/* unsets theme for user */
+router.delete('/unset', async (req, res) => {
+    const userID = req.headers.userid;
+
+    const done = await unsetUserTheme({ userID });
     if (done.error) return res.status(400).send(done);
     return res.status(200).send(done);
 });

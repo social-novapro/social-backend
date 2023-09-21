@@ -12,6 +12,10 @@ const reqNum = {
     type: Number,
     required: true
 };
+const reqBool = {
+    type: Boolean,
+    required: true
+};
 
 const colourThemeSchema = mongoose.Schema({
     _id: reqString, // id of theme ig
@@ -27,9 +31,11 @@ const colourThemeSchema = mongoose.Schema({
 const interactThemeSchema = mongoose.Schema({
     _id: reqString, // id of theme
     userID: reqString, // who created the theme
+    indexID: reqString, // index id
     theme_name: reqString, // name for theme
     timestamp: reqNum,
     timestamp_edited: reqNum,
+    locked: reqBool,
     theme_fork: nonreqString, // theme forked from
     privacy: reqNum, // 1: public, 2: friends of friends, 3: private
     colourTheme: colourThemeSchema, // colour theme

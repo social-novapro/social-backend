@@ -24,12 +24,6 @@ const privacySettingSchema = mongoose.Schema({
     postReplyDefault: reqNum,
 });
 
-const colourThemeSchema = mongoose.Schema({
-    posts: reqString,
-    background: reqString
-    // can add more later
-});
-
 const themeSchema = mongoose.Schema({
     themeID: reqString, // theme id
     testTheme: reqString, // theme id to test
@@ -49,7 +43,6 @@ const interactUserSchema = mongoose.Schema({
     description: reqString,
     pronouns: reqString,
     statusTitle: reqString,
-    colourTheme: colourThemeSchema, // hex code
     themeData: themeSchema, // theme id
     lastEdit: reqNum,
     creationTimestamp: reqString,
