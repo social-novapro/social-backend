@@ -8,18 +8,21 @@ const { getThemeIndex, updateThemeIndex } = require("../../indexes");
 
 const possibleThemes = [
     { name: "Post", option: "posts", description: "This will be the post theme of your posts." },
+    { name: "Posts Font", option: "font_posts", description: "This will be the font colour of posts in your client." },
     { name: "Background", option: "background", description: "This will be the main theme of your client." },
     { name: "Navigation", option: "navigation", description: "This will be the theme of your navigation in your client." },
+    { name: "Navigation Font", option: "font_navigation", description: "This will be the font colour of your navigation in your client." },
     { name: "Secondary Navigation", option: "navSecondary", description: "This will be the secondary theme of your navigation in your client." },
+    { name: "Secondary Navigation Font", option: "font_navSecondary", description: "This will be the font colour of secondary navigation in your client." },
     { name: "Menu", option: "menu", description: "This will be the theme of your menus in your client." },
+    { name: "Menu Font", option: "font_menu", description: "This will be the font colour of paragaphs in your client." },
     { name: "Menu Button", option: "menuButton", description: "This will be the theme of your menu buttons in your client." },
     { name: "Menu Buttons Font", option: "font_menuButton", description: "This will be the font colour of buttons in your client." },
-    { name: "Headings Font", option: "font_h1", description: "This will be the font colour of headers in your client." },
-    { name: "Paragraph Font", option: "font_p", description: "This will be the font colour of paragaphs in your client." },
-    { name: "Secondary Pargraph Font ", option: "font_p_secondary_user", description: "This will be the secondary font colour for paragraphs in your client." },
-    { name: "Posts Font", option: "font_p_posts", description: "This will be the font colour of paragraphs of posts in your client." },
+
+    { name: "Header Font", option: "font_h1", description: "This will be the font colour of headers in your client." },
     { name: "User Font ", option: "font_p_user", description: "This will be the font colour of other users in your client." },
     { name: "Self User Font ", option: "font_p_user_own", description: "This will be the font colour of your user in your client." },
+    { name: "Secondary Pargraph Font ", option: "font_p_secondary", description: "This will be the secondary font colour for paragraphs in your client." },
 ]
 
 /* these must always be set */
