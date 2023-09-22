@@ -25,6 +25,13 @@ const colourThemeSchema = mongoose.Schema({
     navSecondary: nonreqString,
     menu: nonreqString,
     menuButton: nonreqString,
+    font_menuButton: nonreqString,
+    font_h1: nonreqString,
+    font_p: nonreqString,
+    font_p_secondary_user: nonreqString,
+    font_p_posts: nonreqString,
+    font_p_user: nonreqString,
+    font_p_user_own: nonreqString,
     // can add more later
 });
 
