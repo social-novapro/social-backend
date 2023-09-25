@@ -7,22 +7,24 @@ const interactThemeIndexSchema = require("../../../schemas/client/interactThemeI
 const { getThemeIndex, updateThemeIndex } = require("../../indexes");
 
 const possibleThemes = [
-    { name: "Post", option: "posts", description: "This will be the post theme of your posts." },
-    { name: "Posts Font", option: "font_posts", description: "This will be the font colour of posts in your client." },
-    { name: "Background", option: "background", description: "This will be the main theme of your client." },
-    { name: "Navigation", option: "navigation", description: "This will be the theme of your navigation in your client." },
-    { name: "Navigation Font", option: "font_navigation", description: "This will be the font colour of your navigation in your client." },
-    { name: "Secondary Navigation", option: "navSecondary", description: "This will be the secondary theme of your navigation in your client." },
-    { name: "Secondary Navigation Font", option: "font_navSecondary", description: "This will be the font colour of secondary navigation in your client." },
-    { name: "Menu", option: "menu", description: "This will be the theme of your menus in your client." },
-    { name: "Menu Font", option: "font_menu", description: "This will be the font colour of paragaphs in your client." },
-    { name: "Menu Button", option: "menuButton", description: "This will be the theme of your menu buttons in your client." },
-    { name: "Menu Buttons Font", option: "font_menuButton", description: "This will be the font colour of buttons in your client." },
+    { name: "Post", option: "posts", order: 1, description: "This will be the post theme of your posts." },
+    { name: "Posts Font", option: "font_posts_content", order: 2, styles: ["p", "a"], description: "This will be the font colour of posts in your client." },
+    { name: "Posts Action Font", option: "font_posts_action", order: 2.1, styles: ["p", "a"], description: "This will be the font colour of actions for posts in your client." },
+    
+    { name: "Background", option: "background", order: 3, description: "This will be the main theme of your client." },
+    { name: "Navigation", option: "navigation", order: 4, description: "This will be the theme of your navigation in your client." },
+    { name: "Navigation Font", option: "font_navigation", order: 5, styles: ["p", "button", "a"], description: "This will be the font colour of your navigation in your client." },
+    { name: "Secondary Navigation", option: "navSecondary", order: 6, description: "This will be the secondary theme of your navigation in your client." },
+    { name: "Secondary Navigation Font", option: "font_navSecondary", styles: ["p", "button", "a", "h2"], order: 7, description: "This will be the font colour of secondary navigation in your client." },
+    { name: "Menu", option: "menu", order: 8, description: "This will be the theme of your menus in your client." },
+    { name: "Menu Font", option: "font_menu", order: 9, styles: ["p", "h1"],  description: "This will be the font colour of paragaphs in your client." },
+    { name: "Menu Button", option: "menuButton", order: 10, description: "This will be the theme of your menu buttons in your client." },
+    { name: "Menu Buttons Font", option: "font_menuButton", styles: ["button", "a", "p"], order: 11, description: "This will be the font colour of buttons in your client." },
 
-    { name: "Header Font", option: "font_h1", description: "This will be the font colour of headers in your client." },
-    { name: "User Font ", option: "font_p_user", description: "This will be the font colour of other users in your client." },
-    { name: "Self User Font ", option: "font_p_user_own", description: "This will be the font colour of your user in your client." },
-    { name: "Secondary Pargraph Font ", option: "font_p_secondary", description: "This will be the secondary font colour for paragraphs in your client." },
+    { name: "User Font ", option: "font_otherUser", order: 13, overwrites: ["posts"], styles: ["p", "a"], description: "This will be the font colour of other users in your client." },
+    { name: "Self User Font ", option: "font_ownUser", order: 14, overwrites: ["posts"], styles: ["p", "a"], description: "This will be the font colour of your user in your client." },
+    { name: "Header Font", option: "font_h1", order: 12, styles: ["p", "a"], description: "This will be the font colour of headers in your client." },
+    { name: "Secondary Pargraph Font ", option: "font_p_secondary", order: 15, styles: ["p", "a"], description: "This will be the secondary font colour for paragraphs in your client." },
 ]
 
 /* these must always be set */

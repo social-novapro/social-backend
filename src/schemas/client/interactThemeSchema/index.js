@@ -20,8 +20,9 @@ const reqBool = {
 const colourThemeSchema = mongoose.Schema({
     _id: reqString, // id of theme ig
     posts: nonreqString,
-    font_posts: nonreqString,
-
+    font_posts_content: nonreqString,
+    font_posts_action: nonreqString,
+    
     background: nonreqString,
 
     navigation: nonreqString,
@@ -37,8 +38,8 @@ const colourThemeSchema = mongoose.Schema({
     font_menuButton: nonreqString,
 
     font_h1: nonreqString,
-    font_p_user: nonreqString,
-    font_p_user_own: nonreqString,
+    font_otherUser: nonreqString,
+    font_ownUser: nonreqString,
     font_p_secondary: nonreqString,
     // can add more later
 });
