@@ -1,8 +1,6 @@
 const router = require('express').Router();
+const theme = require('./theme');
 
-router.delete('/', async (req, res) => {
-    
-    return res.status(200).send({returnData: "Hello World"});
-});
+router.use('/theme', theme);
 
 module.exports = router;

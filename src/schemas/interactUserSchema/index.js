@@ -24,6 +24,15 @@ const privacySettingSchema = mongoose.Schema({
     postReplyDefault: reqNum,
 });
 
+const themeSchema = mongoose.Schema({
+    themeID: reqString, // theme id
+    testTheme: reqString, // theme id to test
+    amountTested: reqNum, // amount of times tested
+    testAmount: reqNum, // amount of times to test
+
+    // can add more later
+});
+
 // 1: public, 2: friends of friends, 3: private
 
 const interactUserSchema = mongoose.Schema({
@@ -34,6 +43,7 @@ const interactUserSchema = mongoose.Schema({
     description: reqString,
     pronouns: reqString,
     statusTitle: reqString,
+    themeData: themeSchema, // theme id
     lastEdit: reqNum,
     creationTimestamp: reqString,
     followerCount: reqNum,
