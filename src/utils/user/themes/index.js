@@ -15,9 +15,9 @@ const possibleThemes = [
     { name: "Navigation", option: "navigation", order: 4, description: "This will be the theme of your navigation in your client." },
     { name: "Navigation Font", option: "font_navigation", order: 5, styles: ["p", "button", "a"], description: "This will be the font colour of your navigation in your client." },
     { name: "Secondary Navigation", option: "navSecondary", order: 6, description: "This will be the secondary theme of your navigation in your client." },
-    { name: "Secondary Navigation Font", option: "font_navSecondary", styles: ["p", "button", "a", "h2"], order: 7, description: "This will be the font colour of secondary navigation in your client." },
+    { name: "Secondary Navigation Font", option: "font_navSecondary", styles: ["h1", "p", "button", "a", "h2"], order: 7, description: "This will be the font colour of secondary navigation in your client." },
     { name: "Menu", option: "menu", order: 8, description: "This will be the theme of your menus in your client." },
-    { name: "Menu Font", option: "font_menu", order: 9, styles: ["p", "h1"],  description: "This will be the font colour of paragaphs in your client." },
+    { name: "Menu Font", option: "font_menu", order: 9, styles: ["p", "h1", "input"],  description: "This will be the font colour of paragaphs in your client." },
     { name: "Menu Button", option: "menuButton", order: 10, description: "This will be the theme of your menu buttons in your client." },
     { name: "Menu Buttons Font", option: "font_menuButton", styles: ["button", "a", "p"], order: 11, description: "This will be the font colour of buttons in your client." },
 
