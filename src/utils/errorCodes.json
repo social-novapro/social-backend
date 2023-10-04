@@ -425,7 +425,19 @@
                 },
                 {
                     "code" : "I010",
-                    "msg" : "Please use /v1/posts/create/ instead of /v1/post/createPost/."
+                    "msg" : "Please use /v1/posts/create instead of /v1/post/createPost."
+                },
+                {
+                    "code" : "I011",
+                    "msg" : "Please use /v1/posts/save instead of /v1/post/savePost."
+                },
+                {
+                    "code" : "I012",
+                    "msg" : "Please use /v1/posts/bookmarks instead of /v1/get/bookmarks."
+                },
+                {
+                    "code" : "I013",
+                    "msg" : "Please use /v1/posts/remove/ instead of /v1/delete/removePost/"
                 },
                 {
                     "code" : "J001",
