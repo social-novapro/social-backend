@@ -420,6 +420,14 @@
                     "msg" : "Please use /v1/feeds/allPosts instead of /v1/get/allPosts."
                 },
                 {
+                    "code" : "I009",
+                    "msg" : "Please use /v1/posts/get/ instead of /v1/get/post/."
+                },
+                {
+                    "code" : "I010",
+                    "msg" : "Please use /v1/posts/create/ instead of /v1/post/createPost/."
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },
