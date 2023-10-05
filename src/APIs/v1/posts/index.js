@@ -1,16 +1,36 @@
 const router = require('express').Router();
+
 const get = require('./get');
 const create = require('./create');
 const remove = require('./remove');
+
+const replies = require('./replies');
+
 const save = require('./save');
 const bookmarks = require('./bookmarks');
+
+const unlike = require('./unlike');
+const likes = require('./likes');
+const like = require('./like');
+
+const edits = require('./edits');
+const edit = require('./edit');
 
 router.use('/get', get);
 router.use('/create', create);
 router.use('/remove', remove)
+
+router.use('/replies', replies);
+
 router.use('/save', save);
 router.use('/bookmarks', bookmarks);
 
+router.use('/like', like);
+router.use('/likes', likes);
+router.use('/unlike', unlike);
+
+router.use('/edit', edit);
+router.use('/edits', edits);
 
 /* 
 DONE
@@ -19,16 +39,14 @@ DONE
 /delete/removePost -> /remove
 /post/savePost -> /save
 /get/bookmarks -> /bookmarks
-
-TODO
 /delete/unlikePost -> /unlike
 /get/postLikedBy -> /likes
-/get/postReplies -> /replies
 /get/postEditHistory -> /edits
-/put/editPost -> /edit
 /put/likePost -> /like
+/get/postReplies -> /replies
+/put/editPost -> /edit
 
-TO CREATE
+TO CREATE LATER
 /unsave
 
 */

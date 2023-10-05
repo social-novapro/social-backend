@@ -3,7 +3,32 @@ const interactPostBookmarks = require("../../../schemas/postSchemas/interactPost
 const { checktime } = require("../../checktime");
 const { searchErrorV2 } = require("../../searchError");
 
+/*
+async function getBookmarkSave({ userID, postID, listname }) {
+    const bookmark = await interactPostBookmarks.findOne(
+        { _id: userID },
+        { saves: { $elemMatch: { 
+            _id: postID,
+            bookmarkList: listname || "main"
+        }}}
+    );
+    
+    return bookmark;
+}
+
+async function unbookmarkPost({userID, postID, listname}) {
+    if (!postID) return searchErrorV2("K001", { userID });
+
+    // check if in bookmarks
+    await interactPostBookmarks.findOne({
+        _id: userID,
+    })
+}
+*/
+
 async function bookmarkPost({userID, postID, listname}) {
+    if (!postID) return searchErrorV2("K001", { userID });
+
     const postCheck = await interactPostSchema.findOne({ _id: postID});
     if (!postCheck) return searchErrorV2("K002", { userID });
 

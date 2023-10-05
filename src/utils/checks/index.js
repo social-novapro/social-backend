@@ -33,9 +33,9 @@ function checkDisplayname() {
 async function checkPostContent(content) {
     let myReg = new RegExp("\n", "g");
     var returnedLines = content.match(myReg);
-    if (content.length > 512) return res.status(400).send(searchError("E005"));
-    else if (returnedLines) if (returnedLines.length > 10) return { "error" : searchError("E006")};
-    else return;
+    if (content.length > 512) return searchError("E005");
+    else if (returnedLines && returnedLines.length > 10) return { "error" : searchError("E006")};
+    else return true;
 };
 
 module.exports = { checkUsername, checkDisplayname, checkPostContent, checkPassword };
