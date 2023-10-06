@@ -2,20 +2,21 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { findPoll, findUserVote } = require("../../polls");
 const { searchErrorV2 } = require("../../searchError");
-const { isLiked } = require("../isLiked");
+const { postIsLiked } = require("../likeUtil");
 
 async function getPostWithData({ userID, postID, post }) {
-    if (!postID && !post) return searchErrorV2("Q003", { userID })
+    if (!postID) return searchErrorV2("Q003", { userID })
     var type = { "type": "post" };
     var postData = post;
     var userData = null;
     var pollData = null;
     var voteData = null;
-
+    
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
-    if (!postData) return searchErrorV2("Q003", { userID })
+    if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
+    
     if (postData.content) {
-        const foundLike = await isLiked({ postID: postData._id, userID });
+        const foundLike = await postIsLiked({ postID: postData._id, userID });
         if (foundLike) postData.liked = true;
 
         // has userid

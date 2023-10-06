@@ -1,68 +1,8 @@
 const router = require('express').Router();
-const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const interactPostEditSchema = require('../../../../schemas/postSchemas/interactPostEditSchema')
-const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
-const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const { searchErrorV2 } = require('../../../../utils/searchError');
-const { checktime } = require('../../../../utils/checktime');
-const { checkPostContent } = require('../../../../utils/checks');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.put('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
-    const { content, postID/*, userID, userToken*/} = req.body;
-
-    const { userid , usertoken } = req.headers
-    const userID = userid 
-    // const userToken = usertoken
-    
-    if (!content && !postID) return res.status(400).send(searchErrorV2("E001", { userID }));
-    else if (!content) return res.status(400).send(searchErrorV2("E002", { userID }));
-    else if (!postID) return res.status(400).send(searchErrorV2("E010", { userID }));
-    else if (content.length > 512) return res.status(400).send(searchErrorV2("E005", { userID }))
-
-    const checkedContent = await checkPostContent(content);
-    if (checkedContent) return res.status(400).send(checkedContent.error);
-
-    // const userIDCheck = await interactUserSchema.findOne({ _id: userID});
-    // if (!userIDCheck) return res.status(403).send(searchError("C009"));//searchError("E004"))
-
-    // const userTokenCheck = await interactUserPrivSchema.findOne({_id: userID}) ;
-    // if (userTokenCheck.userToken != userToken) return res.status(403).send("that user token is incorrect.");
-
-    const postCheck = await interactPostSchema.findOne({ _id: postID});
-
-    if (!postCheck) return res.status(403).send(searchErrorV2("K002", { userID }));//("E004"))
-    else if (postCheck.userID != userID) return res.status(403).send(searchErrorV2("D008", { userID }));//("E004"))
-    else if (postCheck.content == content) return res.status(403).send(searchErrorV2("D009", { userID }));//("E004"))
-
-    const editedTimestamp = checktime();
-    var editedAmount;
-    if (postCheck.editedAmount == null) editedAmount = 0;
-    else editedAmount = postCheck.editedAmount + 1;
-    
-    await interactPostSchema.findOneAndUpdate(
-        { _id: postID }, 
-        { content, edited: true, editedTimestamp, editedAmount },
-        { upsert: true }
-    );
-
-    await interactPostEditSchema.findOneAndUpdate( 
-        { _id: postID },
-        { $push : { "edits" : { 
-            publicTimestamp: postCheck.editedAmount == 0 ? postCheck.timestamp : postCheck.editedTimestamp,
-            removeTimestamp: editedTimestamp,
-            content: postCheck.content
-        }}},
-        { upsert: true }
-    )
-    // const editPost = await interactPostEditSchema.findOne({_id: postID})
-    // console.log(editPost)
-    const PostData = await interactPostSchema.findOne({_id: postID});
-    if (!PostData) return res.status(404).send(searchErrorV2("D002", { userID }));
-    else return res.status(200).send({"new" : PostData, "before" : postCheck});
+    return res.status(400).send(searchErrorV2("I019", { userID: req.headers.userid }));
 })
 
 module.exports = router;

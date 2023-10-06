@@ -312,6 +312,14 @@
                     "msg" : "User has no posts"
                 },
                 {
+                    "code" : "D014",
+                    "msg" : "User did not previously like the post"
+                },
+                {
+                    "code" : "D015",
+                    "msg" : "Post was not found."
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
@@ -418,6 +426,50 @@
                 {
                     "code" : "I008",
                     "msg" : "Please use /v1/feeds/allPosts instead of /v1/get/allPosts."
+                },
+                {
+                    "code" : "I009",
+                    "msg" : "Please use /v1/posts/get/ instead of /v1/get/post/."
+                },
+                {
+                    "code" : "I010",
+                    "msg" : "Please use /v1/posts/create instead of /v1/post/createPost."
+                },
+                {
+                    "code" : "I011",
+                    "msg" : "Please use /v1/posts/save instead of /v1/post/savePost."
+                },
+                {
+                    "code" : "I012",
+                    "msg" : "Please use /v1/posts/bookmarks instead of /v1/get/bookmarks."
+                },
+                {
+                    "code" : "I013",
+                    "msg" : "Please use /v1/posts/remove/ instead of /v1/delete/removePost/"
+                },
+                {
+                    "code" : "I014",
+                    "msg" : "Please use /v1/posts/unlike/ instead of /v1/delete/unlikePost/"
+                },
+                {
+                    "code" : "I015",
+                    "msg" : "Please use /v1/posts/likes/ instead of /v1/get/postLikedBy/"
+                },
+                {
+                    "code" : "I016",
+                    "msg" : "Please use /v1/posts/edits/ instead of /v1/get/postEditHistory/"
+                },
+                {
+                    "code" : "I017",
+                    "msg" : "Please use /v1/posts/like/ instead of /v1/put/likePost/"
+                },
+                {
+                    "code" : "I018",
+                    "msg" : "Please use /v1/posts/replies/ instead of /v1/get/postReplies/"
+                },
+                {
+                    "code" : "I019",
+                    "msg" : "Please use /v1/posts/edit instead of /v1/put/editPost/"
                 },
                 {
                     "code" : "J001",

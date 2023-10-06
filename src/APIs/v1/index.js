@@ -8,6 +8,7 @@ const adminAPI = require('./admin');
 const polls = require('./polls');
 const emails = require('./emails');
 const users = require('./users');
+const posts = require('./posts');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
 
@@ -23,6 +24,7 @@ router.use('/admin', adminAPI);
 router.use('/polls', polls);
 router.use('/emails', emails);
 router.use('/users', users);
+router.use('/posts', posts);
 router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
