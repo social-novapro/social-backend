@@ -1,44 +1,32 @@
 const router = require('express').Router();
 const user = require('./user');
 const username = require('./username');
-const allPosts = require('./allPosts');
 const allUsers = require('./allUsers');
 const allPublicData = require('./allPublicData');
 const post = require('./post');
 const search = require('./search');
 const analyticTrend = require('./analyticTrend');
 const userByID = require('./userByID');
-const postEditHistory = require('./postEditHistory');
-const bookmarks = require('./bookmarks');
 const postLikedBy = require('./postLikedBy');
 const developer = require('./developer');
-const notifications = require('./notifications');
 const followers = require('./followers');
 const following = require('./following');
-const subscriptions = require('./subscriptions');
 const taguserSearch = require('./taguserSearch');
 const groupData = require('./groupData');
-const postReplies = require('./postReplies');
 
 router.use('/user', user);
 router.use('/username', username);
-router.use('/allPosts', allPosts);
 router.use('/allUsers', allUsers)
 router.use('/allPublicData', allPublicData);
 router.use('/post', post);
 router.use('/search', search);
 router.use('/analyticTrend', analyticTrend);
 router.use('/userByID', userByID);
-router.use('/postEditHistory', postEditHistory);
-router.use('/bookmarks', bookmarks);
 router.use('/postLikedBy', postLikedBy);
 router.use('/developer', developer);
-router.use('/notifications', notifications);
 router.use('/followers', followers);
 router.use('/following', following);
-router.use('/subscriptions', subscriptions);
 router.use('/taguserSearch', taguserSearch);
 router.use('/groupData', groupData);
-router.use('/postReplies', postReplies);
 
 module.exports = router;
