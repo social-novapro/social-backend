@@ -17,23 +17,26 @@ const nonreqBool = {
     required: false
 };
 
-// type 06
+// 1: public, 2: friends of friends, 3: private
 const privacySettingSchema = mongoose.Schema({
     discoverSetting: reqNum,
     postVisiblityDefault: reqNum,
     postReplyDefault: reqNum,
 });
 
+// Theme data
 const themeSchema = mongoose.Schema({
     themeID: reqString, // theme id
     testTheme: reqString, // theme id to test
     amountTested: reqNum, // amount of times tested
     testAmount: reqNum, // amount of times to test
-
-    // can add more later
 });
 
-// 1: public, 2: friends of friends, 3: private
+// pinned posts
+const pinnedPostsSchema = mongoose.Schema({
+    _id: reqString, // user id
+    timestamp: reqNum, // timestamp of pin
+});
 
 const interactUserSchema = mongoose.Schema({
     _id: reqString,
@@ -41,6 +44,7 @@ const interactUserSchema = mongoose.Schema({
     lastEditUsername: reqNum,
     displayName: reqString,
     description: reqString,
+    pinnedPosts: [pinnedPostsSchema],
     pronouns: reqString,
     statusTitle: reqString,
     themeData: themeSchema, // theme id
