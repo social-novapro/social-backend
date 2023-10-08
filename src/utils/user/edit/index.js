@@ -1,7 +1,9 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { checktime } = require("../../checktime");
+const { getPostWithData } = require("../../post/getPost");
 const { searchErrorV2 } = require("../../searchError");
+const { checkIfPinned } = require("./checkIfPinned");
 
 async function addPinnedPost({ userID, postID }) {
     const foundPost = await interactPostSchema.findOne({ _id: postID });
@@ -24,8 +26,8 @@ async function addPinnedPost({ userID, postID }) {
         },
     })
 
-    const newProfile = await interactUserSchema.findOne({ _id: userID });
-    return newProfile;
+    const newPostData = await getPostWithData({ userID, postID });
+    return newPostData;
 }
 
 async function removePinnedPost({ userID, postID }) {
@@ -48,18 +50,27 @@ async function removePinnedPost({ userID, postID }) {
         },
     })
 
-    const newProfile = await interactUserSchema.findOne({ _id: userID });
-    return newProfile;
+    const newPostData = await getPostWithData({ userID, postID });
+    return newPostData;
 }
 
-async function checkIfPinned({ pinsFound, postID }) {
-    if (!pinsFound || !pinsFound[0]) return false;
-    const pingFound = pinsFound.filter(pin => pin._id === postID);
-    if (!pingFound) return false;
-    return true;
+async function removeAllPinnedPosts({ userID }) {
+    const userData = await interactUserSchema.findOne({ _id: userID });
+    if (!userData || !userData.pins || !userData.pins[0]) return searchErrorV2("C017", { userID });
+
+    await interactUserSchema.findOneAndUpdate({
+        _id: userID,
+    }, {
+        $set: {
+            pins: [],
+        },
+    })
+
+    return { "success": true };
 }
 
 module.exports = { 
     addPinnedPost,
     removePinnedPost,
+    removeAllPinnedPosts
 }

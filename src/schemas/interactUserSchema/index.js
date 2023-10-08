@@ -44,7 +44,7 @@ const interactUserSchema = mongoose.Schema({
     lastEditUsername: reqNum,
     displayName: reqString,
     description: reqString,
-    pinnedPosts: [pinnedPostsSchema],
+    pins: [pinnedPostsSchema],
     pronouns: reqString,
     statusTitle: reqString,
     themeData: themeSchema, // theme id

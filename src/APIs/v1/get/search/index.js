@@ -12,6 +12,7 @@ router.get('/', async (req, res) => {
     
     const UserData = await interactUserSchema.find();
     const PostData = await interactPostSchema.find();
+    const ownUser = await interactUserSchema.findOne({_id: req.headers.userid});
 
     const lookupKeylower = lookupkey.toLowerCase();
     var usersFound = [];
@@ -43,12 +44,11 @@ router.get('/', async (req, res) => {
     for (post of PostData) {
         var username;
         var displayname;
-
         if (post.content) {
             content = post.content.toLowerCase();
 
             if (content.toLowerCase().startsWith(lookupKeylower) || lookupkey == post._id) {
-                const fullPost = await getPostWithData({ userID: req.headers.userid, post });
+                const fullPost = await getPostWithData({ userID: req.headers.userid, post, ownUser });
                 if (!fullPost.error) postsFound.push(fullPost);
             };
         };
