@@ -260,6 +260,18 @@
                     ]
                 },
                 {
+                    "code" : "C017",
+                    "msg" : "User does not have any pins on profile."
+                },
+                {
+                    "code" : "C018",
+                    "msg" : "Post was already pinned to profile."
+                },
+                {
+                    "code" : "C019",
+                    "msg" : "Post was not pinned to profile."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },

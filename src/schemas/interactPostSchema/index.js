@@ -111,7 +111,8 @@ const interactPostSchema = mongoose.Schema({
     mentionData: [mentionDataSchema], // max 10 ideally
 
     replyingPostID: reqString, // legacy
-    liked: nonreqBool // this stays null, but is used to check if the user liked the post
+    liked: nonreqBool, // this stays null, but is used to check if the user liked the post
+    pinned: nonreqBool // this stays null, but is used to check if the user pinned the post
 });
 
 

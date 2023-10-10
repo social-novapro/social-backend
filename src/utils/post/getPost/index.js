@@ -2,10 +2,11 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { findPoll, findUserVote } = require("../../polls");
 const { searchErrorV2 } = require("../../searchError");
+const { checkIfPinned } = require("../../user/edit/checkIfPinned");
 const { postIsLiked } = require("../likeUtil");
 
-async function getPostWithData({ userID, postID, post }) {
-    if (!postID) return searchErrorV2("Q003", { userID })
+async function getPostWithData({ userID, postID, post, ownUser }) {
+    if (!postID && !post) return searchErrorV2("Q003", { userID })
     var type = { "type": "post" };
     var postData = post;
     var userData = null;
@@ -16,8 +17,18 @@ async function getPostWithData({ userID, postID, post }) {
     if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
     
     if (postData.content) {
+        /* if post is liked, add liked: true */
         const foundLike = await postIsLiked({ postID: postData._id, userID });
         if (foundLike) postData.liked = true;
+        /* if post is pinned to profile, add pinned: true */
+        if (userID && !ownUser) {
+            const personalUser = await interactUserSchema.findOne({_id: userID});
+            postData.pinned = await checkIfPinned({ pinsFound: personalUser?.pins || null, postID: postData._id });
+        } else if (ownUser) {
+            postData.pinned = await checkIfPinned({ pinsFound: ownUser?.pins || null, postID: postData._id });
+        } else {
+            postData.pinned = false;
+        }
 
         // has userid
         if (postData.userID) {
