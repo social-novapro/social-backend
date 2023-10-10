@@ -4,13 +4,9 @@ const { newPostIndex } = require('../../../../utils/post/createPost');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkPostContent } = require('../../../../utils/checks');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { pushNewPost } = require('../../../../utils/notifications/pushNewPost'); 
 
 router.post('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-    
     const { content, userID } = req.body
     if (userID != req.headers.userid) return res.status(400).send(searchErrorV2("E009", { userID: req.headers.userid }));
     var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : undefined;
@@ -22,7 +18,7 @@ router.post('/', async (req, res) => {
     else if (!userID) return res.status(400).send(searchErrorV2("E003", { userID }));
 
     const checkedContent = await checkPostContent(content);
-    if (checkedContent) return res.status(400).send(checkedContent.error);
+    if (checkedContent.error) return res.status(400).send(checkedContent);
 
     const userIDCheck = await interactUserSchema.findOne({ _id: userID});
     if (!userIDCheck) return res.status(403).send(searchErrorV2("E004", { userID }));

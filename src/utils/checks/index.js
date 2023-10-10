@@ -34,7 +34,7 @@ async function checkPostContent(content) {
     let myReg = new RegExp("\n", "g");
     var returnedLines = content.match(myReg);
     if (content.length > 512) return searchError("E005");
-    else if (returnedLines && returnedLines.length > 10) return { "error" : searchError("E006")};
+    else if (returnedLines && returnedLines.length > 10) return searchError("E006");
     else return true;
 };
 
