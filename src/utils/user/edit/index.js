@@ -5,6 +5,7 @@ const { getPostWithData } = require("../../post/getPost");
 const { searchErrorV2 } = require("../../searchError");
 const { checkIfPinned } = require("./checkIfPinned");
 
+/* add a pinned post to a user's profile */
 async function addPinnedPost({ userID, postID }) {
     const foundPost = await interactPostSchema.findOne({ _id: postID });
     if (!foundPost) return searchErrorV2("D015", { userID });
@@ -30,6 +31,7 @@ async function addPinnedPost({ userID, postID }) {
     return newPostData;
 }
 
+/* remove a pinned post from a user's profile */
 async function removePinnedPost({ userID, postID }) {
     const foundPost = await interactPostSchema.findOne({ _id: postID });
     if (!foundPost) return searchErrorV2("D015", { userID });
@@ -54,6 +56,7 @@ async function removePinnedPost({ userID, postID }) {
     return newPostData;
 }
 
+/* remove all pinned posts from a user's profile */
 async function removeAllPinnedPosts({ userID }) {
     const userData = await interactUserSchema.findOne({ _id: userID });
     if (!userData || !userData.pins || !userData.pins[0]) return searchErrorV2("C017", { userID });

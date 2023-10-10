@@ -2,7 +2,6 @@ const router = require('express').Router();
 const { addPinnedPost, removePinnedPost, removeAllPinnedPosts } = require('../../../../../utils/user/edit');
 
 router.delete("/removeAll", async (req, res) => {
-    console.log("hiuj")
     const removeAll = await removeAllPinnedPosts({ userID: req.headers.userid });
 
     if (removeAll.error) return res.status(400).send(removeAll);
@@ -18,7 +17,6 @@ router.post('/:postID', async (req, res) => {
 });
 
 router.delete('/:postID', async (req, res) => {
-    console.log("h")
     const { postID } = req.params;
     const removePin = await removePinnedPost({ postID, userID: req.headers.userid });
 

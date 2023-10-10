@@ -1,4 +1,4 @@
-
+/* check if post is previously pinned */
 async function checkIfPinned({ pinsFound, postID }) {
     if (!pinsFound || !pinsFound[0]) return false;
     if (!postID) return false;

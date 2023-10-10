@@ -17,8 +17,10 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
     if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
     
     if (postData.content) {
+        /* if post is liked, add liked: true */
         const foundLike = await postIsLiked({ postID: postData._id, userID });
         if (foundLike) postData.liked = true;
+        /* if post is pinned to profile, add pinned: true */
         if (userID && !ownUser) {
             const personalUser = await interactUserSchema.findOne({_id: userID});
             postData.pinned = await checkIfPinned({ pinsFound: personalUser?.pins || null, postID: postData._id });
@@ -27,6 +29,7 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         } else {
             postData.pinned = false;
         }
+
         // has userid
         if (postData.userID) {
             const UserDataFound = await interactUserSchema.findOne({_id: postData.userID});
