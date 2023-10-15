@@ -1,6 +1,7 @@
 const interactPostSchema = require("../../schemas/interactPostSchema");
 const interactPostEditSchema = require("../../schemas/postSchemas/interactPostEditSchema");
 const interactRepliesSchema = require("../../schemas/postSchemas/interactRepliesSchema");
+const interactQuotesSchema = require("../../schemas/postSchemas/interactQuotesSchema");
 const { checkPostContent } = require("../checks");
 const { checktime } = require("../checktime");
 const { searchErrorV2 } = require("../searchError");
@@ -22,6 +23,29 @@ async function getPostReplies({ postID, userID }) {
         'post': postData,
         'replyIndex': replyIndex,
         'replies': dataArr
+    }
+    
+    return dataSend;
+}
+
+async function getPostQuotes({ postID, userID }) {
+    const postData = await interactPostSchema.findOne({_id: postID});
+    if (!postData) return searchErrorV2("D001", { userID });
+    else if (!postData.quoteIndexID) return searchErrorV2("D016", { userID });
+
+    const quoteIndex = await interactQuotesSchema.findOne({ _id: postData.quoteIndexID });
+    if (!quoteIndex || !quoteIndex.postIDs || !quoteIndex.postIDs[0]) return searchErrorV2("D017", { userID });
+    
+    const dataArr = [];
+    for (const quote of quoteIndex.postIDs) {
+        const replyData = await interactPostSchema.findOne({_id: quote});
+        dataArr.push(replyData);
+    }
+
+    const dataSend = {
+        'post': postData,
+        'quoteIndex': quoteIndex,
+        'quotes': dataArr
     }
     
     return dataSend;
@@ -74,4 +98,9 @@ async function editPost({ postID, userID, content}) {
     return { "before": postCheck, "new": postData}
 }
 
-module.exports = { getPostReplies, getPostEdits, editPost };
+module.exports = { 
+    getPostReplies,
+    getPostQuotes,
+    getPostEdits,
+    editPost 
+};

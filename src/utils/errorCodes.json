@@ -332,6 +332,14 @@
                     "msg" : "Post was not found."
                 },
                 {
+                    "code" : "D016",
+                    "msg" : "Post has no quotes."
+                },
+                {
+                    "code" : "D017",
+                    "msg" : "Post has no quotes inside index."
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },

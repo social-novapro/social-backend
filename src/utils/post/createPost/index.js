@@ -1,10 +1,11 @@
 const {v4 : uuidv4} = require('uuid');
+const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactPostSchema = require('../../../schemas/interactPostSchema');
+const interactRepliesSchema = require('../../../schemas/postSchemas/interactRepliesSchema');
+const interactQuotesSchema = require('../../../schemas/postSchemas/interactQuotesSchema');
 const { SCHEMA_VERSIONS } = require('../../../../config.json');
 const { checktime } = require('../../checktime');
-const interactUserSchema = require('../../../schemas/interactUserSchema');
-const {pushQuotePost} = require('../../../utils/notifications/pustQuotePost');
-const interactRepliesSchema = require('../../../schemas/postSchemas/interactRepliesSchema');
+const { pushQuotePost } = require('../../../utils/notifications/pustQuotePost');
 const { findPoll } = require('../../polls');
 
 async function newPostID() {
@@ -94,17 +95,25 @@ async function checkForMentions(content) {
 }
 
 async function quotingPostSetup(quotingPost, postID, userID) {
-    // console.log(quotingPost)
-    const quotingUser = await interactUserSchema.findOne({_id: quotingPost.userID})
-    
+    const quoteIndex = await getQuoteIndex(quotingPost);
+    const quoteIndexID = quoteIndex._id;
+
+    // add to the reply index
+    await interactQuotesSchema.findOneAndUpdate({
+        _id: quoteIndexID
+    }, {
+        amount: quoteIndex.amount ? quoteIndex.amount+1 : 1,
+        $push: { "postIDs" : postID }
+    }, {
+        upsert: true
+    });
+
     await interactPostSchema.findOneAndUpdate({
         _id: postID
     }, {
         isQuote: true,
-        quoteReplyPostID: `${quotingPost ? quotingPost._id : null}`,
-        quotedPost: quotingPost,
-        quotedUser: quotingUser,
         quoteData : {
+            indexID: quoteIndexID,
             postID: quotingPost._id,
             userID: quotingPost.userID
         }
@@ -114,14 +123,14 @@ async function quotingPostSetup(quotingPost, postID, userID) {
 
     // add to the main post's quote count
     await interactPostSchema.findOneAndUpdate({
-        _id: quotingPost._id//postID
+        _id: quotingPost._id //postID
     }, {        
         totalQuotes: quotingPost.totalQuotes ? quotingPost.totalQuotes + 1 : 1,
     }, {
         upsert: true
     });
 
-    await pushQuotePost(userID, postID, quotingUser._id);
+    await pushQuotePost(userID, postID, quotingPost.userID);
 
     return postID;
 }
@@ -141,8 +150,6 @@ async function replyingPostSetup(replyingPost, postID, userID) {
         upsert: true
     });
 
-    console.log(')')
-    console.log(replyingPost)
     // add to the main post's reply count
     await interactPostSchema.findOneAndUpdate({
         _id: replyingPost._id//postID
@@ -189,10 +196,9 @@ async function getReplyIndex(replyingPost) {
     } else {
         return foundIndex;
     }
-    // const foundIndex = await interactRepliesSchema.findOne({ _id: 'replyIndex' });
 }
 
-async function replaceIndex(postID, previousIndex, newIndex) {
+async function replaceReplyIndex(postID, previousIndex, newIndex) {
     await interactRepliesSchema.findOneAndUpdate({
         _id: previousIndex
     }, {
@@ -215,7 +221,7 @@ async function newReplyIndex(postID, previousIndex) {
     }, {
         upsert: true
     });
-    if (previousIndex) await replaceIndex(postID, previousIndex, indexID);
+    if (previousIndex) await replaceReplyIndex(postID, previousIndex, indexID);
 
     // setting reply index ID to the main post
     await interactPostSchema.findOneAndUpdate({
@@ -238,6 +244,68 @@ async function newReplyIndexID() {
 
 async function checkReplyIndexID(newID) {
     const repliesIDused = await interactRepliesSchema.findOne({ _id: newID });
+    if (repliesIDused) return newReplyIndex();
+
+    else return newID;
+}
+
+async function getQuoteIndex(replyingPost) {
+    const foundIndex = await interactQuotesSchema.findOne({ _id: replyingPost.quoteIndexID });
+    if (!foundIndex) return await newQuoteIndex(replyingPost._id);
+    else if (foundIndex?.amount >= 50) {
+        const newIndex = await newQuoteIndex(replyingPost._id, foundIndex._id);
+        return newIndex;
+    } else {
+        return foundIndex;
+    }
+}
+
+async function replaceQuoteIndex(postID, previousIndex, newIndex) {
+    await interactQuotesSchema.findOneAndUpdate({
+        _id: previousIndex
+    }, {
+        nextIndex: newIndex
+    }, {
+        upsert: true
+    });
+}
+
+async function newQuoteIndex(postID, previousIndex) {
+    const indexID = await newQuoteIndexID();
+    // creating new reply index
+    await interactQuotesSchema.findOneAndUpdate({
+        _id: indexID
+    }, {
+        _id: indexID,
+        postID: postID,
+        amount: 0,
+        previousIndex: previousIndex ? previousIndex : null,
+    }, {
+        upsert: true
+    });
+    if (previousIndex) await replaceQuoteIndex(postID, previousIndex, indexID);
+
+    // setting reply index ID to the main post
+    await interactPostSchema.findOneAndUpdate({
+        _id: postID
+    }, {
+        quoteIndexID: indexID
+    }, {
+        upsert: true
+    });
+
+    const foundIndex = await interactQuotesSchema.findOne({ _id: indexID });
+    if (foundIndex) return foundIndex;
+    else return null;
+}
+
+async function newQuoteIndexID() {
+    const newReplyIndexID = uuidv4();
+    return checkQuoteIndexID(newReplyIndexID);
+}
+
+async function checkQuoteIndexID(newID) {
+    const repliesIDused = await interactQuotesSchema.findOne({ _id: newID });
     if (repliesIDused) return newReplyIndex();
 
     else return newID;

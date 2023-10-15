@@ -5,6 +5,7 @@ const create = require('./create');
 const remove = require('./remove');
 
 const replies = require('./replies');
+const quotes = require('./quotes');
 
 const save = require('./save');
 const bookmarks = require('./bookmarks');
@@ -21,6 +22,7 @@ router.use('/create', create);
 router.use('/remove', remove)
 
 router.use('/replies', replies);
+router.use('/quotes', quotes)
 
 router.use('/save', save);
 router.use('/bookmarks', bookmarks);

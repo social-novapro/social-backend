@@ -12,6 +12,10 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
     var userData = null;
     var pollData = null;
     var voteData = null;
+    var quoteData = {
+        quotePost: null,
+        quoteUser: null
+    };
     
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
     if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
@@ -54,12 +58,31 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        // has linked quote
+        if (postData.quoteReplyPostID || (postData.quoteData && postData.quoteData.postID)) {
+            const quoteID = postData.quoteReplyPostID || postData.quoteData.postID;
+            const foundQuote = await interactPostSchema.findOne({_id: quoteID});
+            
+            if (foundQuote) {
+                quoteData.quotePost = foundQuote;
+                type["quote"] = "included";
+
+                if (foundQuote.userID) {
+                    const foundQuoteUser = await interactUserSchema.findOne({_id: foundQuote.userID});
+                    if (foundQuoteUser) {
+                        quoteData.quoteUser = foundQuoteUser;
+                    }
+                }
+            }
+        }
+
         var dataSend = { 
             type, 
             postData,
             userData,
             pollData, 
-            voteData
+            voteData,
+            quoteData
         };
 
         return dataSend;
