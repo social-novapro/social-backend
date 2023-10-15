@@ -113,6 +113,7 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     }, {
         isQuote: true,
         quoteData : {
+            indexID: quoteIndexID,
             postID: quotingPost._id,
             userID: quotingPost.userID
         }
@@ -249,7 +250,7 @@ async function checkReplyIndexID(newID) {
 }
 
 async function getQuoteIndex(replyingPost) {
-    const foundIndex = await interactQuotesSchema.findOne({ _id: replyingPost.replyIndexID });
+    const foundIndex = await interactQuotesSchema.findOne({ _id: replyingPost.quoteIndexID });
     if (!foundIndex) return await newQuoteIndex(replyingPost._id);
     else if (foundIndex?.amount >= 50) {
         const newIndex = await newQuoteIndex(replyingPost._id, foundIndex._id);
@@ -288,7 +289,7 @@ async function newQuoteIndex(postID, previousIndex) {
     await interactPostSchema.findOneAndUpdate({
         _id: postID
     }, {
-        replyIndexID: indexID
+        quoteIndexID: indexID
     }, {
         upsert: true
     });
@@ -300,10 +301,10 @@ async function newQuoteIndex(postID, previousIndex) {
 
 async function newQuoteIndexID() {
     const newReplyIndexID = uuidv4();
-    return checkReplyIndexID(newReplyIndexID);
+    return checkQuoteIndexID(newReplyIndexID);
 }
 
-async function checkQuotendexID(newID) {
+async function checkQuoteIndexID(newID) {
     const repliesIDused = await interactQuotesSchema.findOne({ _id: newID });
     if (repliesIDused) return newReplyIndex();
 

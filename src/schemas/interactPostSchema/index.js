@@ -66,6 +66,7 @@ const postReplySchema = mongoose.Schema({
 
 const postQuoteSchema = mongoose.Schema({
     // _id: reqString,
+    indexID: reqString,
     postID: reqString,
     userID: reqString
 });

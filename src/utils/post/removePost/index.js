@@ -1,14 +1,15 @@
+const { v4: uuidv4 } = require("uuid");
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactRepliesSchema = require("../../../schemas/postSchemas/interactRepliesSchema");
-const interactDeletedSchema = require("../../../schemas/deleted/interactDeletedSchema");
-const { v4: uuidv4 } = require("uuid");
 const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPostLikeSchema");
+const interactQuotesSchema = require("../../../schemas/postSchemas/interactQuotesSchema");
+const interactDeletedSchema = require("../../../schemas/deleted/interactDeletedSchema");
 const { deletePostNotifications } = require("../../notifications/deleteRemovedPost");
 const { pullPostBookmarks } = require("../../bookmarks");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
-    if (postData.isQuote) await removeQuote(postData);
+    if (postData.isQuote) await removeFromQuoteIndex(postData);
     
     // if postData.isQuote later
     if (postData.replyIndexID) await deleteReplyIndex(postData);
@@ -46,18 +47,6 @@ async function deleteReplyIndex(postData) {
     await interactRepliesSchema.findOneAndDelete({_id: postData.replyIndexID});
 };
 
-async function removeQuote({ _id, quoteData }) {
-    if (!quoteData) return false;
-    const foundPost = await interactPostSchema.findOne({ _id: quoteData.postID })
-    if (!foundPost) return false; // was already deleted maybe 
-    
-    await interactPostSchema.findOneAndUpdate({
-        _id: quoteData.postID
-    }, {
-        totalQuotes: foundPost.totalQuotes ? foundPost.totalQuotes-1 : 0,
-    });
-}
-
 async function removeFromReplyIndex({_id, replyData}) {
     if (!replyData) return false;
     const foundPost = await interactPostSchema.findOne({ _id: replyData.postID })
@@ -73,6 +62,28 @@ async function removeFromReplyIndex({_id, replyData}) {
     // removes from index
     await interactRepliesSchema.findOneAndUpdate({
         _id: replyData.indexID 
+    }, {
+        $pull: { "postIDs" : _id },
+    });
+
+    return true;
+};
+
+async function removeFromQuoteIndex({_id, quoteData}) {
+    if (!quoteData) return false;
+    const foundPost = await interactPostSchema.findOne({ _id: quoteData.postID })
+    if (!foundPost) return false; // was already deleted maybe
+
+    // removes reply count post
+    await interactPostSchema.findOneAndUpdate({
+        _id: quoteData.postID
+    }, {
+        totalQuotes: foundPost.totalQuotes ? foundPost.totalQuotes-1 : 0,
+    });
+
+    // removes from index
+    await interactQuotesSchema.findOneAndUpdate({
+        _id: quoteData.indexID 
     }, {
         $pull: { "postIDs" : _id },
     });

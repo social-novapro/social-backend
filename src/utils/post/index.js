@@ -31,10 +31,11 @@ async function getPostReplies({ postID, userID }) {
 async function getPostQuotes({ postID, userID }) {
     const postData = await interactPostSchema.findOne({_id: postID});
     if (!postData) return searchErrorV2("D001", { userID });
-    else if (!postData.replyIndexID) return searchErrorV2("D012", { userID });
+    else if (!postData.quoteIndexID) return searchErrorV2("D016", { userID });
 
-    const quoteIndex = await interactQuotesSchema.findOne({ _id: postData.replyIndexID });
-    if (!quoteIndex || !quoteIndex.postIDs || !quoteIndex.postIDs[0]) return searchErrorV2("D013", { userID });
+    const quoteIndex = await interactQuotesSchema.findOne({ _id: postData.quoteIndexID });
+    if (!quoteIndex || !quoteIndex.postIDs || !quoteIndex.postIDs[0]) return searchErrorV2("D017", { userID });
+    
     const dataArr = [];
     for (const quote of quoteIndex.postIDs) {
         const replyData = await interactPostSchema.findOne({_id: quote});
