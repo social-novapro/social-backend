@@ -3,11 +3,12 @@ const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { findPoll, findUserVote } = require("../../polls");
 const { searchErrorV2 } = require("../../searchError");
 const { checkIfPinned } = require("../../user/edit/checkIfPinned");
+const { getBookmarkSave } = require("../bookmarks");
 const { postIsLiked } = require("../likeUtil");
 
 async function getPostWithData({ userID, postID, post, ownUser }) {
     if (!postID && !post) return searchErrorV2("Q003", { userID })
-    var type = { "type": "post" };
+    var type = { "type": "post", "extra": "included" };
     var postData = post;
     var userData = null;
     var pollData = null;
@@ -16,6 +17,11 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         quotePost: null,
         quoteUser: null
     };
+    var extraData = {
+        liked: false,
+        pinned: false,
+        saved: false
+    };
     
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
     if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
@@ -23,17 +29,23 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
     if (postData.content) {
         /* if post is liked, add liked: true */
         const foundLike = await postIsLiked({ postID: postData._id, userID });
-        if (foundLike) postData.liked = true;
+        if (foundLike) extraData.liked = true;
         /* if post is pinned to profile, add pinned: true */
         if (userID && !ownUser) {
             const personalUser = await interactUserSchema.findOne({_id: userID});
-            postData.pinned = await checkIfPinned({ pinsFound: personalUser?.pins || null, postID: postData._id });
+            extraData.pinned = await checkIfPinned({ pinsFound: personalUser?.pins || null, postID: postData._id });
         } else if (ownUser) {
-            postData.pinned = await checkIfPinned({ pinsFound: ownUser?.pins || null, postID: postData._id });
+            extraData.pinned = await checkIfPinned({ pinsFound: ownUser?.pins || null, postID: postData._id });
         } else {
-            postData.pinned = false;
+            extraData.pinned = false;
+        }
+        /* if post is saved */
+        if (userID) {
+            const foundSave = await getBookmarkSave({ userID, postID: postData._id });
+            if (foundSave) extraData.saved = true;
         }
 
+        /* if extra should be invoked */
         // has userid
         if (postData.userID) {
             const UserDataFound = await interactUserSchema.findOne({_id: postData.userID});
@@ -82,7 +94,8 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             userData,
             pollData, 
             voteData,
-            quoteData
+            quoteData,
+            extraData
         };
 
         return dataSend;

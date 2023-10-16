@@ -532,6 +532,14 @@
                     "msg" : "There was no bookmark data found for this post."
                 },
                 {
+                    "code" : "K006",
+                    "msg" : "Post was not previously saved."
+                },
+                {
+                    "code" : "K007",
+                    "msg" : "There was no userID provided."
+                },
+                {
                     "code" : "L001",
                     "msg" : "No found notifications for user."
                 },
