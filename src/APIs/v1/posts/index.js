@@ -8,6 +8,7 @@ const replies = require('./replies');
 const quotes = require('./quotes');
 
 const save = require('./save');
+const unsave = require('./unsave');
 const bookmarks = require('./bookmarks');
 
 const unlike = require('./unlike');
@@ -25,6 +26,7 @@ router.use('/replies', replies);
 router.use('/quotes', quotes)
 
 router.use('/save', save);
+router.use('/unsave', unsave);
 router.use('/bookmarks', bookmarks);
 
 router.use('/like', like);

@@ -3,30 +3,52 @@ const interactPostBookmarks = require("../../../schemas/postSchemas/interactPost
 const { checktime } = require("../../checktime");
 const { searchErrorV2 } = require("../../searchError");
 
-/*
 async function getBookmarkSave({ userID, postID, listname }) {
-    const bookmark = await interactPostBookmarks.findOne(
+    var foundBookmark;
+    if (!listname) {
+        foundBookmark = await interactPostBookmarks.findOne(
+            { _id: userID },
+            { saves: { $elemMatch: { 
+                _id: postID,
+            }}}
+        );
+    } else {
+        foundBookmark = await interactPostBookmarks.findOne(
+            { _id: userID },
+            { saves: { $elemMatch: { 
+                _id: postID,
+                bookmarkList: listname || "main"
+            }}}
+        );
+    }
+    if (!foundBookmark) return null;
+    if (!foundBookmark.saves || !foundBookmark.saves[0]) return null;
+    return foundBookmark;
+}
+
+async function unbookmarkPost({userID, postID, listname}) {
+    if (!userID) return searchErrorV2("K008", { });
+    if (!postID) return searchErrorV2("K001", { userID });
+
+    const postCheck = await interactPostSchema.findOne({ _id: postID});
+    if (!postCheck) return searchErrorV2("K002", { userID });
+
+    const bookmarkFound = await getBookmarkSave({ userID, postID, listname });
+    if (!bookmarkFound) return searchErrorV2("K006", { userID });
+
+    await interactPostBookmarks.findOneAndUpdate(
         { _id: userID },
-        { saves: { $elemMatch: { 
+        { $pull: { saves: { 
             _id: postID,
             bookmarkList: listname || "main"
         }}}
     );
-    
-    return bookmark;
-}
 
-async function unbookmarkPost({userID, postID, listname}) {
-    if (!postID) return searchErrorV2("K001", { userID });
-
-    // check if in bookmarks
-    await interactPostBookmarks.findOne({
-        _id: userID,
-    })
+    return { success: true, bookmark: bookmarkFound };
 }
-*/
 
 async function bookmarkPost({userID, postID, listname}) {
+    if (!userID) return searchErrorV2("K008", { });
     if (!postID) return searchErrorV2("K001", { userID });
 
     const postCheck = await interactPostSchema.findOne({ _id: postID});
@@ -85,9 +107,16 @@ async function setupMainBookmark({userID}) {
 };
 
 async function getBookmarks({userID}) {
+    if (!userID) return searchErrorV2("K008", { });
+
     const userbookmarks = await interactPostBookmarks.findOne({ _id: userID });
     if (!userbookmarks) return searchErrorV2("K004", { userID });
     else return userbookmarks;
 }
 
-module.exports = { bookmarkPost, getBookmarks };
+module.exports = { 
+    bookmarkPost,
+    getBookmarks,
+    unbookmarkPost,
+    getBookmarkSave
+};
