@@ -12,6 +12,7 @@ const users = require('./users');
 const posts = require('./posts');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
+const files = require('./files');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -29,6 +30,7 @@ router.use('/posts', posts);
 router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
+router.use('/files', files);
 
 // Legacy Routes
 // GET
