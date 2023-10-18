@@ -2,22 +2,50 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { findPoll, findUserVote } = require("../../polls");
 const { searchErrorV2 } = require("../../searchError");
-const { isLiked } = require("../isLiked");
+const { checkIfPinned } = require("../../user/edit/checkIfPinned");
+const { getBookmarkSave } = require("../bookmarks");
+const { postIsLiked } = require("../likeUtil");
 
-async function getPostWithData({ userID, postID, post }) {
+async function getPostWithData({ userID, postID, post, ownUser }) {
     if (!postID && !post) return searchErrorV2("Q003", { userID })
-    var type = { "type": "post" };
+    var type = { "type": "post", "extra": "included" };
     var postData = post;
     var userData = null;
     var pollData = null;
     var voteData = null;
-
+    var quoteData = {
+        quotePost: null,
+        quoteUser: null
+    };
+    var extraData = {
+        liked: false,
+        pinned: false,
+        saved: false
+    };
+    
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
-    if (!postData) return searchErrorV2("Q003", { userID })
+    if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
+    
     if (postData.content) {
-        const foundLike = await isLiked({ postID: postData._id, userID });
-        if (foundLike) postData.liked = true;
+        /* if post is liked, add liked: true */
+        const foundLike = await postIsLiked({ postID: postData._id, userID });
+        if (foundLike) extraData.liked = true;
+        /* if post is pinned to profile, add pinned: true */
+        if (userID && !ownUser) {
+            const personalUser = await interactUserSchema.findOne({_id: userID});
+            extraData.pinned = await checkIfPinned({ pinsFound: personalUser?.pins || null, postID: postData._id });
+        } else if (ownUser) {
+            extraData.pinned = await checkIfPinned({ pinsFound: ownUser?.pins || null, postID: postData._id });
+        } else {
+            extraData.pinned = false;
+        }
+        /* if post is saved */
+        if (userID) {
+            const foundSave = await getBookmarkSave({ userID, postID: postData._id });
+            if (foundSave) extraData.saved = true;
+        }
 
+        /* if extra should be invoked */
         // has userid
         if (postData.userID) {
             const UserDataFound = await interactUserSchema.findOne({_id: postData.userID});
@@ -42,12 +70,32 @@ async function getPostWithData({ userID, postID, post }) {
             }
         }
 
+        // has linked quote
+        if (postData.quoteReplyPostID || (postData.quoteData && postData.quoteData.postID)) {
+            const quoteID = postData.quoteReplyPostID || postData.quoteData.postID;
+            const foundQuote = await interactPostSchema.findOne({_id: quoteID});
+            
+            if (foundQuote) {
+                quoteData.quotePost = foundQuote;
+                type["quote"] = "included";
+
+                if (foundQuote.userID) {
+                    const foundQuoteUser = await interactUserSchema.findOne({_id: foundQuote.userID});
+                    if (foundQuoteUser) {
+                        quoteData.quoteUser = foundQuoteUser;
+                    }
+                }
+            }
+        }
+
         var dataSend = { 
             type, 
             postData,
             userData,
             pollData, 
-            voteData
+            voteData,
+            quoteData,
+            extraData
         };
 
         return dataSend;

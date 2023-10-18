@@ -66,6 +66,7 @@ const postReplySchema = mongoose.Schema({
 
 const postQuoteSchema = mongoose.Schema({
     // _id: reqString,
+    indexID: reqString,
     postID: reqString,
     userID: reqString
 });
@@ -91,15 +92,12 @@ const interactPostSchema = mongoose.Schema({
     editedTimestamp: reqString,
     editedAmount: reqNum,
     
-    quoteReplyPostID: reqString, // legacy
-    quotedPost: interactPostSchemaForQuote, // legacy
-    quotedUser: interactUserSchemaForQuote, // legacy
-
     isQuote: reqBool,
-    quoteData: postQuoteSchema, // will remove
+    quoteData: postQuoteSchema,
+    quoteIndexID: reqString,
 
     isReply: reqBool,
-    replyData: postReplySchema, // will remove
+    replyData: postReplySchema,
     replyIndexID: reqString, 
     
     deleted: reqBool,
@@ -110,8 +108,10 @@ const interactPostSchema = mongoose.Schema({
     hasMentions: reqBool,
     mentionData: [mentionDataSchema], // max 10 ideally
 
+    quoteReplyPostID: reqString, // legacy
     replyingPostID: reqString, // legacy
-    liked: nonreqBool // this stays null, but is used to check if the user liked the post
+    liked: nonreqBool, // this stays null, but is used to check if the user liked the post
+    pinned: nonreqBool // this stays null, but is used to check if the user pinned the post
 });
 
 

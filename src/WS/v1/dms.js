@@ -487,7 +487,7 @@ async function changeLastOpened({ user, method, groupID}) {
         if (foundUserNew.lastOpened != groupID) return { "success" : false, "error" : "Data was not saved." };
         else return { "success" : true, "data" : { "groupID_old" : foundUser.lastOpened, "groupID" : foundUserNew.foundGroup }};
     } else if (method=="get") {
-        if (!foundUser.lastOpened) return { "success" : false, "error" : "There was no last group opened." }
+        if (!foundUser || !foundUser.lastOpened) return { "success" : false, "error" : "There was no last group opened." }
         else return { "success" : true, "data" : { "groupID" : foundUser.lastOpened }}
     }else {
         return { "success" : false, "error" : "There was no correct method used for changing/checking last opened group."}

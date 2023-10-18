@@ -76,6 +76,10 @@
                     "msg" : "Error with Alert System"
                 },
                 {
+                    "code" : "S",
+                    "msg" : "Error with themes"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -249,6 +253,29 @@
                     ]
                 },
                 {
+                    "code" : "C016",
+                    "msg" : "Attibute %d provided was not an hex codenwhile editing theme.",
+                    "options" : [
+                        {
+                            "name" : "attribute",
+                            "replacement" : "%d",
+                            "default" : "(unknown)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "C017",
+                    "msg" : "User does not have any pins on profile."
+                },
+                {
+                    "code" : "C018",
+                    "msg" : "Post was already pinned to profile."
+                },
+                {
+                    "code" : "C019",
+                    "msg" : "Post was not pinned to profile."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -299,6 +326,22 @@
                 {
                     "code" : "D013",
                     "msg" : "User has no posts"
+                },
+                {
+                    "code" : "D014",
+                    "msg" : "User did not previously like the post"
+                },
+                {
+                    "code" : "D015",
+                    "msg" : "Post was not found."
+                },
+                {
+                    "code" : "D016",
+                    "msg" : "Post has no quotes."
+                },
+                {
+                    "code" : "D017",
+                    "msg" : "Post has no quotes inside index."
                 },
                 {
                     "code" : "E001",
@@ -409,6 +452,50 @@
                     "msg" : "Please use /v1/feeds/allPosts instead of /v1/get/allPosts."
                 },
                 {
+                    "code" : "I009",
+                    "msg" : "Please use /v1/posts/get/ instead of /v1/get/post/."
+                },
+                {
+                    "code" : "I010",
+                    "msg" : "Please use /v1/posts/create instead of /v1/post/createPost."
+                },
+                {
+                    "code" : "I011",
+                    "msg" : "Please use /v1/posts/save instead of /v1/post/savePost."
+                },
+                {
+                    "code" : "I012",
+                    "msg" : "Please use /v1/posts/bookmarks instead of /v1/get/bookmarks."
+                },
+                {
+                    "code" : "I013",
+                    "msg" : "Please use /v1/posts/remove/ instead of /v1/delete/removePost/"
+                },
+                {
+                    "code" : "I014",
+                    "msg" : "Please use /v1/posts/unlike/ instead of /v1/delete/unlikePost/"
+                },
+                {
+                    "code" : "I015",
+                    "msg" : "Please use /v1/posts/likes/ instead of /v1/get/postLikedBy/"
+                },
+                {
+                    "code" : "I016",
+                    "msg" : "Please use /v1/posts/edits/ instead of /v1/get/postEditHistory/"
+                },
+                {
+                    "code" : "I017",
+                    "msg" : "Please use /v1/posts/like/ instead of /v1/put/likePost/"
+                },
+                {
+                    "code" : "I018",
+                    "msg" : "Please use /v1/posts/replies/ instead of /v1/get/postReplies/"
+                },
+                {
+                    "code" : "I019",
+                    "msg" : "Please use /v1/posts/edit instead of /v1/put/editPost/"
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },
@@ -447,6 +534,14 @@
                 {
                     "code" : "K005",
                     "msg" : "There was no bookmark data found for this post."
+                },
+                {
+                    "code" : "K006",
+                    "msg" : "Post was not previously saved."
+                },
+                {
+                    "code" : "K007",
+                    "msg" : "There was no userID provided."
                 },
                 {
                     "code" : "L001",
@@ -902,6 +997,58 @@
                 {
                     "code" : "R011",
                     "msg" : "Error issue is already in review, please override the reviewer first instead."
+                },
+                {
+                    "code" : "S001",
+                    "msg" : "You can not edit this theme, you are not the creator."
+                },
+                {
+                    "code" : "S002",
+                    "msg" : "You do not have permission to view this theme."
+                },
+                {
+                    "code" : "S003",
+                    "msg" : "Could not find any themes with assiocated userID"
+                },
+                {
+                    "coode" : "S004",
+                    "msg" : "User does not have any default theme"
+                },
+                {
+                    "code" : "S005",
+                    "msg" : "Theme did not have any theme data."
+                },
+                {
+                    "code" : "S006",
+                    "msg" : "Could not fork theme, user does not have permission."
+                },
+                {
+                    "code" : "S007",
+                    "msg" : "Could not edit theme, user does not have permission."
+                },
+                {
+                    "code" : "S008",
+                    "msg" : "There was no valid options to edit theme."
+                },
+                {
+                    "code" : "S009",
+                    "msg" : "Can not change name of theme, invalid permission."
+                },
+                {
+                    "code" : "S010",
+                    "msg" : "Can not edit theme, theme is locked."
+                },
+                {
+                    "code" : "S011",
+                    "msg" : "Can not delete theme, theme is locked."
+                },
+                {
+                    "code" : "S012",
+                    "msg" : "Can not delete theme, theme is invalid permisssion."
+                },
+                {
+                    "code" : "S013",
+                    "msg" : "Can not unset theme, user did not have any themes set."
                 },
                 {
                     "code" : "Z001",

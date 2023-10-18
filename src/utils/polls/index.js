@@ -51,7 +51,7 @@ async function createPoll({ userID, pollOptions }) {
 
     // must have more than 2 options
     if (validatedOptions.length < 2) return {
-        error: searchErrorV2("O006", [{ name: "min", data: MIN_AMOUNT_OPTIONS }]),
+        error: searchErrorV2("O006", { userID, options: [{ name: "min", data: MIN_AMOUNT_OPTIONS }]}),
         errors: foundErrors
     }
     if (validatedOptions.length > MAX_AMOUNT_OPTIONS) return searchErrorV2("O003", { userID, options: [{ name: "max", data: MAX_AMOUNT_OPTIONS }]})
