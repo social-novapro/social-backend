@@ -1,14 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-
-const reqNum = {
-    type: Number,
-    required: true
-};
+const { reqString, reqNum } = require('../../types');
 
 const userBrandSchema = mongoose.Schema({
     _id: reqString, // userID (of person who has access)

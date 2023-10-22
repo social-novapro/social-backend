@@ -1,14 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-
-const reqNum = {
-    type: Number,
-    required: true
-};
+const { reqString, reqNum } = require('../../types');
 
 /*
 postSchema
@@ -26,6 +17,5 @@ const interactRepliesSchema = mongoose.Schema({
     indexStartTime: reqString,// when index was created
     indexEndTime: reqString
 });
-
 
 module.exports = mongoose.model('interact-replies', interactRepliesSchema);

@@ -17,7 +17,6 @@ const interactUserPrivSchema = mongoose.Schema({
     _id: reqString,
     userToken: reqString,
     email: nonreqString,
-    // accessTokens: [reqString],
     salted: reqBool,
     password: reqString,
     devToken: nonreqString

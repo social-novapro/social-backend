@@ -1,25 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-};
-const reqBool = {
-    type: Boolean,
-    required: false
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const nonreqNum = {
-    type: Number,
-    required: false
-};
+const { reqString, reqNum, nonreqNum } = require('../../types');
 
 /*
     votes which are linked to indexIDs

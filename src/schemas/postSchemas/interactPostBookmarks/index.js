@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
+const { reqString } = require('../../types');
 
 const bookmarkLists = {
     name: reqString, // namelist
@@ -21,6 +17,5 @@ const interactPostBookmarks = mongoose.Schema({
     saves: [bookmarks], // saved posts
     lists: [bookmarkLists] // lists
 });
-
 
 module.exports = mongoose.model('interact-post-bookmarks', interactPostBookmarks);

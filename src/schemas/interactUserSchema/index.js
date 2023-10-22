@@ -1,21 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const reqBool = {
-    type: Boolean,
-    required: true
-};
-const nonreqBool = {
-    type: Boolean,
-    required: false
-};
+const { reqNum, reqString, reqBool, nonreqBool } = require('../types');
 
 // 1: public, 2: friends of friends, 3: private
 const privacySettingSchema = mongoose.Schema({

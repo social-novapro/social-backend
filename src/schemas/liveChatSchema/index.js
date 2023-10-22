@@ -1,19 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-
-const reqNum = {
-    type: Number,
-    required: true
-};
-
-const reqBool = {
-    type: Boolean,
-    required: true
-};
+const { reqBool, reqString, reqNum } = require('../types');
 
 // type 01
 const pingsSchema = mongoose.Schema({

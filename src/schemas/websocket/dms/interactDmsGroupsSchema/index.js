@@ -1,16 +1,5 @@
-
-
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-
-const reqNum = {
-    type: Number,
-    required: true
-};
+const { reqNum, reqString } = require('../../../types');
 
 const userObj = mongoose.Schema({
     _id: reqString, //userID

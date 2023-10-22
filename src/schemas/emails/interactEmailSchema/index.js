@@ -1,21 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const reqBool = {
-    type: Boolean,
-    required: true
-};
+const { reqString, reqNum, reqBool, nonreqString } = require('../../types');
 
 const htmlElement = mongoose.Schema({
     h1: nonreqString,

@@ -1,21 +1,6 @@
 const mongoose = require('mongoose');
+const { reqString, nonreqString, reqNum, reqBool } = require('../../types');
 
-const reqString = {
-    type: String,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const reqBool = {
-    type: Boolean,
-    required: true
-};
 
 const colourThemeSchema = mongoose.Schema({
     _id: reqString, // id of theme ig
