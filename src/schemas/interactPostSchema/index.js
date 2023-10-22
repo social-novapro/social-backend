@@ -1,60 +1,11 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const reqBool = {
-    type: Boolean,
-    required: true
-};
-const nonreqBool = {
-    type: Boolean,
-    required: false
-};
-
-const interactPostSchemaForQuote = mongoose.Schema({
-    _id: reqString,
-    userID: reqString,
-    timePosted: reqString,
-    content: reqString,
-    totalLikes: reqNum,
-    totalReplies: reqNum,
-    edited: reqBool,
-    editedTimestamp: reqString,
-    editedAmount: reqNum,
-    // quoteReplyPostID: reqString,
-    // quotedPost: interactPostSchema
-});
+const { reqNum, reqString, reqBool, nonreqBool } = require('../types');
 
 // type 06
 const privacySettingSchema = mongoose.Schema({
     discoverSetting: reqNum,
     postVisiblityDefault: reqNum,
     postReplyDefault: reqNum,
-});
-
-const interactUserSchemaForQuote = mongoose.Schema({
-    _id: reqString,
-    username: reqString,
-    lastEditUsername: reqNum,
-    displayName: reqString,
-    description: reqString,
-    pronouns: reqString,
-    statusTitle: reqString,
-    lastEditDisplayname: reqNum,
-    creationTimestamp: reqString,
-    followerCount: reqNum,
-    followingCount: reqNum,
-    likeCount: reqNum,
-    likedCount: reqNum,
-    totalPosts: reqNum,
-    totalReplies: reqNum,
-    privacySetting: privacySettingSchema
 });
 
 const postReplySchema = mongoose.Schema({
@@ -66,6 +17,7 @@ const postReplySchema = mongoose.Schema({
 
 const postQuoteSchema = mongoose.Schema({
     // _id: reqString,
+    indexID: reqString,
     postID: reqString,
     userID: reqString
 });
@@ -91,15 +43,12 @@ const interactPostSchema = mongoose.Schema({
     editedTimestamp: reqString,
     editedAmount: reqNum,
     
-    quoteReplyPostID: reqString, // legacy
-    quotedPost: interactPostSchemaForQuote, // legacy
-    quotedUser: interactUserSchemaForQuote, // legacy
-
     isQuote: reqBool,
-    quoteData: postQuoteSchema, // will remove
+    quoteData: postQuoteSchema,
+    quoteIndexID: reqString,
 
     isReply: reqBool,
-    replyData: postReplySchema, // will remove
+    replyData: postReplySchema,
     replyIndexID: reqString, 
     
     deleted: reqBool,
@@ -110,8 +59,10 @@ const interactPostSchema = mongoose.Schema({
     hasMentions: reqBool,
     mentionData: [mentionDataSchema], // max 10 ideally
 
+    quoteReplyPostID: reqString, // legacy
     replyingPostID: reqString, // legacy
-    liked: nonreqBool // this stays null, but is used to check if the user liked the post
+    liked: nonreqBool, // this stays null, but is used to check if the user liked the post
+    pinned: nonreqBool // this stays null, but is used to check if the user pinned the post
 });
 
 

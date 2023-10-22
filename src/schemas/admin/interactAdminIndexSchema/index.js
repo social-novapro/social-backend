@@ -1,17 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-}
+const { nonreqString, reqNum, reqString } = require('../../types');
 
 const interactAdminIndexSchema = mongoose.Schema({
     _id: reqString, // "main"

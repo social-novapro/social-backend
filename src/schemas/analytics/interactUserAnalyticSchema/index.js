@@ -1,14 +1,6 @@
 const mongoose = require('mongoose');
+const { reqString } = require('../../types');
 
-const reqString = {
-    type: String,
-    required: true
-}
-
-const reqNum = {
-    type: Number,
-    required: true
-}
 
 const userConnectionsSchema = {
     _id: reqString,

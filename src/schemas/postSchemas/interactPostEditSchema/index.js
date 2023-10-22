@@ -1,13 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
+const { reqString } = require('../../types');
 
 const editSchema = {
     publicTimestamp: reqString,
@@ -20,6 +12,5 @@ const interactPostEditSchema = mongoose.Schema({
     userID: reqString,
     edits: [editSchema]
 });
-
 
 module.exports = mongoose.model('interact-post-edits', interactPostEditSchema);

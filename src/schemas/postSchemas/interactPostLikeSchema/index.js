@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
+const { reqString } = require('../../types');
 
 const likeSchema = mongoose.Schema({
     // userID of person who liked
