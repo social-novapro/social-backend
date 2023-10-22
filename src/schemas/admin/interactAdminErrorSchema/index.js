@@ -1,25 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const reqBool = {
-    type: Boolean,
-    required: false
-}
-const nonreqString = {
-    type: String,
-    required: false
-}
-const nonreqNum = {
-    type: Number,
-    required: false
-}
+const { reqString, reqNum, nonreqNum, reqBool, nonreqString } = require('../../types');
 
 const reviewHistorySchema = mongoose.Schema({ 
     _id: reqString, //random ID

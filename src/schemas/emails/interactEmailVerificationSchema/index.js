@@ -1,30 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
-const nonreqNum = {
-    type: Number,
-    required: false
-};
-
-const reqBool = {
-    type: Boolean,
-    required: true
-};
-const nonreqBool = {
-    type: Boolean,
-    required: false
-};
+const { nonreqString, nonreqNum, nonreqBool, reqString, reqNum, reqBool } = require('../../types');
 
 const emailHistoryData = mongoose.Schema({
     _id: nonreqString, // emailVerID

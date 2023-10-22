@@ -1,17 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-}
-const reqNum = {
-    type: Number,
-    required: true
-};
+const { reqString, reqNum, nonreqString } = require('../../types');
 
 const interactDeletedSchema = new mongoose.Schema({
     _id: reqString, // unique ID, deletedID

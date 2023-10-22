@@ -1,18 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-
-const reqNum = {
-    type: Number,
-    required: true
-};
-const nonreqNum = {
-    type: Number,
-    required: false
-};
+const { reqString, reqNum, nonreqNum } = require('../../../types');
 
 const groupObj = mongoose.Schema({
     _id: reqString, //group id

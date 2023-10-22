@@ -1,21 +1,5 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-};
-const reqBool = {
-    type: Boolean,
-    required: false
-};
-const reqNum = {
-    type: Number,
-    required: false
-};
+const { nonreqString, reqString, reqNum } = require('../../types');
 
 const voteSchema = mongoose.Schema({
     _id: nonreqString,

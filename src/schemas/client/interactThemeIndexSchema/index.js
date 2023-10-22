@@ -1,23 +1,11 @@
 const mongoose = require('mongoose');
-
-const reqString = {
-    type: String,
-    required: true
-};
-const nonreqString = {
-    type: String,
-    required: false
-};
-const reqNum = {
-    type: Number,
-    required: true
-};
+const { nonreqString, reqNum, reqString } = require('../../types');
 
 const themeIndexSchema = mongoose.Schema({
     _id: reqString, // themeID
 });
 
-const interactThemeSchema = mongoose.Schema({
+const interactThemeIndexSchema = mongoose.Schema({
     _id: reqString, // indexid
     timestamp: reqNum,
     nextID: nonreqString, // next id
@@ -26,4 +14,4 @@ const interactThemeSchema = mongoose.Schema({
     themeIDs: [themeIndexSchema]
 });
 
-module.exports = mongoose.model('interact-theme-index', interactThemeSchema);
+module.exports = mongoose.model('interact-theme-index', interactThemeIndexSchema);
