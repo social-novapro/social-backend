@@ -1003,6 +1003,10 @@
                     "msg" : "Can not unset theme, user did not have any themes set."
                 },
                 {
+                    "code" : "S014",
+                    "msg" : "No themes in index found"
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

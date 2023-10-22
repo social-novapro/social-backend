@@ -65,16 +65,19 @@ async function createIndex({ prevIndexID }) {
 /* prepares a list of themes for discovery */
 async function exportIndex({ userID, indexID }) {
     var usingIndexID = indexID;
+    if (!currentIndex) await getCurrentIndex();
     if (!usingIndexID) usingIndexID = currentIndexID;
     
     var returnData = {
         indexID: usingIndexID,
         nextIndexID: null,
         prevIndexID: null,
-        themes: []
+        themes: [],
+        users: {}
     }
+
     const indexData = await interactThemeIndexSchema.findOne({ _id: usingIndexID });
-    if (!indexData || !indexData) return null;
+    if (!indexData || !indexData) return searchErrorV2("S014", { userID });
 
     returnData.nextIndexID = indexData.nextIndexID;
     returnData.prevIndexID = indexData.prevIndexID;
@@ -82,8 +85,13 @@ async function exportIndex({ userID, indexID }) {
     for (const themeID of indexData.themeIDs) {
         const themeData = await getTheme({ themeID: themeID._id, requestingUser: userID  });
         if (!themeData) continue;
+        const foundUser = await interactUserSchema.findOne({ _id: themeData.userID });
+
+        if (foundUser) returnData.users[themeData.userID] = foundUser;
         returnData.themes.push(themeData);
     }
+
+    return returnData;
 };
 
 /* gets current index, and sets file variables */
