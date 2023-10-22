@@ -35,6 +35,7 @@ router.get('/themes/:indexID', async (req, res) => {
     if (result.error) return res.status(400).send(result);
     else return res.status(200).send(result);
 })
+
 /* submits create of a theme */
 router.post('/submit/create', async (req, res) => {
     const userID = req.headers.userid;
