@@ -1,5 +1,5 @@
 {
-    "current" : "dev",
+    "current" : "prod",
     "demoEmailAdr" : "daniel@novapro.net",
     "dev" : {
         "mongo_url" : "deprecated"
