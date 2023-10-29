@@ -10,18 +10,10 @@ async function checkUsername(username) {
 
     if (username.length > 20) return { "allowed" : false, "error" : "Username to long!"};
 
-    const allowed = "a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 . _ -";
-    var allowedSet = allowed.split(/[ ]+/);
+    const alowedPattern = /^[a-zA-Z._-]+$/;
+    const allowedUsername = alowedPattern.test(username);
 
-    var foundArgs = [];
-
-    for (c of username) {
-        for (const allowedC of allowedSet) {
-            if (allowedC == c.toLowerCase()) foundArgs.push(c);
-        };
-    };
-
-    if (foundArgs.join("") != username) return { "allowed" : false, "error" : searchError("C012")};
+    if (!allowedUsername) return { "allowed" : false, "error" : searchError("C012")};
     else return { "allowed" : true};
 }
 
