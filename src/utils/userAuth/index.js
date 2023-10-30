@@ -116,7 +116,20 @@ async function checkTypeLogin({ username, allowEmailUnverified }) {
 
     // username login
     if (!emailUsed) {
+        const foundUsernameLc = await interactUserSchema.findOne({ usernameLc: username.toLowerCase() });
+        if (!foundUsernameLc) return searchErrorV2("G003", { userID: username });
+
         const foundUsername = await interactUserSchema.findOne({ username });
+        if (foundUsername && !foundUsernameLc) {
+            /* adds LC to db properly */
+            await interactUserSchema.findOneAndUpdate({
+                _id: foundUsername._id
+            }, {        
+                usernameLc: username.toLowerCase()
+            }, {
+                upsert: true
+            });
+        }
         if (!foundUsername) return searchErrorV2("G003", { userID: username });
 
         // gets email data if it exists
