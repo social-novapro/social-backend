@@ -8,7 +8,9 @@ async function authV1(req, res, next) {
         req.originalUrl.startsWith('/v1/get/analyticTrend') ||
         req.originalUrl.startsWith('/v1/emails/requests') ||
         req.originalUrl.startsWith('/v1/users/public') || 
-        req.originalUrl.startsWith('/v1/auth/password/requests')
+        req.originalUrl.startsWith('/v1/auth/password/requests') ||
+        /* actions for db updates, only to be done once */
+        req.originalUrl.startsWith('/v1/admin/updateActions')
     ) {
         console.log("authV1: bypassing auth")
         return next();

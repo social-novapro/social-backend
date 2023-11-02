@@ -2,10 +2,9 @@ const { searchError } = require("../searchError");
 const interactUserSchema = require('../../schemas/interactUserSchema');
 
 async function checkUsername(username) {
-    const usernameLcCheck = await interactUserSchema.findOne({ usernameLc: username.toLowerCase() });
-    if (usernameLcCheck) return { "allowed" : false, "error" : searchError("C001")};
-
-    const usernameCheck = await interactUserSchema.findOne({ username: username.toLowerCase() });
+    const usernameCheck = await interactUserSchema.findOne({ 
+        usernameLc: username.toLowerCase() 
+    });
     if (usernameCheck) return { "allowed" : false, "error" : searchError("C001")};
 
     if (username.length > 20) return { "allowed" : false, "error" : "Username to long!"};

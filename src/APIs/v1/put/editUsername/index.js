@@ -46,7 +46,11 @@ router.put('/', async (req, res) => {
 
     await interactUserSchema.findOneAndUpdate(
         { _id: userid }, 
-        { username: newusername, lastEditUsername: currenttime }
+        { 
+            username: newusername, 
+            usernameLc: newusername.toLowerCase(), 
+            lastEditUsername: currenttime
+        }
     );
 
     const UserData = await interactUserSchema.findOne({_id: userid});
