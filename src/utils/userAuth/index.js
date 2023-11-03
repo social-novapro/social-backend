@@ -116,7 +116,7 @@ async function checkTypeLogin({ username, allowEmailUnverified }) {
 
     // username login
     if (!emailUsed) {
-        const foundUsername = await interactUserSchema.findOne({ username });
+        const foundUsername = await interactUserSchema.findOne({ usernameLc: username.toLowerCase() });
         if (!foundUsername) return searchErrorV2("G003", { userID: username });
 
         // gets email data if it exists
@@ -140,6 +140,7 @@ async function checkTypeLogin({ username, allowEmailUnverified }) {
             returnData.emailFound = foundEmailUser.email;
             returnData.emailVerified = foundEmailUser.verified;
         }
+
         // if email is not verified, and email unverified is not allowed then return error
         if (foundEmailUser.verified != true && !allowEmailUnverified) return searchErrorV2("G006", { userID: foundEmailUser.userID });
 
@@ -155,4 +156,81 @@ async function checkTypeLogin({ username, allowEmailUnverified }) {
     return returnData;
 }
 
-module.exports = { checkPassword, quickCheckPassword, setPassword, checkTypeLogin };
+/* this shouldnt actually be needed to ran more than once after usernameLc is a thing */
+async function updateAllUsernameLc() {
+    var amountUpdated = 0;
+    const updatedUsernames = [];
+    const failedUsernames = [];
+    const allUsers = await interactUserSchema.find({});
+
+    for (const user of allUsers) {
+        const username = user.username;
+        if (!username) {
+            failedUsernames.push({user, error: searchErrorV2("R012", { userID: user._id})});
+            continue;
+        }
+
+        const usernameLc = user.username.toLowerCase();
+        if (updatedUsernames.includes(usernameLc)) {
+            failedUsernames.push({user, error: searchErrorV2("R013", { userID: user._id})});
+            continue;
+        }
+
+        /* actually updates */
+        await interactUserSchema.findOneAndUpdate({ 
+            _id: user._id
+        }, {
+            usernameLc
+        });
+
+        updatedUsernames.push(usernameLc);
+        amountUpdated++
+    }
+
+    return {
+        amountUpdated,
+        updatedUsernames,
+        failedUsernames
+    };
+}
+
+/* for testing purposeses, reverse of what function above does */
+async function undoAllUsernameLc() {
+    var amountUpdated = 0;
+    const updatedUsernames = [];
+    const failedUsernames = [];
+    const allUsers = await interactUserSchema.find({});
+
+    for (const user of allUsers) {
+        const username = user.username;
+        if (!username) {
+            failedUsernames.push({user, error: searchErrorV2("R012", { userID: user._id})});
+            continue;
+        };
+
+        /* actually updates */
+        await interactUserSchema.findOneAndUpdate({ 
+            _id: user._id
+        }, {
+            usernameLc: null
+        });
+
+        updatedUsernames.push(username);
+        amountUpdated++
+    };
+
+    return {
+        amountUpdated,
+        updatedUsernames,
+        failedUsernames
+    };
+}
+
+module.exports = { 
+    checkPassword, 
+    quickCheckPassword, 
+    setPassword, 
+    checkTypeLogin,
+    updateAllUsernameLc,
+    undoAllUsernameLc
+};
