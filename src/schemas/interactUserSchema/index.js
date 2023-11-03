@@ -25,6 +25,7 @@ const pinnedPostsSchema = mongoose.Schema({
 const interactUserSchema = mongoose.Schema({
     _id: reqString,
     username: reqString,
+    usernameLc: reqString,
     lastEditUsername: reqNum,
     displayName: reqString,
     description: reqString,

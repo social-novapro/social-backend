@@ -58,6 +58,7 @@ async function newUserIndex(newUserDataForEntry) {
         _id: userID,
         __v: SCHEMA_VERSIONS.interactUserSchema,
         username,
+        usernameLc: username.toLowerCase(),
         lastEditUsername: currentTime,
         displayName,
         description, 
