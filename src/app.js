@@ -317,7 +317,9 @@ wss.on('connection', async (ws, req) => {
     ws.send(JSON.stringify({
         type: 10,
         user,
-        message: "please connect",
+        message: {
+            content: "please connect",
+        },
         mesType: 1
         /*
             1: please connect
