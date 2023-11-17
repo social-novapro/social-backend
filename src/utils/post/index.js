@@ -98,9 +98,14 @@ async function editPost({ postID, userID, content}) {
     return { "before": postCheck, "new": postData}
 }
 
+async function getUserMentions({ userID }) {
+    
+}
+
 module.exports = { 
     getPostReplies,
     getPostQuotes,
     getPostEdits,
-    editPost 
+    editPost,
+    getUserMentions
 };

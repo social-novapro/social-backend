@@ -23,10 +23,10 @@ const postQuoteSchema = mongoose.Schema({
 });
 
 const mentionDataSchema = mongoose.Schema({
-    // _id: reqString,
+    _id: reqString, // index of word
     userID: reqString,
-    username: reqString,
-    index: reqNum
+    username: reqString, // text to find to replace
+    //index: reqNum
 });
 
 const interactPostSchema = mongoose.Schema({
@@ -58,6 +58,9 @@ const interactPostSchema = mongoose.Schema({
 
     hasMentions: reqBool,
     mentionData: [mentionDataSchema], // max 10 ideally
+
+    hasTags: reqBool,
+    tagsData: [reqString],
 
     quoteReplyPostID: reqString, // legacy
     replyingPostID: reqString, // legacy
