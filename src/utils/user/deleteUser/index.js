@@ -296,7 +296,7 @@ async function deleteDev({ userID }) {
  * deletes all posts from user
  */
 async function deletePosts({ userID }) {
-    const foundPosts = await getPostsFromUser({ userID });
+    const foundPosts = await getPostsFromUser({ userID, coposts: false });
     if (!foundPosts || foundPosts.error) return searchErrorV2("P008", { userID });
 
     const data = [];

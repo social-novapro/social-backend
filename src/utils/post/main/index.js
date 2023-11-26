@@ -1,19 +1,16 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
-const interactPostCoSchema = require("../../../schemas/postSchemas/interactPostCoSchema");
 const { searchErrorV2 } = require("../../searchError");
+const { getCoposts } = require("../coposter");
 
-async function getPostsFromUser({ userID }) {
+async function getPostsFromUser({ userID, coposts }) {
     const foundPosts = await interactPostSchema.find({ userID });
-    const foundCoposter = await interactPostCoSchema.find({ userID });
-    foundPosts.push(...foundCoposter);
-    console.log(foundPosts)
+    if (coposts) {
+        const foundCoposts = await getCoposts({userID});
+        if (foundCoposts && !foundCoposts.error && foundCoposts.length > 0) foundPosts.push(...foundCoposts);
+    }
 
-    if (foundPosts && foundPosts.length > 0) return searchErrorV2("D013", { userID }); 
-    foundPosts.sort((a, b) => {
-        if (a.timestamp < b.timestamp) return 1;
-        else if (a.timestamp > b.timestamp) return -1;
-        else return 0;
-    });
+    if (foundPosts && !foundPosts.length > 0) return searchErrorV2("D013", { userID }); 
+    foundPosts.sort((a, b) => a.timePosted - b.timePosted);
 
     return foundPosts;
 }

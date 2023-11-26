@@ -1,8 +1,10 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
+const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactPostCoSchema = require("../../../schemas/postSchemas/interactPostCoSchema");
+const { checktime } = require("../../checktime");
 const { searchErrorV2 } = require("../../searchError");
 
-async function getCopostRequests(userID) {
+async function getCopostRequests({userID}) {
     const copostRequests = await interactPostCoSchema.find({ 
         userID,
         deletedPost: false,
@@ -10,7 +12,7 @@ async function getCopostRequests(userID) {
         approved: false 
     });
 
-    if (!copostRequests || copostRequests.length < 1) return searchErrorV2("D018", { userID });
+    if (!copostRequests || !copostRequests.length > 0) return searchErrorV2("D018", { userID });
     var foundData = [];
 
     for (const copost of copostRequests) {
@@ -26,33 +28,30 @@ async function getCopostRequests(userID) {
         } 
     }
 
-    if (!foundData || foundData.length < 1) return searchErrorV2("D018", { userID });
+    if (!foundData || !foundData.length > 0) return searchErrorV2("D018", { userID });
 
     return foundData;
 }
 
-async function getCoposts(userID) {
+async function getCoposts({userID}) {
     const foundCoposts = await interactPostCoSchema.find({
         userID,
         approved: true
     });
 
-    if (!foundCoposts || foundCoposts.length < 1) return searchErrorV2("D019", { userID });
+    if (!foundCoposts || !foundCoposts.length > 0) return searchErrorV2("D019", { userID });
 
     var foundPosts = [];
-    if (foundCoposts && foundCoposts.length > 0) {
-        foundCoposts.forEach(async copost => {
-            const foundPost = await interactPostSchema.findOne({_id: copost.postID})
-            if (foundPost) foundPosts.push(foundPost);
-        });
+    for (const copost of foundCoposts) {
+        const foundPost = await interactPostSchema.findOne({_id: copost.postID})
+        if (foundPost) foundPosts.push(foundPost);
     }
 
-    if (!foundPosts || foundPosts.length < 1) return searchErrorV2("D019", { userID });
-
+    if (!foundPosts || !foundPosts.length > 0) return searchErrorV2("D019", { userID });
     return foundPosts;
 }
 
-async function approveCopost(requestID, userID) {
+async function approveCopost({requestID, userID}) {
     const foundRequest = await interactPostCoSchema.findOne({_id: requestID});
     if (!foundRequest) return searchErrorV2("D020", { userID });
     if (foundRequest.userID !== userID) return searchErrorV2("D021", {  userID });
@@ -84,7 +83,7 @@ async function approveCopost(requestID, userID) {
     return foundRequest;
 }
 
-async function declineCopost(requestID, userID) {
+async function declineCopost({requestID, userID}) {
     const foundRequest = await interactPostCoSchema.findOne({_id: requestID});
     if (!foundRequest) return searchErrorV2("D020", { userID });
     if (foundRequest.userID !== userID) return searchErrorV2("D021", {  userID });

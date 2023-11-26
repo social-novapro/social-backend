@@ -4,6 +4,7 @@ const { getPostsFromUser } = require("../post/main");
 const { getPostWithData } = require("../post/getPost");
 const { searchErrorV2 } = require("../searchError");
 const interactUserSchema = require("../../schemas/interactUserSchema");
+const { getUserPosts } = require("../post/user");
 
 async function allPostsFeed({ userID }) {
     const AllPosts = await interactPostSchema.find();
@@ -27,16 +28,12 @@ async function allPostsFeed({ userID }) {
 async function subscriptionFeed({ userID }) {
     const sendPosts = [];
     const subscriptions = await getSubscriptions({ userID });
-    const ownUser = await interactUserSchema.findOne({_id: userID});
 
     if (subscriptions.error) return subscriptions;
     
     for (const sub of subscriptions) {
-        const foundPosts = await getPostsFromUser({ userID: sub._id});
-        for (const post of foundPosts) {
-            const data = await getPostWithData({ userID, postID: post._id, post, ownUser })
-            if (data && !data.error) sendPosts.push(data)
-        }
+        const foundPosts = await getUserPosts({ userID: sub._id, requesterID: userID, coposts: true});
+        sendPosts.push(...foundPosts);
     }
 
     sendPosts.sort((a, b) => a.postData.timePosted - b.postData.timePosted);

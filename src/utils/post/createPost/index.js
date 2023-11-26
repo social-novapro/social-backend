@@ -68,7 +68,7 @@ async function newPostIndex(userID, data) {
         for (const coposter of coposters) {
             const foundCoposter = await interactUserSchema.findOne({ _id: coposter });
             if (foundCoposter) {
-                await interactPostCoSchema.findOneAndUpdate({
+                await interactPostCoSchema.create({
                     _id: uuidv4(),
                     userID: coposter,
                     postID: postID,
@@ -77,8 +77,6 @@ async function newPostIndex(userID, data) {
                     declined: false,
                     approved: false,
                     approvedTimestamp: null
-                }, {
-                    upsert: true
                 });
             }
         }

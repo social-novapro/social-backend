@@ -100,7 +100,7 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
 
             if (foundCoposters.length > 0) {
                 coposterData = foundCoposters;
-                type["coposters"] = "included";
+                type["copost"] = "included";
             }
         }
 
