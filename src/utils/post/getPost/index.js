@@ -17,6 +17,7 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         quotePost: null,
         quoteUser: null
     };
+    var coposterData = null;
     var extraData = {
         liked: false,
         pinned: false,
@@ -24,7 +25,8 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
     };
     
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
-    if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
+    if (!postData) return searchErrorV2("Q003", { userID });
+    if (postData.deleted) return searchErrorV2("D026", { userID });
     
     if (postData.content) {
         /* if post is liked, add liked: true */
@@ -88,6 +90,20 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        // has coposters
+        if (postData.coposters && postData.coposters.length > 0) {
+            const foundCoposters = [];
+            for (var i = 0; i < postData.coposters.length; i++) {
+                const foundCoposter = await interactUserSchema.findOne({_id: postData.coposters[i]});
+                if (foundCoposter) foundCoposters.push(foundCoposter);
+            }
+
+            if (foundCoposters.length > 0) {
+                coposterData = foundCoposters;
+                type["copost"] = "included";
+            }
+        }
+
         var dataSend = { 
             type, 
             postData,
@@ -95,13 +111,14 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             pollData, 
             voteData,
             quoteData,
+            coposterData,
             extraData
         };
 
         return dataSend;
     }
 
-    return searchErrorV2("Z001", { userID });
+    return searchErrorV2("D025", { userID });
 }
 
 async function getPostBaiscData({ postID, postData }) {

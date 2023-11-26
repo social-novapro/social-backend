@@ -7,6 +7,7 @@ const { SCHEMA_VERSIONS } = require('../../../../config.json');
 const { checktime } = require('../../checktime');
 const { pushQuotePost } = require('../../../utils/notifications/pustQuotePost');
 const { findPoll } = require('../../polls');
+const interactPostCoSchema = require('../../../schemas/postSchemas/interactPostCoSchema');
 
 async function newPostID() {
     const newID = uuidv4();
@@ -20,7 +21,13 @@ async function doubleCheckNewID(newID) {
 };
 
 async function newPostIndex(userID, data) {
-    const { content, quoteReplyPostID, replyingPostID, linkedPollID } = data
+    const {
+        content,
+        quoteReplyPostID,
+        replyingPostID,
+        linkedPollID,
+        coposters
+    } = data
     const postID = await newPostID();
     const currentTime = checktime();
     // const newIndex = await newReplyIndex(postID);
@@ -57,7 +64,24 @@ async function newPostIndex(userID, data) {
         if (!foundPoll.error) await linkedPollSetup(linkedPollID, postID, userID);
         // else return res.status(404).send(searchError("O000"));
     }
-    
+    if (coposters) {
+        for (const coposter of coposters) {
+            const foundCoposter = await interactUserSchema.findOne({ _id: coposter });
+            if (foundCoposter) {
+                await interactPostCoSchema.create({
+                    _id: uuidv4(),
+                    userID: coposter,
+                    postID: postID,
+                    timestamp: checktime(),
+                    deletedPost: false,
+                    declined: false,
+                    approved: false,
+                    approvedTimestamp: null
+                });
+            }
+        }
+    }
+
     return postID;
 };
 

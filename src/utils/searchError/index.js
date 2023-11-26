@@ -44,6 +44,8 @@ function searchError(errorCode, options, usedAPIversion) {
 function exportErrorV2({ error, userID, lookup }) {
     const { code, msg } = error;
     
+    console.log(`error occured: ${code} - ${msg} ${lookup ? " - lookup" : ""}`);
+
     if (!lookup) saveErrorToDB({ errorCode: code, errorMsg: msg, userID, version: 2 });
 
     return { code, msg, error: true };

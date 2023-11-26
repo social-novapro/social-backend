@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString, reqBool, nonreqBool } = require('../types');
+const { reqNum, reqString, reqBool, nonreqBool, nonreqString } = require('../types');
 
 // type 06
 const privacySettingSchema = mongoose.Schema({
@@ -32,6 +32,7 @@ const mentionDataSchema = mongoose.Schema({
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
     userID: reqString,
+    coposters: [nonreqString], // only populate when approved
     timePosted: reqString,
     content: reqString,
     totalLikes: reqNum,
