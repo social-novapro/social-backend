@@ -12,6 +12,7 @@ router.post('/', async (req, res) => {
     var quoteReplyPostID = req.body.quoteReplyPostID ? req.body.quoteReplyPostID : undefined;
     var replyingPostID = req.body.replyingPostID ? req.body.replyingPostID : undefined;
     var linkedPollID = req.body.linkedPollID ? req.body.linkedPollID : undefined;
+    var coposters = req.body.coposters ? req.body.coposters : undefined;
    
     if (!content && !userID) return res.status(400).send(searchErrorV2("E001", { userID }));
     else if (!content) return res.status(400).send(searchErrorV2("E002", { userID }));
@@ -23,7 +24,13 @@ router.post('/', async (req, res) => {
     const userIDCheck = await interactUserSchema.findOne({ _id: userID});
     if (!userIDCheck) return res.status(403).send(searchErrorV2("E004", { userID }));
 
-    const postID = await newPostIndex(userID, {content, quoteReplyPostID, replyingPostID, linkedPollID});
+    const postID = await newPostIndex(userID, {
+        content, 
+        quoteReplyPostID, 
+        replyingPostID, 
+        linkedPollID, 
+        coposters
+    });
     
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchErrorV2("D002", { userID }));

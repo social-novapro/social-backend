@@ -18,6 +18,8 @@ const like = require('./like');
 const edits = require('./edits');
 const edit = require('./edit');
 
+const coposts = require('./coposts');
+
 router.use('/get', get);
 router.use('/create', create);
 router.use('/remove', remove)
@@ -35,6 +37,8 @@ router.use('/unlike', unlike);
 
 router.use('/edit', edit);
 router.use('/edits', edits);
+
+router.use('/coposts', coposts);
 
 /* 
 DONE

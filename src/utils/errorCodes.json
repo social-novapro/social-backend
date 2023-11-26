@@ -340,6 +340,42 @@
                     "msg" : "Post has no quotes inside index."
                 },
                 {
+                    "code" : "D018",
+                    "msg" : "User has no outstanding coposts to approve."
+                },
+                {
+                    "code" : "D019",
+                    "msg" : "User has no coposts."
+                },
+                {
+                    "code" : "D020",
+                    "msg" : "Copost request was not found."
+                },
+                {
+                    "code" : "D021",
+                    "msg" : "Copost request does not belong to user."
+                },
+                {
+                    "code" : "D022",
+                    "msg" : "Copost request was already approved."
+                },
+                {
+                    "code" : "D023",
+                    "msg" : "Copost request was already denied."
+                },
+                {
+                    "code" : "D024",
+                    "msg" : "Post connected to copost request was not found."
+                },
+                {
+                    "code" : "D025",
+                    "msg" : "No post content was found."
+                },
+                {
+                    "code" : "D026",
+                    "msg" : "The post was deleted."
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
