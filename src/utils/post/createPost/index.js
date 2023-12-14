@@ -33,6 +33,7 @@ async function newPostIndex(userID, data) {
     // const newIndex = await newReplyIndex(postID);
     // const mentionData = await checkForMentions(content);
     // console.log(mentionData);
+    const spotifyIncludedContent = await getSpotifyEmbeds(content);
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -41,7 +42,7 @@ async function newPostIndex(userID, data) {
         __v: SCHEMA_VERSIONS.interactPostSchema,
         timePosted: currentTime,
         userID,
-        content,
+        content: spotifyIncludedContent,
         totalLikes: 0,
         totalReplies: 0,
         // indexID: newIndex._id
@@ -333,6 +334,53 @@ async function checkQuoteIndexID(newID) {
     if (repliesIDused) return newReplyIndex();
 
     else return newID;
+}
+
+
+async function getSpotifyEmbeds(text) {
+    const spotifyRegex = /(?:https?:\/\/(?:open\.spotify\.com|spotify\.link)\/(?:embed\/)?[a-zA-Z0-9]+\/?[a-zA-Z0-9_-]*)/g;
+    const spotifyLinks = text.matchAll(spotifyRegex);
+
+    var newText = text;
+    const spotifyEmbeds = [];
+    var currentNumber = 0;
+    for (const link of spotifyLinks) {
+        const spotifyActualURL = link[0];
+        spotifyURL = spotifyActualURL.replace("https://", "")
+        if (spotifyURL.includes("/embed")) spotifyURL = spotifyURL.replace("/embed", "");
+
+        var spotifySeperations = spotifyURL.split("/");
+
+        var spotifyType = ""
+        var spotifyID = ""
+
+        if (spotifyURL.includes("open.spotify")) {
+            spotifyType = spotifySeperations[1];
+            spotifyID = spotifySeperations[2];
+        } else if (spotifyURL.includes("spotify.link")) {
+            const res = await fetch(`https://${spotifyURL}`)
+            const html = await res.text()
+
+            spotifyURL = html.split('You can also <a class="secondary-action" href="')[1].split('">open this link in your browser.</a>')[0].split("?")[0];
+            spotifyURL = spotifyURL.replace("https://", "")
+            spotifySeperations = spotifyURL.split("/")
+
+            spotifyType = spotifySeperations[1];
+            spotifyID = spotifySeperations[2];
+        }
+
+        var spotifyEmbed = `https://open.spotify.com/embed/${spotifyType}/${spotifyID}`;
+        spotifyEmbeds.push(spotifyEmbed);
+        newText = newText.replace(spotifyActualURL, `{{spotify_${currentNumber}}}`);
+
+        currentNumber++
+    }
+    
+    for (var i = 0; i < spotifyEmbeds.length; i++) {
+        newText = newText.replace(`{{spotify_${i}}}`, spotifyEmbeds[i]);
+    }
+
+    return newText;
 }
 
 module.exports = { newPostIndex };
