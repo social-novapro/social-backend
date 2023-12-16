@@ -67,7 +67,7 @@ async function getLikes({ postID }) {
         peopleLiked: []
     };
 
-    if (!foundPost) return res.status(404).send(searchErrorV2("D005", { userID: req.headers.userid }));
+    if (!foundPost) return searchErrorV2("D005", { userID: "unknown" });
 
     for (const people of foundPost.peopleLiked) {
         const user = await interactUserSchema.findOne({_id: people._id});

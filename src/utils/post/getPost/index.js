@@ -17,6 +17,11 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         quotePost: null,
         quoteUser: null
     };
+    var replyData = {
+        replyPost: null,
+        replyUser: null
+    };
+    var coposterData = null;
     var extraData = {
         liked: false,
         pinned: false,
@@ -24,7 +29,8 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
     };
     
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
-    if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
+    if (!postData) return searchErrorV2("Q003", { userID });
+    if (postData.deleted) return searchErrorV2("D026", { userID });
     
     if (postData.content) {
         /* if post is liked, add liked: true */
@@ -70,6 +76,23 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        if (postData.replyingPostID || (postData.isReply && (postData.replyData && postData.replyData.postID && postData.replyData.userID))) {
+            const replyID = postData.replyingPostID || postData.replyData.postID;
+            const foundReply = await interactPostSchema.findOne({_id: replyID});
+            
+            if (foundReply) {
+                replyData.replyPost = foundReply;
+                type["reply"] = "included";
+
+                if (foundReply.userID) {
+                    const foundReplyUser = await interactUserSchema.findOne({_id: foundReply.userID});
+                    if (foundReplyUser) {
+                        replyData.replyUser = foundReplyUser;
+                    }
+                }
+            }  
+        }
+
         // has linked quote
         if (postData.quoteReplyPostID || (postData.quoteData && postData.quoteData.postID)) {
             const quoteID = postData.quoteReplyPostID || postData.quoteData.postID;
@@ -88,6 +111,20 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        // has coposters
+        if (postData.coposters && postData.coposters.length > 0) {
+            const foundCoposters = [];
+            for (var i = 0; i < postData.coposters.length; i++) {
+                const foundCoposter = await interactUserSchema.findOne({_id: postData.coposters[i]});
+                if (foundCoposter) foundCoposters.push(foundCoposter);
+            }
+
+            if (foundCoposters.length > 0) {
+                coposterData = foundCoposters;
+                type["copost"] = "included";
+            }
+        }
+
         var dataSend = { 
             type, 
             postData,
@@ -95,13 +132,15 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             pollData, 
             voteData,
             quoteData,
+            replyData,
+            coposterData,
             extraData
         };
 
         return dataSend;
     }
 
-    return searchErrorV2("Z001", { userID });
+    return searchErrorV2("D025", { userID });
 }
 
 async function getPostBaiscData({ postID, postData }) {
