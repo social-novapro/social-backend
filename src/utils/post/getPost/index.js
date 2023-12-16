@@ -17,6 +17,10 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         quotePost: null,
         quoteUser: null
     };
+    var replyData = {
+        replyPost: null,
+        replyUser: null
+    };
     var coposterData = null;
     var extraData = {
         liked: false,
@@ -72,6 +76,23 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        if (postData.replyingPostID || (postData.isReply && (postData.replyData && postData.replyData.postID && postData.replyData.userID))) {
+            const replyID = postData.replyingPostID || postData.replyData.postID;
+            const foundReply = await interactPostSchema.findOne({_id: replyID});
+            
+            if (foundReply) {
+                replyData.replyPost = foundReply;
+                type["reply"] = "included";
+
+                if (foundReply.userID) {
+                    const foundReplyUser = await interactUserSchema.findOne({_id: foundReply.userID});
+                    if (foundReplyUser) {
+                        replyData.replyUser = foundReplyUser;
+                    }
+                }
+            }  
+        }
+
         // has linked quote
         if (postData.quoteReplyPostID || (postData.quoteData && postData.quoteData.postID)) {
             const quoteID = postData.quoteReplyPostID || postData.quoteData.postID;
@@ -111,6 +132,7 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             pollData, 
             voteData,
             quoteData,
+            replyData,
             coposterData,
             extraData
         };
