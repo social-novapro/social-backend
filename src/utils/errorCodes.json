@@ -341,7 +341,8 @@
                 },
                 {
                     "code" : "D018",
-                    "msg" : "User has no outstanding coposts to approve."
+                    "msg" : "User has no outstanding coposts to approve.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "D019",

@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
     const newUserDataForEntry = { username, displayName, password, description, pronouns, statusTitle, devToken: devtoken, appToken: apptoken };  
     const newUserID = await newUserIndex(newUserDataForEntry);
 
-    if (newUserID.error) return res.status("400").send(newUserID.error);
+    if (newUserID.error) return res.status(400).send(newUserID.error);
 
     const foundUsername = await interactUserSchema.findOne({username});
     if (!foundUsername) return res.status(403).send(searchErrorV2("G003", { userID: newUserID })); 
