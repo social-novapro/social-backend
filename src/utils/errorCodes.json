@@ -369,11 +369,13 @@
                 },
                 {
                     "code" : "D025",
-                    "msg" : "No post content was found."
+                    "msg" : "No post content was found.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "D026",
-                    "msg" : "The post was deleted."
+                    "msg" : "The post was deleted.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "E001",
@@ -865,7 +867,8 @@
                 },
                 {
                     "code" : "O019",
-                    "msg" : "The poll was not found."
+                    "msg" : "The poll was not found.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "O020",
@@ -885,7 +888,8 @@
                 },
                 {
                     "code" : "O024",
-                    "msg" : "The user has not voted."
+                    "msg" : "The user has not voted.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "O025",
