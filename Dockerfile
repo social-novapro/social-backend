@@ -9,6 +9,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY config.json ./
 COPY secret.env ./
+COPY env/ ./env/
 
 RUN npm install
 # If you are building your code for production

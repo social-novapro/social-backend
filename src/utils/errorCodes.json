@@ -627,6 +627,34 @@
                     "msg" : "There was no subscriptions found for user."
                 },
                 {
+                    "code" : "L013",
+                    "msg" : "There was no devices found to push notifications to for user."
+                },
+                {
+                    "code" : "L014",
+                    "msg" : "Apple push notification failed to send."
+                },
+                {
+                    "code" : "L015",
+                    "msg" : "There was no userID, deviceToken, or deviceType provided."
+                },
+                {
+                    "code" : "L016",
+                    "msg" : "This device was already registered with this userID."
+                },
+                {
+                    "code" : "L017",
+                    "msg" : "There was no userID, or deviceToken provided."
+                },
+                {
+                    "code" : "L018",
+                    "msg" : "Requested device notifications was not found."
+                },
+                {
+                    "code" : "L019",
+                    "msg" : "There was no notification settings changed."
+                },
+                {
                     "code" : "N001",
                     "msg" : "Could not find request for verification of email."
                 },
