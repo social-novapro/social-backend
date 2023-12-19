@@ -3,7 +3,8 @@ const { registerDevice, sendNotification } = require('../../../../../utils/pushN
 
 router.post('/', async (req, res) => {
     const { deviceToken, deviceType, userID } = req.body;
-    await registerDevice({userID, deviceToken, deviceType});
+    const completion = await registerDevice({userID, deviceToken, deviceType});
+    if (!completion || completion.error) return completion
     return res.status(200).send({msg: 'Device token registered successfully'});
 });
 
