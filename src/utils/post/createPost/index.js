@@ -8,6 +8,7 @@ const { checktime } = require('../../checktime');
 const { pushQuotePost } = require('../../../utils/notifications/pustQuotePost');
 const { findPoll } = require('../../polls');
 const interactPostCoSchema = require('../../../schemas/postSchemas/interactPostCoSchema');
+const { sendPushAppleNotification } = require('../../pushNotifications/apnProvider');
 
 async function newPostID() {
     const newID = uuidv4();
@@ -34,6 +35,8 @@ async function newPostIndex(userID, data) {
     // const mentionData = await checkForMentions(content);
     // console.log(mentionData);
     const spotifyIncludedContent = await getSpotifyEmbeds(content);
+    //const userFound = await interactUserSchema.findOne({ _id: userID });
+    //if (!userFound) return searchError("E004");
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -66,9 +69,22 @@ async function newPostIndex(userID, data) {
         // else return res.status(404).send(searchError("O000"));
     }
     if (coposters) {
+        const userFound = await interactUserSchema.findOne({ _id: userID });
+        if (!userFound) return searchError("E004");
+
         for (const coposter of coposters) {
             const foundCoposter = await interactUserSchema.findOne({ _id: coposter });
             if (foundCoposter) {
+                sendPushAppleNotification({
+                    userID: foundCoposter._id,
+                    type: "coposts", 
+                    notification: {
+                        title: "Interact Copost",
+                        subtitle: `@${userFound.username} wants to copost with you!`,
+                        body: content
+                    }
+                })
+
                 await interactPostCoSchema.create({
                     _id: uuidv4(),
                     userID: coposter,

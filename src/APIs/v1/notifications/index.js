@@ -10,6 +10,7 @@ const unsubAll = require('./unsubAll');
 const dismiss = require('./dismiss');
 const dismissAll = require('./dismissAll/');
 const getList = require('./getList');
+const push = require('./push');
 
 // subscriptions
 router.use('/subscriptions', subscriptions);
@@ -22,5 +23,6 @@ router.use('/unsubAll', unsubAll);
 router.use('/dismiss', dismiss);
 router.use('/dismissAll', dismissAll);
 router.use('/getList', getList);
+router.use('/push', push);
 
 module.exports = router;

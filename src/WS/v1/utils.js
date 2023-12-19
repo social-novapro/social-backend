@@ -1,6 +1,7 @@
 const {v4 : uuidv4} = require('uuid');
 const liveChatSchema = require('../../schemas/liveChatSchema');
 const {SCHEMA_VERSIONS} = require('../../../config.json');
+const { pushLiveChatMessages } = require('../../utils/pushNotifications/apnProvider');
 
 async function saveChat(chatData) {
     const { _id, apiVersion, type, user  } = chatData;
@@ -35,6 +36,13 @@ async function saveChat(chatData) {
             }, {
                 upsert: true
             });
+
+            pushLiveChatMessages({
+                title: "Interact Live Chat",
+                subtitle: `New Message from @${user.username}`,
+                body: chatData.message.content
+            })
+
             break;
         case 03: // delete message
             await liveChatSchema.findOneAndDelete({ _id });

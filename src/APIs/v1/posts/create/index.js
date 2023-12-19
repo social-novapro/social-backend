@@ -32,6 +32,7 @@ router.post('/', async (req, res) => {
         coposters
     });
     
+    //if (postID.error) return res.status(400).send(postID)
     const PostData = await interactPostSchema.findOne({_id: postID});
     if (!PostData) return res.status(404).send(searchErrorV2("D002", { userID }));
 
