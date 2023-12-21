@@ -15,7 +15,7 @@ const interactAdminSchema = mongoose.Schema({
         0 | nothing (shouldnt be saved) 
         Can do anything except delete other admins and moderators
     */
-    timestamp: reqString, // time of acceptance into admin
+    timestamp: reqNum, // time of acceptance into admin
     lastReviewID: reqString, // link to review schema
     /*
         _id: id of review
