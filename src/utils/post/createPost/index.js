@@ -9,6 +9,44 @@ const { pushQuotePost } = require('../../../utils/notifications/pustQuotePost');
 const { findPoll } = require('../../polls');
 const interactPostCoSchema = require('../../../schemas/postSchemas/interactPostCoSchema');
 const { sendPushAppleNotification } = require('../../pushNotifications/apnProvider');
+const { checkPostContent } = require('../../checks');
+const { pushNewPost } = require('../../notifications/pushNewPost');
+
+async function createNewPost({
+    content,
+    userID,
+    quoteReplyPostID,
+    replyingPostID,
+    linkedPollID,
+    coposters
+}) {
+    if (!content && !userID) searchErrorV2("E001", { userID });
+    else if (!content) searchErrorV2("E002", { userID });
+    else if (!userID) searchErrorV2("E003", { userID });
+
+
+    const checkedContent = await checkPostContent(content);
+    if (checkedContent.error) return checkedContent;
+
+    const userIDCheck = await interactUserSchema.findOne({ _id: userID});
+    if (!userIDCheck) return searchErrorV2("E004", { userID });
+
+    //const indexID = await newIndex()
+    const postID = await newPostIndex(userID, {
+        content, 
+        quoteReplyPostID, 
+        replyingPostID, 
+        linkedPollID, 
+        coposters
+    });
+
+    //const check
+    const postData = await interactPostSchema.findOne({_id: postID});
+    if (!postData) return searchErrorV2("D002", { userID });
+
+    pushNewPost(userID, postID)
+    return postData
+}
 
 async function newPostID() {
     const newID = uuidv4();
@@ -399,4 +437,4 @@ async function getSpotifyEmbeds(text) {
     return newText;
 }
 
-module.exports = { newPostIndex };
+module.exports = { createNewPost };
