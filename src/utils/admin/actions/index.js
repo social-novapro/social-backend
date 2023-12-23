@@ -7,15 +7,15 @@ const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
 // DEC 2023 - 1.3
 async function updateTimestamps({ adminID }) {
     /* check adminID later */
-    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "timestamps" });
-    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+    //const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "timestamps" });
+    //if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
 
     const result = await updateAllTimestamps();
-    await interactAdminUpdateActionsSchema.create({
-        _id: "timestamps",
-        done: true,
-        timestamp: checktime(),
-    })
+    //await interactAdminUpdateActionsSchema.create({
+    //    _id: "timestamps",
+    //    done: true,
+    //    timestamp: checktime(),
+    //})
 
     return result;
 }

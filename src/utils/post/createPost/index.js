@@ -38,19 +38,21 @@ async function newPostIndex(userID, data) {
     //const userFound = await interactUserSchema.findOne({ _id: userID });
     //if (!userFound) return searchError("E004");
 
-    await interactPostSchema.findOneAndUpdate({
-        _id: postID
-    }, {        
+    await interactPostSchema.create({        
         _id: postID,
         __v: SCHEMA_VERSIONS.interactPostSchema,
         timePosted: currentTime,
+        timestamp: currentTime,
         userID,
         content: spotifyIncludedContent,
         totalLikes: 0,
         totalReplies: 0,
+        totalQuotes: 0,
+        edited: false,
+        hasPoll: false,
+        isQuote: false,
+        isReply: false,
         // indexID: newIndex._id
-    }, {
-        upsert: true
     });
 
     if (quoteReplyPostID) {
@@ -135,7 +137,7 @@ async function checkForMentions(content) {
     return foundTags;
 }
 
-async function quotingPostSetup(quotingPost, postID, userID) {
+async function addQuoteToIndex(quotingPost, postID) {
     const quoteIndex = await getQuoteIndex(quotingPost);
     const quoteIndexID = quoteIndex._id;
 
@@ -148,6 +150,26 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     }, {
         upsert: true
     });
+
+    await interactPostSchema.findOneAndUpdate({
+        _id: postID
+    }, {
+        isQuote: true,
+        quoteData : {
+            indexID: quoteIndexID,
+            postID: quotingPost._id,
+            userID: quotingPost.userID
+        }
+    }, {
+        upsert: true
+    });
+
+    return quoteIndexID;
+}
+
+async function quotingPostSetup(quotingPost, postID, userID) {
+    // adding new post to the main post's quote index
+    const quoteIndexID = await addQuoteToIndex(quotingPost, postID);
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -176,7 +198,7 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     return postID;
 }
 
-async function replyingPostSetup(replyingPost, postID, userID) {
+async function addReplyToIndex(replyingPost, postID) {
     // adding new post to the main post's reply index
     const replyIndex = await getReplyIndex(replyingPost);
     const replyIndexID = replyIndex._id;
@@ -189,16 +211,14 @@ async function replyingPostSetup(replyingPost, postID, userID) {
         $push: { "postIDs" : postID }
     }, {
         upsert: true
-    });
+    }); 
+    
+    return replyIndexID;
+}
 
-    // add to the main post's reply count
-    await interactPostSchema.findOneAndUpdate({
-        _id: replyingPost._id//postID
-    }, {        
-        totalReplies: replyingPost.totalReplies ? replyingPost.totalReplies + 1 : 1,
-    }, {
-        upsert: true
-    });
+async function replyingPostSetup(replyingPost, postID, userID) {
+    // adding new post to the main post's reply index
+    const replyIndexID = await addReplyToIndex(replyingPost, postID);
 
     // set to a reply inside the new post
     await interactPostSchema.findOneAndUpdate({
@@ -213,6 +233,7 @@ async function replyingPostSetup(replyingPost, postID, userID) {
     }, {
         upsert: true
     })
+
     return postID;
 }
 
@@ -352,7 +373,6 @@ async function checkQuoteIndexID(newID) {
     else return newID;
 }
 
-
 async function getSpotifyEmbeds(text) {
     const spotifyRegex = /(?:https?:\/\/(?:open\.spotify\.com|spotify\.link)\/(?:embed\/)?[a-zA-Z0-9]+\/?[a-zA-Z0-9_-]*)/g;
     const spotifyLinks = text.matchAll(spotifyRegex);
@@ -399,4 +419,4 @@ async function getSpotifyEmbeds(text) {
     return newText;
 }
 
-module.exports = { newPostIndex };
+module.exports = { newPostIndex, addReplyToIndex, addQuoteToIndex };

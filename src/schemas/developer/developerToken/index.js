@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const { reqString, reqBool, reqNum } = require('../../types');
+const { reqString, reqBool, nonreqNum } = require('../../types');
 
 const developerToken = mongoose.Schema({
    _id: reqString,
    userID: reqString,
    premium: reqBool,
-   APIUses: reqNum,
-   creationTimestamp: reqString,
+   APIUses: nonreqNum,
+   creationTimestamp: nonreqNum,
    apps: [ reqString ]
 });
 
