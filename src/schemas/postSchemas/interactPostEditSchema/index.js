@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
-const { reqString } = require('../../types');
+const { reqString, reqNum } = require('../../types');
 
 const editSchema = {
-    publicTimestamp: reqString,
-    removedTimestamp: reqString,
+    publicTimestamp: reqNum,
+    removedTimestamp: reqNum,
     content: reqString
 }
 

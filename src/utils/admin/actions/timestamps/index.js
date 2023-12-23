@@ -4,7 +4,14 @@ const developerAppToken = require("../../../../schemas/developer/developerAppTok
 const developerToken = require("../../../../schemas/developer/developerToken");
 const interactPostSchema = require("../../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../../schemas/interactUserSchema");
+const interactVerificationSchema = require("../../../../schemas/interactVerificationSchema");
+const interactVerifyRequests = require("../../../../schemas/interactVerifyRequests");
 const interactPostLikeSchema = require("../../../../schemas/postSchemas/interactPostLikeSchema");
+const interactLiveChatSchema = require("../../../../schemas/liveChatSchema");
+const interactPostBookmarks = require("../../../../schemas/postSchemas/interactPostBookmarks");
+const interactPostEditSchema = require("../../../../schemas/postSchemas/interactPostEditSchema");
+const interactQuotesSchema = require("../../../../schemas/postSchemas/interactQuotesSchema");
+const interactRepliesSchema = require("../../../../schemas/postSchemas/interactRepliesSchema");
 const { addQuoteToIndex, addReplyToIndex } = require("../../../post/createPost");
 
 async function updateAllUserCounts() {
@@ -20,7 +27,9 @@ async function updateAllUserCounts() {
         }
 
         const userLikes = await interactPostLikeSchema.find({ "peopleLiked._id": user._id });
+        // amount of likes user has (of their posts)
         user.likeCount = totalLikes;
+        // amount of posts user liked
         user.likedCount = userLikes.length;
 
         user.totalPosts = userPosts.length;
@@ -32,7 +41,90 @@ async function updateAllUserCounts() {
 }
 
 async function updateAllTimestamps() {
-    return { done: true };
+    console.log("Starting all timestamp updating")
+    // interactRepliesSchema
+    const replies = await interactRepliesSchema.find();
+    for (const reply of replies) {
+        if (reply.indexStartTime) reply.indexStartTime = convertStringToNumber(reply.indexStartTime);
+        if (reply.indexEndTime) reply.indexEndTime = convertStringToNumber(reply.indexEndTime);
+        await interactRepliesSchema.findOneAndUpdate({ _id: reply._id }, reply);
+    }
+    console.log("Completed interactRepliesSchema")
+
+    // interactQuotesSchema
+    const quotes = await interactQuotesSchema.find();
+    for (const quote of quotes) {
+        if (quote.indexStartTime) quote.indexStartTime = convertStringToNumber(quote.indexStartTime);
+        if (quote.indexEndTime) quote.indexEndTime = convertStringToNumber(quote.indexEndTime);
+        await interactQuotesSchema.findOneAndUpdate({ _id: quote._id }, quote);
+    }
+    console.log("Completed interactQuotesSchema")
+
+    // interactPostEditSchema
+    const postEdits = await interactPostEditSchema.find();
+    for (const edit of postEdits) {
+        if (edit.edits && edit.edits.length > 0) {
+            for (const editData of edit.edits) {
+                if (editData.publicTimestampq) editData.publicTimestamp = convertStringToNumber(editData.publicTimestamp);
+                if (editData.removedTimestamp) editData.removedTimestamp = convertStringToNumber(editData.removedTimestamp);
+            }
+        }
+        await interactPostEditSchema.findOneAndUpdate({ _id: edit._id }, edit)
+    }
+    console.log("Completed interactPostEditSchema")
+
+    // interactPostBookmarks
+    const bookmarks = await interactPostBookmarks.find();
+    for (const bookmark of bookmarks) {
+        if (bookmark.saves && bookmark.saves.length > 0) {
+            for (const save of bookmark.saves) {
+                save.timestamp = convertStringToNumber(save.timestamp);
+            }
+        }
+        if (bookmark.lists && bookmark.lists.length > 0) {
+            for (const list of bookmark.lists) {
+                list.timestamp = convertStringToNumber(list.timestamp);
+            }
+        }
+        await interactPostBookmarks.findOneAndUpdate({ _id: bookmark._id }, bookmark);
+    }
+    console.log("Completed interactPostBookmarks")
+
+    // interactLiveChatSchema
+    const liveChats = await interactLiveChatSchema.find();
+    for (const chat of liveChats) {
+        if (chat.message) {
+            if (chat.message.timeStamp) chat.message.timeStamp = convertStringToNumber(chat.message.timeStamp);
+            if (chat.message.editedTimeStamp) chat.message.editedTimeStamp = convertStringToNumber(chat.message.editedTimeStamp);
+        }
+        if (chat.userJoin) {
+            if (chat.userJoin.timeStamp) chat.userJoin.timeStamp = convertStringToNumber(chat.userJoin.timeStamp);
+        }
+        if (chat.userLeave) {
+            if (chat.userLeave.timeStamp) chat.userLeave.timeStamp = convertStringToNumber(chat.userLeave.timeStamp);
+        }
+
+        await interactLiveChatSchema.findOneAndUpdate({ _id: chat._id }, chat);
+    }
+    console.log("Completed interactLiveChatSchema")
+
+    // interactVerifyRequests
+    const requests = await interactVerifyRequests.find();
+    for (const request of requests) {
+        request.timestamp = convertStringToNumber(request.timestamp);
+        request.acceptedTimestamp = convertStringToNumber(request.acceptedTimestamp);
+        await interactVerifyRequests.findOneAndUpdate({ _id: request._id }, request);
+    }
+    console.log("Completed interactVerifyRequests")
+    
+    // interactVerificationSchema
+    const verifications = await interactVerificationSchema.find();
+    for (const verification of verifications) {
+        verification.timestamp = convertStringToNumber(verification.timestamp);
+        verification.acceptedTimestamp = convertStringToNumber(verification.acceptedTimestamp);
+        await interactVerificationSchema.findOneAndUpdate({ _id: verification._id }, verification);
+    }
+    console.log("Completed interactVerificationSchema")
 
     // interactPostLikeSchema
     const postLikes = await interactPostLikeSchema.find();
@@ -43,6 +135,7 @@ async function updateAllTimestamps() {
         }
         await interactPostLikeSchema.findOneAndUpdate({ _id: post._id }, post);
     }
+    console.log("Completed interactPostLikeSchema")
 
     // interactUserSchema
     const users = await interactUserSchema.find();
@@ -73,7 +166,7 @@ async function updateAllTimestamps() {
 
         await interactUserSchema.findOneAndUpdate({ _id: user._id }, user);
     }
-
+    console.log("Completed interactUserSchema")
 
     // interactPostSchema
     const posts = await interactPostSchema.find();
@@ -129,8 +222,10 @@ async function updateAllTimestamps() {
 
         await interactPostSchema.findOneAndUpdate({ _id: post._id }, post);
     }
-    
+    console.log("Completed interactPostSchema")
+
     await updateAllUserCounts();
+    console.log("Completed interactUserSchema counts")
 
     // developerToken
     const devToken = await developerToken.find();
@@ -139,6 +234,7 @@ async function updateAllTimestamps() {
         token.creationTimestamp = convertStringToNumber(token.creationTimestamp);
         await developerToken.findOneAndUpdate({ _id: token._id }, { creationTimestamp: token.creationTimestamp });
     }
+    console.log("Completed developerToken")
     
     // developerAppToken
     const devApps = await developerAppToken.find();
@@ -151,6 +247,7 @@ async function updateAllTimestamps() {
         app.creationTimestamp = convertStringToNumber(app.creationTimestamp);
         await developerAppToken.findOneAndUpdate({ _id: app._id }, { creationTimestamp: app.creationTimestamp });
     }
+    console.log("Completed developerAppToken")
     
     // interactAdminRequestSchema
     const adminRequestSchema = await interactAdminRequestSchema.find()
@@ -159,6 +256,7 @@ async function updateAllTimestamps() {
         request.acceptedTimestamp = convertStringToNumber(request.acceptedTimestamp);
         await request.save();
     }
+    console.log("Completed interactAdminRequestSchema")
 
     // interactUserAnalyticSchema
     const userAnalyticSchema = await interactUserAnalyticSchema.find()
@@ -173,62 +271,19 @@ async function updateAllTimestamps() {
        
         await interactUserAnalyticSchema.findOneAndUpdate({ _id: user._id }, { userConnections: user.userConnections });
     }
+    console.log("Completed interactUserAnalyticSchema")
+
+    console.log("Completed all timestamp updating")
+    return { done: true };
 }
 
 async function undoAllTimestamps() {
-    return { done: true };
-
-    // interactPostSchema
-    // cant undo this one
-
-    // developerToken
-    const devToken = await developerToken.find();
-    for (const token of devToken) {
-        if (!token.creationTimestamp) continue;
-        token.creationTimestamp = convertNumberToString(token.creationTimestamp);
-        await developerToken.findOneAndUpdate({ _id: token._id }, { creationTimestamp: token.creationTimestamp });
-    }
-
-    // developerAppToken
-    const devApps = await developerAppToken.find();
-    for (const app of devApps) {
-        if (!app.devToken) {
-            await developerAppToken.findOneAndDelete({ _id: app._id });
-            continue;
-        }
-
-        if (!app.creationTimestamp) continue;
-        app.creationTimestamp = convertNumberToString(app.creationTimestamp);
-        await developerAppToken.findOneAndUpdate({ _id: app._id }, { creationTimestamp: app.creationTimestamp });
-    }
-
-    // interactAdminRequestSchema
-    const adminRequestSchema = await interactAdminRequestSchema.find()
-    for (const request of adminRequestSchema) {
-        request.timestamp = convertNumberToString(request.timestamp);
-        request.acceptedTimestamp = convertNumberToString(request.acceptedTimestamp);
-        await request.save();
-    }
-
-    // interactUserAnalyticSchema
-    const userAnalyticSchema = await interactUserAnalyticSchema.find()
-    for (const user of userAnalyticSchema) {
-        for (const connection of user.userConnections) {
-            if (!connection.timestamp) connection.timestamp = convertNumberToString(checktime());
-            else connection.timestamp = convertNumberToString(connection.timestamp);
-            if (!connection.api_urlbase) connection.api_urlbase = "https://interact.novapro.net/";
-            if (!connection.api_url) connection.api_url = "https://interact.novapro.net/";
-        }
-
-        await interactUserAnalyticSchema.findOneAndUpdate({ _id: user._id }, { userConnections: user.userConnections });
-    }
+    // cant undo this
+    return { done: false, msg: "cant undo this action." };
 }
 
 function convertStringToNumber(timestamp) {
     return Number(timestamp);
-}
-function convertNumberToString(timestamp) {
-    return String(timestamp);
 }
 
 module.exports = { 

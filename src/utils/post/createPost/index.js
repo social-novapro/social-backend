@@ -55,38 +55,42 @@ async function newPostIndex(userID, data) {
         // indexID: newIndex._id
     });
 
+    const foundUser = await interactUserSchema.findOne({ _id: userID });
+    foundUser.totalPosts = foundUser.totalPosts ? foundUser.totalPosts + 1 : 1;
+
     if (quoteReplyPostID) {
         const quotingPost = await interactPostSchema.findOne({_id: quoteReplyPostID});
-        if (quotingPost) await quotingPostSetup(quotingPost, postID, userID);
-        // else return res.status(404).send(searchError("D002"));
+        if (quotingPost) {
+            await quotingPostSetup(quotingPost, postID, userID);
+            foundUser.totalQuotes = foundUser.totalQuotes ? foundUser.totalQuotes + 1 : 1;
+        }
     }
     if (replyingPostID) {
         const replyingPost = await interactPostSchema.findOne({_id: replyingPostID});
-        if (replyingPost) await replyingPostSetup(replyingPost, postID, userID);
-        // else return res.status(404).send(searchError("D002"));
+        if (replyingPost){
+            await replyingPostSetup(replyingPost, postID, userID);
+            foundUser.totalReplies = foundUser.totalReplies ? foundUser.totalReplies + 1 : 1;
+        }
     }
     if (linkedPollID) {
         const foundPoll = await findPoll({pollID: linkedPollID, userID });
         if (!foundPoll.error) await linkedPollSetup(linkedPollID, postID, userID);
-        // else return res.status(404).send(searchError("O000"));
     }
     if (coposters) {
         const userFound = await interactUserSchema.findOne({ _id: userID });
         if (!userFound) return searchError("E004");
-
+        var addedCoposters = [];
         for (const coposter of coposters) {
+            if (addedCoposters.includes(coposter)) {
+                console.log("Coposter already added")
+                continue;
+            } else if (coposter == userID) {
+                console.log("User is the same as the poster")
+                continue;
+            }
+
             const foundCoposter = await interactUserSchema.findOne({ _id: coposter });
             if (foundCoposter) {
-                sendPushAppleNotification({
-                    userID: foundCoposter._id,
-                    type: "coposts", 
-                    notification: {
-                        title: "Interact Copost",
-                        subtitle: `@${userFound.username} wants to copost with you!`,
-                        body: content
-                    }
-                })
-
                 await interactPostCoSchema.create({
                     _id: uuidv4(),
                     userID: coposter,
@@ -97,9 +101,29 @@ async function newPostIndex(userID, data) {
                     approved: false,
                     approvedTimestamp: null
                 });
+                
+                addedCoposters.push(foundCoposter._id);
+                
+                sendPushAppleNotification({
+                    userID: foundCoposter._id,
+                    type: "coposts", 
+                    notification: {
+                        title: "Interact Copost",
+                        subtitle: `@${userFound.username} wants to copost with you!`,
+                        body: content
+                    }
+                })
             }
         }
     }
+
+    await interactUserSchema.findOneAndUpdate({
+        _id: foundUser._id
+    }, { 
+        totalPosts: foundUser.totalPosts,
+        totalQuotes: foundUser.totalQuotes,
+        totalReplies: foundUser.totalReplies
+    })
 
     return postID;
 };
@@ -264,7 +288,8 @@ async function replaceReplyIndex(postID, previousIndex, newIndex) {
     await interactRepliesSchema.findOneAndUpdate({
         _id: previousIndex
     }, {
-        nextIndex: newIndex
+        nextIndex: newIndex,
+        indexEndTime: checktime()
     }, {
         upsert: true
     });
@@ -280,6 +305,7 @@ async function newReplyIndex(postID, previousIndex) {
         postID: postID,
         amount: 0,
         previousIndex: previousIndex ? previousIndex : null,
+        indexStartTime: checktime()
     }, {
         upsert: true
     });
@@ -326,7 +352,8 @@ async function replaceQuoteIndex(postID, previousIndex, newIndex) {
     await interactQuotesSchema.findOneAndUpdate({
         _id: previousIndex
     }, {
-        nextIndex: newIndex
+        nextIndex: newIndex,
+        indexEndTime: checktime()
     }, {
         upsert: true
     });
@@ -342,6 +369,7 @@ async function newQuoteIndex(postID, previousIndex) {
         postID: postID,
         amount: 0,
         previousIndex: previousIndex ? previousIndex : null,
+        indexStartTime: checktime()
     }, {
         upsert: true
     });
