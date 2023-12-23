@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
-const { reqString } = require('../../types');
-
+const { reqString, reqNum } = require('../../types');
 
 const userConnectionsSchema = {
     _id: reqString,
-    timestamp: reqString,
+    timestamp: reqNum,
     api_urlbase: reqString,
     api_url: reqString,
 }
