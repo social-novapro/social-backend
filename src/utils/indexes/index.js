@@ -2,6 +2,27 @@ const interactIndexSchema = require("../../schemas/indexesSchema/");
 
 const IDname = "production";
 
+/* gets the posts index */
+async function getPostIndex() {
+    var foundIndex = await interactIndexSchema.findOne({ _id: IDname });
+    if (!foundIndex) foundIndex = await createIndexValue();
+
+    if (!foundIndex.postsIndex) return null;
+    return foundIndex.postsIndex;
+}
+
+/* updates the posts index */
+async function updatePostIndex({ indexID }) {
+    await getPostIndex(); // makes sure index is created
+
+    await interactIndexSchema.findOneAndUpdate({ 
+        _id: IDname
+    }, {
+        postsIndex: indexID
+    });
+
+    return true;
+}
 /* this will also create the index env*/
 async function getThemeIndex() {
     var foundIndex = await interactIndexSchema.findOne({ _id: IDname });
@@ -28,16 +49,20 @@ async function updateThemeIndex({ indexID }) {
 async function createIndexValue() {
     await interactIndexSchema.create({
         _id: IDname,
-        themeIndex: null
+        themeIndex: null,
+        postsIndex: null,
     });
 
     return { 
         _id: IDname, 
-        themeIndex: null 
+        themeIndex: null,
+        postsIndex: null,
     }
 }
 
 module.exports = { 
     getThemeIndex,
-    updateThemeIndex
+    updateThemeIndex,
+    getPostIndex,
+    updatePostIndex,
 };

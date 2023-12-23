@@ -2,9 +2,32 @@ const interactAdminUpdateActionsSchema = require("../../../schemas/admin/interac
 const { checktime } = require("../../checktime");
 const { searchErrorV2 } = require("../../searchError");
 const { undoAllUsernameLc, updateAllUsernameLc } = require("../../userAuth");
+const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
 
-// DEC 2023 - 1.3
+// DEC 2023 - 1.3 - 2
+async function updatePostIndexes({ adminID }) {
+    //const c
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "postIndexes" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await updateAllPostIndexes({ adminID });
+    await interactAdminUpdateActionsSchema.create({
+        _id: "postIndexes",
+        done: true,
+        timestamp: checktime(),
+    })
+    return result;
+}
+
+async function undoPostIndexes({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "postIndexes" });
+
+    await undoAllPostIndexes({ adminID });
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "postIndexes" })
+}
+
+// DEC 2023 - 1.3 - 1
 async function updateTimestamps({ adminID }) {
     /* check adminID later */
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "timestamps" });
@@ -50,4 +73,6 @@ module.exports = {
     undoUsernameLc,
     updateTimestamps,
     undoTimestamps,
+    updatePostIndexes,
+    undoPostIndexes,
 }

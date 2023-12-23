@@ -11,6 +11,7 @@ const interactPostCoSchema = require('../../../schemas/postSchemas/interactPostC
 const { sendPushAppleNotification } = require('../../pushNotifications/apnProvider');
 const { checkPostContent } = require('../../checks');
 const { pushNewPost } = require('../../notifications/pushNewPost');
+const { pushPostToIndex } = require('../postIndexManagement');
 
 async function createNewPost({
     content,
@@ -93,6 +94,8 @@ async function newPostIndex(userID, data) {
         // indexID: newIndex._id
     });
 
+    await pushPostToIndex({ postID, userID });
+    
     const foundUser = await interactUserSchema.findOne({ _id: userID });
     foundUser.totalPosts = foundUser.totalPosts ? foundUser.totalPosts + 1 : 1;
 

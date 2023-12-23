@@ -32,6 +32,7 @@ const mentionDataSchema = mongoose.Schema({
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
     userID: reqString,
+    indexID: nonreqString,
     coposters: [nonreqString], // only populate when approved
     timestamp: reqNum,
     content: reqString,
