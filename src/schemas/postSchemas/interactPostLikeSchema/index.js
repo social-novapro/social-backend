@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-const { reqString } = require('../../types');
+const { reqString, reqNum } = require('../../types');
 
 const likeSchema = mongoose.Schema({
     // userID of person who liked
     _id: reqString,
-    timeStamp: reqString,
+    timeStamp: reqNum,
 });
 
 const interactPostLikeSchema = mongoose.Schema({

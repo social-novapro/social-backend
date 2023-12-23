@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString, reqBool, nonreqBool } = require('../types');
+const { reqNum, reqString, reqBool, nonreqBool, nonreqNum, nonreqString } = require('../types');
 
 // 1: public, 2: friends of friends, 3: private
 const privacySettingSchema = mongoose.Schema({
@@ -26,25 +26,34 @@ const interactUserSchema = mongoose.Schema({
     _id: reqString,
     username: reqString,
     usernameLc: reqString,
-    lastEditUsername: reqNum,
     displayName: reqString,
     description: reqString,
-    pins: [pinnedPostsSchema],
-    pronouns: reqString,
-    statusTitle: reqString,
-    themeData: themeSchema, // theme id
-    lastEdit: reqNum,
-    creationTimestamp: reqString,
+    creationTimestamp: reqNum,
+
+    profileURL: nonreqString,
+
     followerCount: reqNum,
     followingCount: reqNum,
     likeCount: reqNum,
     likedCount: reqNum,
+
+    lastEdit: reqNum,
+    lastEditUsername: reqNum,
+
+    pins: [pinnedPostsSchema],
+    pronouns: nonreqString,
+    statusTitle: nonreqString,
+
+    themeData: themeSchema, // theme id
+
     totalPosts: reqNum,
     totalReplies: reqNum,
-    isBrandAccount: reqBool,
+    totalQuotes: reqNum,
+    
     privacySetting: privacySettingSchema,
-    profileURL: reqString,
-    userAge: reqNum, //yyyy-mm-dd
+    
+    isBrandAccount: reqBool,
+    userAge: nonreqNum, //yyyy-mm-dd
     verified: reqBool,
     demo: nonreqBool, 
 });

@@ -32,6 +32,24 @@ async function unlikePost({postID, userID}) {
     if (!postFound.totalLikes) newTotalLikes = 1
     else newTotalLikes = postFound.totalLikes - 1;
 
+    // update like counts
+    const foundUser = await interactUserSchema.findOne({ _id: userID});
+    const foundUserLikedCount = foundUser.likedCount ? foundUser.likedCount - 1 : 0;
+    await interactUserSchema.findOneAndUpdate({ _id: userID }, { likedCount: foundUserLikedCount }, { upsert: true });
+
+    const userFoundOgPost = await interactUserSchema.findOne({ _id: postFound.userID });
+    const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount - 1 : 0;
+    await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
+
+    if (postFound.coposters && postFound.coposters.length > 0) {
+        for (const coposter of postFound.coposters) {
+            // like on profile
+            const coposterFound = await interactUserSchema.findOne({ _id: coposter });
+            const foundUserLikeCount = coposterFound.likeCount ? coposterFound.likeCount - 1 : 0;
+            await interactUserSchema.findOneAndUpdate({ _id: coposter }, { likeCount: foundUserLikeCount }, { upsert: true });
+        }
+    }
+
     await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
     return postFoundNew;
@@ -59,6 +77,14 @@ async function likePost({ postID, userID }) {
     
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
    
+    // update like counts
+    const foundUserLikedCount = foundUser.likedCount ? foundUser.likedCount + 1 : 1;
+    await interactUserSchema.findOneAndUpdate({ _id: userID }, { likedCount: foundUserLikedCount }, { upsert: true });
+
+    const userFoundOgPost = await interactUserSchema.findOne({ _id: postFound.userID });
+    const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount + 1 : 1;
+    await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
+
     // push notification
     const subtitle = `@${foundUser.username} liked your post!`
 
@@ -67,6 +93,22 @@ async function likePost({ postID, userID }) {
         type: "likes",
         notification: { title: "Interact Like", subtitle, body: postFoundNew.content }
     })
+
+    if (postFound.coposters && postFound.coposters.length > 0) {
+        for (const coposter of postFound.coposters) {
+            // like on profile
+            const coposterFound = await interactUserSchema.findOne({ _id: coposter });
+            const foundUserLikeCount = coposterFound.likeCount ? coposterFound.likeCount + 1 : 1;
+            await interactUserSchema.findOneAndUpdate({ _id: coposter }, { likeCount: foundUserLikeCount }, { upsert: true });
+
+            // send push
+            sendPushAppleNotification({ 
+                userID: coposter, 
+                type: "likes",
+                notification: { title: "Interact Like", subtitle, body: postFound.content }
+            })
+        }
+    }
 
     return postFoundNew;
 }

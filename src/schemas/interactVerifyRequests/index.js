@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-const { reqString } = require('../types');
+const { reqString, reqNum } = require('../types');
 
 const interactVerifyRequests = mongoose.Schema({
     _id: reqString, // userid
     content: reqString, // description of request
-    timestamp: reqString, // time requested
+    timestamp: reqNum, // time requested
     status: reqString, // pending, approved, denied
 });
 
