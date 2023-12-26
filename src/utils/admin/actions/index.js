@@ -25,6 +25,7 @@ async function undoPostIndexes({ adminID }) {
 
     await undoAllPostIndexes({ adminID });
     await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "postIndexes" })
+    return { done: true }
 }
 
 // DEC 2023 - 1.3 - 1

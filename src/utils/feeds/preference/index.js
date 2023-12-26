@@ -5,16 +5,16 @@ const { searchError, searchErrorV2 } = require("../../searchError");
 
 const defaultPref = "allPosts";
 
-async function getFeed({ userID }) {
+async function getFeed({ userID, useIndex, pageID}) {
     if (!userID) return searchError("B009")
 
     const pref = await getPreference({ userID });
     const prefData = pref.preferredFeed;
     if (prefData == "allPosts"){
-        const feed = await allPostsFeed({ userID });
+        const feed = await allPostsFeed({ userID, useIndex, pageID });
         return feed;
     } else if (prefData == "subscriptionFeed") {
-        const feed = await subscriptionFeed({ userID });
+        const feed = await subscriptionFeed({ userID, useIndex, pageID });
         return feed;
     }
 }

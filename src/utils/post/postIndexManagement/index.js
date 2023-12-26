@@ -3,6 +3,7 @@ const interactPostIndexSchema = require("../../../schemas/postSchemas/interactPo
 const { checktime } = require("../../checktime");
 const { updatePostIndex, getPostIndex } = require("../../indexes");
 const { v4: uuidv4 } = require('uuid');
+const { searchErrorV2 } = require("../../searchError");
 
 /* these must always be set */
 var currentCount = 0;
@@ -55,6 +56,17 @@ async function getCurrentIndex() {
     currentIndexID = currentIndex._id;
 }
 
+async function getPostIndexData({ indexID }) {
+    if (!indexID) {
+        if (!currentIndex) await getCurrentIndex();
+        return currentIndex;
+    } else {
+        const foundIndex = await interactPostIndexSchema.findOne({ _id: indexID });
+        if (!foundIndex) return null;
+        return foundIndex;
+    }
+}
+
 /* adds postID to index */
 async function pushPostToIndex({ postID }) {
     if (!currentIndex) await getCurrentIndex();
@@ -77,6 +89,7 @@ async function pushPostToIndex({ postID }) {
     }, {
         indexID: currentIndexID
     });
+    currentIndex.postIDs.push({ _id: postID });
 
     if (currentCount >= 50) {
         const indexIDnew = await createIndex({ prevIndexID: currentIndexID });
@@ -106,11 +119,19 @@ async function removePostFromIndex({ userID, postID }) {
         }}
     });
 
+    await interactPostSchema.findOneAndUpdate({
+        _id: postID
+    }, {
+        indexID: null
+    });
+
     return { "success": true };
 }
 
 module.exports = { 
     exportIndex,
+    getCurrentIndex,
+    getPostIndexData,
     pushPostToIndex,
     removePostFromIndex
 }

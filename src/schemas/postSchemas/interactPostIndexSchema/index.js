@@ -8,8 +8,8 @@ const postIndexSchema = mongoose.Schema({
 const interactPostIndexSchema = mongoose.Schema({
     _id: reqString, // indexid
     timestamp: reqNum,
-    nextID: nonreqString, // next id
-    prevID: nonreqString, // prev id
+    nextIndexID: nonreqString, // next id
+    prevIndexID: nonreqString, // prev id
     amount: reqNum, // amount of themes
     postIDs: [postIndexSchema]
 });

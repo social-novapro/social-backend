@@ -37,7 +37,7 @@ router.get('/postIndexes', async (req, res) => {
 router.get('/undoPostIndexes', async (req, res) => {
     //return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
     const foundIssue = await undoPostIndexes({ adminID: req.headers.userid });
-    if (foundIssue.error) return res.status(400).send(foundIssue);
+    if (foundIssue?.error) return res.status(400).send(foundIssue);
     return res.status(200).send(foundIssue);
 });
 

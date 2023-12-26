@@ -25,6 +25,7 @@ async function undoAllPostIndexes({ adminID }) {
 
     for (const post of allPosts) {
         if (!post.indexID) continue;
+        //await interactPostSchema.findOneAndUpdate({ _id: post._id }, { indexID: null });
         await removePostFromIndex({ userID: post.userID, postID: post._id });
 
         currentCount++;
