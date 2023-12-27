@@ -7,6 +7,7 @@ const { reqString, nonreqString } = require('../types');
 const interactIndexSchema = mongoose.Schema({
     _id: reqString, // "production"
     themeIndex: nonreqString,
+    postsIndex: nonreqString,
 });
 
 module.exports = mongoose.model('interact-indexes', interactIndexSchema);
