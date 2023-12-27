@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { allPostsFeedV2 } = require('../../../../utils/feeds');
-const { getFeed } = require('../../../../utils/feeds/preference');
+const { getFeed, getFeedV2 } = require('../../../../utils/feeds/preference');
 
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 router.get('/v2', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
-    const allPosts = await allPostsFeedV2({ userID: req.headers.userid, useIndex: true });
+    const allPosts = await getFeedV2({ userID: req.headers.userid });
 
     if (allPosts?.error) return res.status(404).send(allPosts);
     else return res.status(200).send(allPosts);
@@ -26,7 +26,7 @@ router.get('/v2/:indexID', async (req, res) => {
 
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const allPosts = await allPostsFeedV2({ userID: req.headers.userid, useIndex: true, indexID});
+    const allPosts = await getFeedV2({ userID: req.headers.userid, indexID});
 
     if (allPosts?.error) return res.status(404).send(allPosts);
     else return res.status(200).send(allPosts);
