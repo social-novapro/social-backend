@@ -5,31 +5,35 @@
         {
             "intTitle" : 1,
             "title" : "Public",
+            "includes" : [2, 3, 4],
             "description" : "Anyone can see your {{title}}.",
             "description_2" : "Anyone can {{title}} you."
         },
         {
             "intTitle" : 2,
             "title" : "Friends of friends",
+            "includes" : [3, 4],
             "description" : "Friends of friends can see your {{title}}.",
             "description_2" : "Friends of friends can {{title}} you."
-
         },
         {
             "intTitle" : 3,
             "title" : "Friends",
+            "includes" : [4],
             "description" : "Only your friends can see your {{title}}.",
             "description_2" : "Only your friends can {{title}} you."
         },
         {
             "intTitle" : 4,
             "title" : "Private",
+            "includes" : [],
             "description" : "Only you can see your {{title}}.",
             "description_2" : "Only you can {{title}}."
         },
         {
             "intTitle" : 5,
             "title" : "Following",
+            "includes" : [3, 4],
             "description" : "Only people you are following can view your {{title}}.",
             "description_2" : "Only people you are following can {{title}} you."
         }
