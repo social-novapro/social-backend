@@ -1,69 +1,125 @@
 
 {
+    "modified" : "December 31, 2023",
     "options" : [
         {
             "intTitle" : 1,
             "title" : "Public",
-            "description" : "Anyone can see your {{title}}."
+            "description" : "Anyone can see your {{title}}.",
+            "description_2" : "Anyone can {{title}} you."
         },
         {
             "intTitle" : 2,
             "title" : "Friends of friends",
-            "description" : "Only your friends can see your {{title}}."
+            "description" : "Friends of friends can see your {{title}}.",
+            "description_2" : "Friends of friends can {{title}} you."
+
         },
         {
             "intTitle" : 3,
             "title" : "Friends",
-            "description" : "Only your friends can see your {{title}}."
+            "description" : "Only your friends can see your {{title}}.",
+            "description_2" : "Only your friends can {{title}} you."
         },
         {
             "intTitle" : 4,
             "title" : "Private",
-            "description" : "Only you can see your {{title}}."
+            "description" : "Only you can see your {{title}}.",
+            "description_2" : "Only you can {{title}}."
         },
         {
             "intTitle" : 5,
             "title" : "Following",
-            "description" : "Only people you are following can view your {{title}}."
+            "description" : "Only people you are following can view your {{title}}.",
+            "description_2" : "Only people you are following can {{title}} you."
         }
     ],
     "settings" : [
-        [
-            {
-                "title" : "Who can see your posts?",
-                "description" : "Choose who can see your posts.",
-                "default" : 1,
-                "shortTitle" : "posts",
-                "options" : [1, 2, 3, 4]
-            },
-            {
-                "title" : "Who can view your profile?",
-                "description" : "Choose who can view your profile.",
-                "default" : 1,
-                "shortTitle" : "profile",
-                "options" : [1, 2, 3, 5]
-            },
-            {
-                "title" : "Friend Requests",
-                "description" : "Choose who can send you friend requests.",
-                "default" : 1,
-                "shortTitle" : "friend requests",
-                "options" : [1, 2, 5]
-            },
-            {
-                "title" : "Theme Privacy",
-                "description" : "Choose who can view your themes.",
-                "default" : 1,
-                "shortTitle" : "themes",
-                "options" : [1, 2, 3, 4]
-            },
-            {
-                "title" : "Messages Privacy",
-                "description" : "Choose who can view your messages.",
-                "default" : 1,
-                "shortTitle" : "messages",
-                "options" : [1, 2, 3, 5]
-            }
-        ]
+        {
+            "title" : "Post Privacy",
+            "description" : "Choose who can see your posts.",
+            "default" : 1,
+            "shortTitle" : "posts",
+            "dbTitle" : "post",
+            "options" : [{
+                "value" : 1
+            }, {
+                "value" : 2
+            }, {
+                "value" : 3
+            }, {
+                "value" : 4
+            }]
+        },
+        {
+            "title" : "Profile Privacy",
+            "description" : "Choose who can view your profile.",
+            "default" : 1,
+            "shortTitle" : "profile",
+            "dbTitle" : "profile",
+            "options" : [{
+                "value" : 1
+            }, {
+                "value" : 2
+            }, {
+                "value" : 3
+            }, {
+                "value" : 5
+            }]
+        },
+        {
+            "title" : "Follow Privacy",
+            "description" : "Choose who can send you follow requests.",
+            "default" : 1,
+            "shortTitle" : "follow",
+            "dbTitle" : "follow",
+            "options" : [{
+                "value" : 1,
+                "description" : 2
+            }, {
+                "value" : 2,
+                "description" : 2
+            }, {
+                "value" : 5,
+                "description" : 2
+            }]
+        },
+        {
+            "title" : "Theme Privacy",
+            "description" : "Choose who can view your themes.",
+            "default" : 1,
+            "shortTitle" : "themes",
+            "dbTitle" : "theme",
+            "options" : [{
+                "value" : 1
+            }, {
+                "value" : 2
+            }, {
+                "value" : 3
+            }, {
+                "value" : 4
+            }]
+        },
+        {
+            "title" : "Messages Privacy",
+            "description" : "Choose who can message you.",
+            "default" : 1,
+            "shortTitle" : "message",
+            "dbTitle" : "message",
+            "options" : [{
+                "value" : 1,
+                "description" : 2
+            }, {
+                "value" : 2,
+                "description" : 2
+            }, {
+                "value" : 3,
+                "description" : 2
+            }, {
+                "value" : 5,
+                "description" : 2
+            }]
+        }
     ]
+    
 }
