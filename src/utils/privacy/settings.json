@@ -1,13 +1,69 @@
 
-[
-    {
-        "version": "1.3.0",
-        "options" : [
+{
+    "options" : [
+        {
+            "intTitle" : 1,
+            "title" : "Public",
+            "description" : "Anyone can see your {{title}}."
+        },
+        {
+            "intTitle" : 2,
+            "title" : "Friends of friends",
+            "description" : "Only your friends can see your {{title}}."
+        },
+        {
+            "intTitle" : 3,
+            "title" : "Friends",
+            "description" : "Only your friends can see your {{title}}."
+        },
+        {
+            "intTitle" : 4,
+            "title" : "Private",
+            "description" : "Only you can see your {{title}}."
+        },
+        {
+            "intTitle" : 5,
+            "title" : "Following",
+            "description" : "Only people you are following can view your {{title}}."
+        }
+    ],
+    "settings" : [
+        [
             {
-                "intTitle" : 1,
                 "title" : "Who can see your posts?",
                 "description" : "Choose who can see your posts.",
+                "default" : 1,
+                "shortTitle" : "posts",
+                "options" : [1, 2, 3, 4]
+            },
+            {
+                "title" : "Who can view your profile?",
+                "description" : "Choose who can view your profile.",
+                "default" : 1,
+                "shortTitle" : "profile",
+                "options" : [1, 2, 3, 5]
+            },
+            {
+                "title" : "Friend Requests",
+                "description" : "Choose who can send you friend requests.",
+                "default" : 1,
+                "shortTitle" : "friend requests",
+                "options" : [1, 2, 5]
+            },
+            {
+                "title" : "Theme Privacy",
+                "description" : "Choose who can view your themes.",
+                "default" : 1,
+                "shortTitle" : "themes",
+                "options" : [1, 2, 3, 4]
+            },
+            {
+                "title" : "Messages Privacy",
+                "description" : "Choose who can view your messages.",
+                "default" : 1,
+                "shortTitle" : "messages",
+                "options" : [1, 2, 3, 5]
             }
         ]
-    }
-]
+    ]
+}
