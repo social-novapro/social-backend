@@ -123,6 +123,22 @@
                 "value" : 5,
                 "description" : 2
             }]
+        },
+        {
+            "title" : "Likes Privacy",
+            "description" : "Choose who view your likes.",
+            "default" : 1,
+            "shortTitle" : "likes",
+            "dbTitle" : "likes",
+            "options" : [{
+                "value" : 1
+            }, {
+                "value" : 2
+            }, {
+                "value" : 3
+            }, {
+                "value" : 4
+            }]
         }
     ]
     

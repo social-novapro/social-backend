@@ -3,6 +3,8 @@ const interactPostSchema = require('../../../../schemas/interactPostSchema');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { getPostWithData } = require('../../../../utils/post/getPost');
+const { getPrivacySetting } = require('../../../../utils/privacy');
+const { getUserRelation } = require('../../../../utils/user/relations');
 
 router.get('/', async (req, res) => {
     const tokenData = await checkRequestTokens(req);
@@ -21,6 +23,15 @@ router.get('/', async (req, res) => {
         var username;
         var displayname;
 
+        const userPrivacy = await getPrivacySetting({ userID: postData.userID, privacy: "profile" });
+        if (userPrivacy == 4) continue;
+
+        if (userPrivacy == 3) { 
+            const userRelation = await getUserRelation({ userID, otherUserID: postData.userID });
+            if (userRelation.privacyCode != 3 || userRelation.privacyCode != 4 ) continue;
+        }
+    
+    
         if (lookupkey == user._id) usersFound.push(user);
         else if (user.username && user.displayName) {
             username = user.username.toLowerCase();
