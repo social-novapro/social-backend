@@ -20,7 +20,7 @@ async function allPostsFeed({ userID }) {
         }
     }
     
-    sendPosts.sort((a, b) => a.postData.timePosted - b.postData.timePosted);
+    sendPosts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
 
     return sendPosts;
 }
@@ -48,7 +48,7 @@ async function allPostsFeedV2({ userID, indexID }) {
         }
     }
   
-    sendingData.posts.sort((a, b) => a.postData.timePosted - b.postData.timePosted);
+    sendingData.posts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
     return sendingData;
 }
 
@@ -63,7 +63,7 @@ async function subscriptionFeed({ userID }) {
         sendPosts.push(...foundPosts);
     }
 
-    sendPosts.sort((a, b) => a.postData.timePosted - b.postData.timePosted);
+    sendPosts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
     
     return sendPosts;
 }

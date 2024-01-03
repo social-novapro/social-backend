@@ -7,5 +7,29 @@ async function getUserRelation({ userID, otherUserID }) {
     //if (!foundRelationship) return { error: "No relationship found" };
     //return foundRelationship;
 }
+async function canView({ userID, otherUserID, privacyNum }) {
+    if (userID == otherUserID) return true;
+    const userRelation = await getUserRelation({ userID, otherUserID });
 
-module.exports = { getUserRelation }
+    if (userRelation.blocked) return false;
+    if (privacyNum == 1) return true;
+
+    if (privacyNum == 2) {
+        if (userRelation.privacyCode == 2) return true;
+        else return false;
+    };
+
+    if (privacyNum == 3) {
+        if (userRelation.privacyCode == 3) return true;
+        else return false;
+    };
+    
+    if (privacyNum == 4) {
+        if (userRelation.privacyCode == 4) return true;
+        else return false;
+    };
+
+    return false;
+}
+
+module.exports = { getUserRelation, canView }

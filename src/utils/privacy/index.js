@@ -92,8 +92,24 @@ async function getPrivacySettings({ userID }) {
     return settings;
 }
 
+function validPrivacyOption(privacyNum, privacyType) {
+    if (
+        privacyNum < 0 || 
+        privacyNum > privacySettings.amountOptions
+    ) return { error: "Invalid privacy option"};
+
+    const foundPrivacy = privacySettings.settings.find(setting => setting.dbTitle === privacyType);
+    if (!foundPrivacy) return { error: "Invalid privacy type"};
+
+    const foundOption = foundPrivacy.options.find(option => option.value == privacyNum);
+    if (!foundOption) return { error: "Invalid privacy option inside type"};
+
+    return true;
+}
+
 module.exports = {
     getPrivacySetting,
     getPrivacySettings,
-    setPrivacySettings
+    setPrivacySettings,
+    validPrivacyOption
 };
