@@ -33,7 +33,16 @@ async function getUserDBSettings({ userID }) {
     return settings;
 }
 
-async function setPrivacySettings({ userID, newSetting }) {
+async function setPrivacySettings({ userID, newSettings }) {
+    if (!newSettings || newSettings[0]) return false;
+    for (const newSetting of newSettings) {
+        await setPrivacySetting({ userID, newSetting });
+    }
+
+    return getPrivacySetting({ userID });
+}
+
+async function setPrivacySetting({ userID, newSetting }) {
     if (!userID) return { error: "No userID provided" };
     const foundSettings = await getUserDBSettings({ userID });
     if (!foundSettings) return { error: "No settings found" };
@@ -49,7 +58,7 @@ async function setPrivacySettings({ userID, newSetting }) {
 
     if (!changed) return { error: "No settings changed" };
     await foundSettings.save();
-    return getPrivacySettings({ userID });
+    return true;
 }
 
 
