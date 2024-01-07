@@ -6,16 +6,9 @@ router.post('/', async (req, res) => {
         userID: req.headers.userid, 
         newSettings: req.body.newSettings
     });
-    
-    //const updateSettings = await setPrivacySettings({ 
-    //    userID: req.headers.userid, 
-    //    newSetting: {
-    //        name: req.body.name,
-    //        value: req.body.value
-    //    }
-    //});
 
-    if (updateSettings.error) return res.status(400).send(updateSettings);
+
+    if (!updateSettings || updateSettings.error) return res.status(400).send(updateSettings);
     return res.status(200).send(updateSettings);
 });
 

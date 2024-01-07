@@ -34,7 +34,7 @@ async function createNewPost({
     const userIDCheck = await interactUserSchema.findOne({ _id: userID});
     if (!userIDCheck) return searchErrorV2("E004", { userID });
 
-    const privacyCheck = validPrivacyOption(privacyOverride, "post")
+    const privacyCheck = validPrivacyOption(userID, privacyOverride, "post")
 
     const postID = await newPostIndex(userID, {
         content, 

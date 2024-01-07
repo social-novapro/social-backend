@@ -1,20 +1,24 @@
 const interactPrivacySchema = require("../../schemas/user/interactPrivacySchema");
 const { checktime } = require("../checktime");
+const { searchErrorV2 } = require('../searchError');
+
 const privacySettings = require("./settings.json")
 
-function possiblePrivacySettings() {
-    return privacySettings;
-}
-
+/**
+    gets single privacy setting for use for outside functions.
+*/
 async function getPrivacySetting({ userID, privacy }) {
-    if (!userID) return { error: "No userID provided" };
+    if (!userID) return searchErrorV2("T001", { userID });
     const settings = await getUserDBSettings({ userID });
-    if (!settings) return { error: "No privacy settings found" };
+    if (!settings) return searchErrorV2("T011", { userID })
     return settings[privacy];
 }
 
+/**
+ * gets all privacy settings for a user in an array
+ */
 async function getUserDBSettings({ userID }) {
-    if (!userID) return { error: "No userID provided" };
+    if (!userID) return searchErrorV2("T001", { userID });
     const settings = await interactPrivacySchema.findOne({ _id: userID });
     if (!settings) {
         var toSet = {
@@ -33,43 +37,51 @@ async function getUserDBSettings({ userID }) {
     return settings;
 }
 
+/**
+ * takes in an array to set privacy settings for a user
+ */
 async function setPrivacySettings({ userID, newSettings }) {
-    if (!newSettings || newSettings[0]) return false;
+    if (!newSettings || !newSettings[0]) return searchErrorV2("T002", { userID });
     for (const newSetting of newSettings) {
         await setPrivacySetting({ userID, newSetting });
     }
 
-    return getPrivacySetting({ userID });
+    const foundSettings = await getPrivacySettings({ userID });
+    return foundSettings;
 }
 
+/**
+ * sets a single privacy setting for a user
+ */
 async function setPrivacySetting({ userID, newSetting }) {
-    if (!userID) return { error: "No userID provided" };
+    if (!userID) return searchErrorV2("T001", { userID });
     const foundSettings = await getUserDBSettings({ userID });
-    if (!foundSettings) return { error: "No settings found" };
+    if (!foundSettings || foundSettings.error) return searchErrorV2("T003", { userID });
     var changed = false;
 
     foundChange = privacySettings.settings.find(setting => setting.dbTitle === newSetting.name);
     if (foundChange) {
         possibleChange = foundChange.options.find(option => option.value == newSetting.value);
-        if (!possibleChange) return { error: "Invalid setting value" };
-        foundSettings[newSetting.name] = newSetting.value;
+        if (!possibleChange) return searchErrorV2("T004");
+        await interactPrivacySchema.findOneAndUpdate({ _id: userID }, { [newSetting.name]: newSetting.value });
         changed = true;
     }
 
-    if (!changed) return { error: "No settings changed" };
-    await foundSettings.save();
+    if (!changed) return searchErrorV2("T005", { userID });
     return true;
 }
 
-
+/**
+ * gets all privacy settings for a user
+ */
 async function getPrivacySettings({ userID }) {
-    if (!userID) return { error: "No userID provided" };
+    if (!userID) return searchErrorV2("T001", { userID });
     const foundSettings = await getUserDBSettings({ userID });
-    if (!foundSettings) return { error: "No settings found" };
+    if (!foundSettings || foundSettings.error) return searchErrorV2("T003", { userID });
     const settings = [];
 
     privacySettings.settings.forEach(setting => {
-        if (!setting) return { error: "No setting"}
+        if (!setting) return searchErrorV2("T012", { userID })
         const currentSetting = foundSettings[setting.dbTitle] ?? setting.default;
        
         const settingToPush = {
@@ -81,9 +93,9 @@ async function getPrivacySettings({ userID }) {
         }
 
         setting.options.forEach(option => {
-            if (!option) return { error: "No option"}
+            if (!option) return searchErrorV2("T009", { userID })
             var foundOption = privacySettings.options.find(option_details => option.value === option_details.intTitle);
-            if (!foundOption) return { error: "No option found"}
+            if (!foundOption) return searchErrorV2("T010", { userID })
 
             settingToPush.options.push({
                 title: foundOption.title,
@@ -101,17 +113,20 @@ async function getPrivacySettings({ userID }) {
     return settings;
 }
 
-function validPrivacyOption(privacyNum, privacyType) {
+/**
+ * checks if a privacy option is valid for other options
+ */
+function validPrivacyOption(userID, privacyNum, privacyType) {
     if (
         privacyNum < 0 || 
         privacyNum > privacySettings.amountOptions
-    ) return { error: "Invalid privacy option"};
+    ) return searchErrorV2("T006", { userID });
 
     const foundPrivacy = privacySettings.settings.find(setting => setting.dbTitle === privacyType);
-    if (!foundPrivacy) return { error: "Invalid privacy type"};
+    if (!foundPrivacy) return searchErrorV2("T007", { userID });
 
     const foundOption = foundPrivacy.options.find(option => option.value == privacyNum);
-    if (!foundOption) return { error: "Invalid privacy option inside type"};
+    if (!foundOption) return searchErrorV2("T008", { userID });
 
     return true;
 }
@@ -120,5 +135,6 @@ module.exports = {
     getPrivacySetting,
     getPrivacySettings,
     setPrivacySettings,
+    setPrivacySetting,
     validPrivacyOption
 };

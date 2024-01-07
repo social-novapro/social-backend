@@ -23,11 +23,11 @@ router.get('/', async (req, res) => {
         var username;
         var displayname;
 
-        const userPrivacy = await getPrivacySetting({ userID: postData.userID, privacy: "profile" });
-        if (userPrivacy == 4) continue;
+        const userPrivacy = await getPrivacySetting({ userID: user._id, privacy: "profile" });
+        if (userPrivacy == 4 && user._id != req.headers.userid) continue;
 
         if (userPrivacy == 3) { 
-            const userRelation = await getUserRelation({ userID, otherUserID: postData.userID });
+            const userRelation = await getUserRelation({ userID, otherUserID: req.headers.userid });
             if (userRelation.privacyCode != 3 || userRelation.privacyCode != 4 ) continue;
         }
     

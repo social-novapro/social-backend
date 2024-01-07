@@ -34,15 +34,16 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
     if (!postData) return searchErrorV2("Q003", { userID });
     if (postData.deleted) return searchErrorV2("D026", { userID });
 
+    // privacy settings check
     const userPrivacy = await getPrivacySetting({ userID: postData.userID, privacy: "post" });
-    if (userPrivacy == 4) return {error: "Post is private"}
+    if (userPrivacy == 4 && userID != postData.userID) return searchErrorV2("T013", { userID });
     
     const canViewPost = await canView({ 
         userID,
         otherUserID: postData.userID, 
         privacyNum: postData.privacyOverride ? postData.privacyOverride : userPrivacy,
     });
-    if (!canViewPost || canViewPost.error) return { error: "Post is private" };
+    if (!canViewPost || canViewPost.error) return searchErrorV2("T013", { userID });
 
     if (postData.content) {
         /* if post is liked, add liked: true */
