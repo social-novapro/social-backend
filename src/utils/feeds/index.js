@@ -52,6 +52,16 @@ async function allPostsFeedV2({ userID, indexID }) {
     return sendingData;
 }
 
+async function subscriptionFeedV2({ userID }) {
+    const foundPosts = await subscriptionFeed({ userID });
+    const sendingData = {
+        amount: foundPosts.length,
+        feedVersion: 2,
+        posts: foundPosts
+    }
+    return sendingData;
+}
+
 async function subscriptionFeed({ userID }) {
     const sendPosts = [];
     const subscriptions = await getSubscriptions({ userID });
@@ -60,7 +70,7 @@ async function subscriptionFeed({ userID }) {
     
     for (const sub of subscriptions) {
         const foundPosts = await getUserPosts({ userID: sub._id, requesterID: userID, coposts: true});
-        sendPosts.push(...foundPosts);
+        if ((foundPosts && !foundPosts.error) || (foundPosts.length > 0 && !foundPosts.error) ) sendPosts.push(...foundPosts);
     }
 
     sendPosts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
@@ -68,6 +78,7 @@ async function subscriptionFeed({ userID }) {
     return sendPosts;
 }
 
-
-
-module.exports = { allPostsFeed, allPostsFeedV2, subscriptionFeed }
+module.exports = { 
+    allPostsFeed, allPostsFeedV2, 
+    subscriptionFeed, subscriptionFeedV2
+}
