@@ -9,6 +9,7 @@ router.post('/', async (req, res) => {
     var replyingPostID = req.body.replyingPostID ? req.body.replyingPostID : undefined;
     var linkedPollID = req.body.linkedPollID ? req.body.linkedPollID : undefined;
     var coposters = req.body.coposters ? req.body.coposters : undefined;
+    var privacyOverride = req.body.privacyOverride ? req.body.privacyOverride : undefined;
    
     const postData = {
         content,
@@ -16,7 +17,8 @@ router.post('/', async (req, res) => {
         quoteReplyPostID,
         replyingPostID,
         linkedPollID,
-        coposters
+        coposters,
+        privacyOverride,
     }
 
     const newPost = await createNewPost(postData);

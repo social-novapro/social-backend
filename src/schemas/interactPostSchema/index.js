@@ -40,7 +40,10 @@ const interactPostSchema = mongoose.Schema({
     totalReplies: reqNum,
     totalQuotes: reqNum,
 
-    privacySetting: privacySettingSchema,
+    privacyOverride: nonreqNum,
+    /*
+    0 = none
+    */
 
     edited: reqBool,
     editedTimestamp: nonreqString,

@@ -12,6 +12,7 @@ const { sendPushAppleNotification } = require('../../pushNotifications/apnProvid
 const { checkPostContent } = require('../../checks');
 const { pushNewPost } = require('../../notifications/pushNewPost');
 const { pushPostToIndex } = require('../postIndexManagement');
+const { validPrivacyOption } = require('../../privacy');
 
 async function createNewPost({
     content,
@@ -19,7 +20,8 @@ async function createNewPost({
     quoteReplyPostID,
     replyingPostID,
     linkedPollID,
-    coposters
+    coposters,
+    privacyOverride
 }) {
     if (!content && !userID) searchErrorV2("E001", { userID });
     else if (!content) searchErrorV2("E002", { userID });
@@ -32,13 +34,15 @@ async function createNewPost({
     const userIDCheck = await interactUserSchema.findOne({ _id: userID});
     if (!userIDCheck) return searchErrorV2("E004", { userID });
 
-    //const indexID = await newIndex()
+    const privacyCheck = validPrivacyOption(userID, privacyOverride, "post")
+
     const postID = await newPostIndex(userID, {
         content, 
         quoteReplyPostID, 
         replyingPostID, 
         linkedPollID, 
-        coposters
+        coposters,
+        privacyOverride : !privacyCheck.error ? privacyOverride : null
     });
 
     //const check
@@ -66,7 +70,8 @@ async function newPostIndex(userID, data) {
         quoteReplyPostID,
         replyingPostID,
         linkedPollID,
-        coposters
+        coposters,
+        privacyOverride
     } = data
     const postID = await newPostID();
     const currentTime = checktime();
@@ -91,6 +96,7 @@ async function newPostIndex(userID, data) {
         hasPoll: false,
         isQuote: false,
         isReply: false,
+        privacyOverride: privacyOverride ? privacyOverride : null,
         // indexID: newIndex._id
     });
 

@@ -76,6 +76,10 @@
                     "msg" : "Error with themes"
                 },
                 {
+                    "code" : "T",
+                    "msg" : "Error with user settings"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -1090,6 +1094,59 @@
                 {
                     "code" : "S014",
                     "msg" : "No themes in index found"
+                },
+                {
+                    "code" : "T001",
+                    "msg" : "No userID provided"
+                },
+                {
+                    "code" : "T002",
+                    "msg" : "There were no new privacy settings provided."
+                },
+                {
+                    "code" : "T003",
+                    "msg" : "User has no privacy settings found."
+                },
+                {
+                    "code" : "T004",
+                    "msg" : "Invalid privacy setting value provided."
+                },
+                {
+                    "code" : "T005",
+                    "msg" : "No privacy settings were changed."
+                },
+                {
+                    "code" : "T006",
+                    "msg" : "Invalid privacy option"
+                },
+                {
+                    "code" : "T007",
+                    "msg" : "Invalid privacy type."
+                },
+                {
+                    "code" : "T008",
+                    "msg" : "Invalid privacy option inside type."
+                },
+                {
+                    "code" : "T009",
+                    "msg" : "No privacy option found for setting."
+                },
+                {
+                    "code" : "T010",
+                    "msg" : "No privacy option found related."
+                },
+                {
+                    "code" : "T011",
+                    "msg" : "Privacy option not found for user."
+                },
+                {
+                    "code" : "T012",
+                    "msg" : "No settings found for getting privacy settings."
+                },
+                {
+                    "code" : "T013",
+                    "msg" : "Post is private.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "Z001",
