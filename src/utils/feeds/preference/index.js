@@ -1,4 +1,4 @@
-const { subscriptionFeed, allPostsFeed, allPostsFeedV2 } = require("../");
+const { subscriptionFeed, allPostsFeed, allPostsFeedV2, subscriptionFeedV2 } = require("../");
 const interactUserFeedSchema = require("../../../schemas/user/interactUserFeedSchema")
 const {checktime} = require('../../checktime');
 const { searchError, searchErrorV2 } = require("../../searchError");
@@ -28,7 +28,7 @@ async function getFeedV2({ userID, indexID }) {
         const feed = await allPostsFeedV2({ userID, indexID });
         return feed;
     } else if (prefData == "subscriptionFeed") {
-        const feed = await subscriptionFeed({ userID });
+        const feed = await subscriptionFeedV2({ userID });
         return feed;
     }
 }
