@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqString, reqNum } = require('../../types');
+const { reqString, reqNum, nonreqNum } = require('../../types');
 
 /*
 postSchema
@@ -14,8 +14,8 @@ const interactQuotesSchema = mongoose.Schema({
     previousIndex: reqString,
     nextIndex: reqString, 
     postIDs: [reqString], //postID of reply
-    indexStartTime: reqString,// when index was created
-    indexEndTime: reqString
+    indexStartTime: reqNum,// when index was created
+    indexEndTime: nonreqNum
 });
 
 module.exports = mongoose.model('interact-quotes', interactQuotesSchema);
