@@ -33,7 +33,7 @@ async function allPostsFeedV2({ userID, indexID }) {
 
     const ownUser = await interactUserSchema.findOne({_id: userID});
 
-    const sendingData = {
+    var sendingData = {
         nextIndexID: currentIndex.nextIndexID,
         prevIndexID: currentIndex.prevIndexID,
         amount: currentIndex.amount,
@@ -46,6 +46,20 @@ async function allPostsFeedV2({ userID, indexID }) {
         if (data && !data.error) {
             sendingData.posts.push(data)
         }
+    }
+
+    if (currentIndex.amount < 10) {
+        const prevIndex = await getPostIndexData({ indexID: currentIndex.prevIndexID });
+        if (prevIndex && prevIndex.postIDs) {
+            sendingData.prevIndexID = prevIndex.prevIndexID;
+            sendingData.amount += prevIndex.amount;
+            for (const postID of prevIndex.postIDs) {
+                const data = await getPostWithData({ userID, postID: postID._id, ownUser })
+                if (data && !data.error) {
+                    sendingData.posts.push(data)
+                }
+            }
+        };
     }
   
     sendingData.posts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
