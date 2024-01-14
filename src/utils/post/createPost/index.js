@@ -283,14 +283,22 @@ async function addReplyToIndex(replyingPost, postID) {
     }, {
         upsert: true
     }); 
-    
+
     return replyIndexID;
 }
 
 async function replyingPostSetup(replyingPost, postID, userID) {
     // adding new post to the main post's reply index
     const replyIndexID = await addReplyToIndex(replyingPost, postID);
-
+    
+    await interactPostSchema.findOneAndUpdate({
+        _id: replyingPost._id//postID
+    }, {        
+        totalReplies: replyingPost.totalReplies ? replyingPost.totalReplies + 1 : 1,
+    }, {
+        upsert: true
+    });
+    
     // set to a reply inside the new post
     await interactPostSchema.findOneAndUpdate({
         _id: postID
