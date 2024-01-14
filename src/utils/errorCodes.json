@@ -1125,7 +1125,8 @@
                 },
                 {
                     "code" : "T008",
-                    "msg" : "Invalid privacy option inside type."
+                    "msg" : "Invalid privacy option inside type.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "T009",
