@@ -13,6 +13,7 @@ const { checkPostContent } = require('../../checks');
 const { pushNewPost } = require('../../notifications/pushNewPost');
 const { pushPostToIndex } = require('../postIndexManagement');
 const { validPrivacyOption } = require('../../privacy');
+const { searchErrorV2 } = require('../../searchError');
 
 async function createNewPost({
     content,
@@ -23,10 +24,9 @@ async function createNewPost({
     coposters,
     privacyOverride
 }) {
-    if (!content && !userID) searchErrorV2("E001", { userID });
-    else if (!content) searchErrorV2("E002", { userID });
-    else if (!userID) searchErrorV2("E003", { userID });
-
+    if (!content && !userID) return searchErrorV2("E001", { userID });
+    else if (!content) return searchErrorV2("E002", { userID });
+    else if (!userID) return searchErrorV2("E003", { userID });
 
     const checkedContent = await checkPostContent(content);
     if (checkedContent.error) return checkedContent;
@@ -283,14 +283,22 @@ async function addReplyToIndex(replyingPost, postID) {
     }, {
         upsert: true
     }); 
-    
+
     return replyIndexID;
 }
 
 async function replyingPostSetup(replyingPost, postID, userID) {
     // adding new post to the main post's reply index
     const replyIndexID = await addReplyToIndex(replyingPost, postID);
-
+    
+    await interactPostSchema.findOneAndUpdate({
+        _id: replyingPost._id//postID
+    }, {        
+        totalReplies: replyingPost.totalReplies ? replyingPost.totalReplies + 1 : 1,
+    }, {
+        upsert: true
+    });
+    
     // set to a reply inside the new post
     await interactPostSchema.findOneAndUpdate({
         _id: postID
