@@ -1,9 +1,14 @@
 const router = require('express').Router();
 const { searchErrorV2 } = require('../../utils/searchError');
+
+// Legacy Routes Imports (still used)
 const getAPI = require('./get');
 const postAPI = require('./post');
 const deleteAPI = require('./delete');
 const putAPI = require('./put');
+
+// Feature Routes Imports
+const serverStatus = require('./serverStatus');
 const authAPI = require('./auth');
 const adminAPI = require('./admin');
 const polls = require('./polls');
@@ -20,6 +25,7 @@ router.use('/delete', deleteAPI);
 router.use('/put', putAPI);
 
 // Feature Routes
+router.use('/serverStatus', serverStatus);
 router.use('/auth', authAPI);
 router.use('/admin', adminAPI);  
 router.use('/polls', polls);
