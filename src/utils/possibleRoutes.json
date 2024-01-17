@@ -1,0 +1,44 @@
+{
+    "v1": [
+        {
+            "name" : "",
+            "route" : "/admin",
+            "subroutes" : [
+                {
+                    "route" : "/errors",
+                    "subroutes" : [
+                        {
+                            "route" : "/get",
+                            "subroutes" : [
+                                {
+                                    "route" : "/"
+                                },
+                                {
+                                    "route" : "/:errorID"
+                                }
+                            ]
+                        }, {
+                            "route" : "/list",
+                            "subroutes" : [
+                                {
+                                    "route" : "/"
+                                },
+                                {
+                                    "route" : "/:errorCode"
+                                }
+                            ]
+                        }, {
+                            "route" : "/lookup",
+                            "params" : [
+                                {
+                                    "name" : "errorCode",
+                                    "type" : "string"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
