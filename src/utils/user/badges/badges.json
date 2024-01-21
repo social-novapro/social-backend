@@ -1,0 +1,50 @@
+[
+    {
+        "name": "verified",
+        "db": "verified",
+        "description": "Users who are verified, this also shows up on the main page",
+        "date_achieved": "date verified",
+        "show_count": false
+    },
+    {
+        "name": "1st Year Beta User",
+        "db": "beta_user",
+        "description": "Users who joined interact before July 23rd, 2022",
+        "date_achieved": "date joined interact",
+        "show_count": false
+    },
+    {
+        "name": "Beta User",
+        "db": "beta_user",
+        "description": "Users who joined interact before September 1st 2023",
+        "date_achieved": "date joined interact",
+        "show_count": false
+    },
+    {
+        "name": "Mobile Beta User",
+        "db": "mobile_beta_user",
+        "description": "Users who connected interact to xcode app token.",
+        "date_achieved": "date connected token"
+    },
+    {
+        "name": "Developer",
+        "db": "developer",
+        "description": "users who invoked a developer token",
+        "date_achieved": "date opened",
+        "show_count": false
+    },
+    {
+        "name": "Apps Created",
+        "db": "apps_created",
+        "description": "when developers makes new app tokens, shows +1 for each app token created",
+        "date_achieved": "date first created app",
+        "show_count": true
+    },
+    {
+        "name": "Email Verified",
+        "db": "email_verified",
+        "description": "when a user verifies their email",
+        "date_achieved": "date verified",
+        "show_count": false
+    }
+]
