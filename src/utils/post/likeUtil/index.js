@@ -2,8 +2,8 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPostLikeSchema");
 const { checktime } = require("../../checktime");
+const { pushLikeNotifications } = require("../../pushNotifications/postActionNotifications");
 const { searchErrorV2 } = require("../../searchError");
-const { sendPushAppleNotification } = require("../../pushNotifications/apnProvider");
 
 async function postIsLiked({ postID, userID }) {
     const postLiked = await interactPostLikeSchema.findOne({ 
@@ -85,14 +85,7 @@ async function likePost({ postID, userID }) {
     const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount + 1 : 1;
     await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
 
-    // push notification
-    const subtitle = `@${foundUser.username} liked your post!`
-
-    sendPushAppleNotification({ 
-        userID: postFoundNew.userID, 
-        type: "likes",
-        notification: { title: "Interact Like", subtitle, body: postFoundNew.content }
-    })
+    pushLikeNotifications({username: foundUser.username, postData: postFoundNew});
 
     if (postFound.coposters && postFound.coposters.length > 0) {
         for (const coposter of postFound.coposters) {
@@ -100,13 +93,6 @@ async function likePost({ postID, userID }) {
             const coposterFound = await interactUserSchema.findOne({ _id: coposter });
             const foundUserLikeCount = coposterFound.likeCount ? coposterFound.likeCount + 1 : 1;
             await interactUserSchema.findOneAndUpdate({ _id: coposter }, { likeCount: foundUserLikeCount }, { upsert: true });
-
-            // send push
-            sendPushAppleNotification({ 
-                userID: coposter, 
-                type: "likes",
-                notification: { title: "Interact Like", subtitle, body: postFound.content }
-            })
         }
     }
 

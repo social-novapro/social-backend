@@ -1,7 +1,7 @@
 const {v4 : uuidv4} = require('uuid');
 const liveChatSchema = require('../../schemas/liveChatSchema');
 const {SCHEMA_VERSIONS} = require('../../../config.json');
-const { pushLiveChatMessages } = require('../../utils/pushNotifications/apnProvider');
+const { pushLiveChatMessages } = require('../../utils/pushNotifications/liveChatMessages');
 
 async function saveChat(chatData) {
     const { _id, apiVersion, type, user  } = chatData;
