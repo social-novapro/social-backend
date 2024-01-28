@@ -572,7 +572,8 @@
                 },
                 {
                     "code" : "K005",
-                    "msg" : "There was no bookmark data found for this post."
+                    "msg" : "There was no bookmark data found for this post.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "K006",
@@ -1089,7 +1090,8 @@
                 },
                 {
                     "code" : "S013",
-                    "msg" : "Can not unset theme, user did not have any themes set."
+                    "msg" : "Can not unset theme, user did not have any themes set.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "S014",
