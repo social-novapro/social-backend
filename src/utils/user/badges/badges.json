@@ -1,50 +1,74 @@
 [
     {
-        "name": "verified",
         "db": "verified",
-        "description": "Users who are verified, this also shows up on the main page",
+        "name": "Verified",
+        "description": "Interact Verified Account.",
+        "technical_description": "Awarded to users who are verified, this also shows up on the main page",
         "date_achieved": "date verified",
         "show_count": false
     },
     {
+        "db": "year_1_beta_user",
         "name": "1st Year Beta User",
-        "db": "beta_user",
-        "description": "Users who joined interact before July 23rd, 2022",
-        "date_achieved": "date joined interact",
+        "description": "User joined interact in first year of development.",
+        "technical_description" : "Awarded to users who joined Interact before July 23rd, 2022.",
+        "date_achieved": "Date joined interact",
         "show_count": false
     },
     {
+        "db": "beta_user",
         "name": "Beta User",
-        "db": "beta_user",
-        "description": "Users who joined interact before September 1st 2023",
-        "date_achieved": "date joined interact",
+        "description": "User joined interact during beta.",
+        "technical_description": "Awarded to users who joined Interact before September 1st 2023",
+        "date_achieved": "Date joined beta",
         "show_count": false
     },
     {
-        "name": "Mobile Beta User",
-        "db": "mobile_beta_user",
-        "description": "Users who connected interact to xcode app token.",
-        "date_achieved": "date connected token"
+        "db": "interact_user",
+        "name": "Interact User",
+        "description" : "User joined Interact.",
+        "technical_description": "Awarded to users who joined Interact.",
+        "date_achieved": "Date joined Interact",
+        "show_count": false
     },
     {
+        "db": "ios_beta_user",
+        "name": "iOS Beta User",
+        "description": "Users connected to Interact iOS beta.",
+        "technical_description": "Awarded to users who connected their Interact account to iOS beta.",
+        "date_achieved": "Date joined iOS beta",
+        "show_count": false
+    },
+    {
+        "db": "developer__account",
         "name": "Developer",
-        "db": "developer",
-        "description": "users who invoked a developer token",
-        "date_achieved": "date opened",
+        "description": "User has created a developer account.",
+        "technical_description": "Awarded to users who invoked a developer token.",
+        "date_achieved": "Date dev account created",
         "show_count": false
     },
     {
-        "name": "Apps Created",
         "db": "apps_created",
-        "description": "when developers makes new app tokens, shows +1 for each app token created",
-        "date_achieved": "date first created app",
+        "name": "Apps Created",
+        "description": "Deveoper created an app token for Interact.",
+        "technical_description": "Awarded when Interact developers makes new app tokens, shows +1 for each app token created.",
+        "date_achieved": "Date first app developed",
         "show_count": true
     },
     {
-        "name": "Email Verified",
         "db": "email_verified",
-        "description": "when a user verifies their email",
-        "date_achieved": "date verified",
+        "name": "Email Verified",
+        "description": "User verified their email.",
+        "technical_description": "Awarded to users when they verify their email",
+        "date_achieved": "Date email verified",
+        "show_count": false
+    },
+    {
+        "db": "admin_account",
+        "name": "Admin",
+        "description": "User is an Interact admin.",
+        "technical_description": "Awarded to users who are Interact admins.",
+        "date_achieved": "Date account elevated to admin",
         "show_count": false
     }
 ]
