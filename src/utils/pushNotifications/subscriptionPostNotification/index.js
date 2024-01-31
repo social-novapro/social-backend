@@ -21,9 +21,13 @@ async function pushSubscriptionPostNotification(apnProvider, { userData, postDat
         })
 
         const subtitle = `New Post from @${userData.username}`;
-        const body = newPost.content
+        const body = postData.content
 
-        await sendPushAppleNotification(apnProvider, { userID: user._id, type: "subscription", notification: { subtitle, body }})
+        await sendPushAppleNotification(apnProvider, { 
+            userID: user._id,
+            type: "subscription", 
+            notification: { subtitle, body }
+        })
     }
 }
 

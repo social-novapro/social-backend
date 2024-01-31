@@ -33,7 +33,7 @@ async function pushLikeNotifications({username, postData}) {
             await sendPushAppleNotification(apnProvider, { 
                 userID: coposter, 
                 type: "likes",
-                notification: { title: "Interact Like", subtitle, body: postFound.content }
+                notification: { title: "Interact Like", subtitle, body: postData.content }
             })
         }
     }

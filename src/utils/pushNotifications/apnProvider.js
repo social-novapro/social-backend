@@ -22,7 +22,7 @@ async function setupAPNProvider() {
             keyId: PUSH_KEY_ID,
             teamId: PUSH_TEAM_ID,
         },
-        production: false, // Set to true for production environment
+        production: true, // Set to true for production environment
     });
     globalApnProvider = apnProvider;
     return apnProvider;
