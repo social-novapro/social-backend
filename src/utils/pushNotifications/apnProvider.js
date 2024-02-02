@@ -15,17 +15,25 @@ const {
     PUSH_BUNDLE_IDENTIFIER
 } = process.env;
 
-const apnProvider = new apn.Provider({
-    token: {
-        key: `./env/${PUSH_AUTH_KEY_NAME}`,
-        keyId: PUSH_KEY_ID,
-        teamId: PUSH_TEAM_ID,
-    },
-    production: false, // Set to true for production environment
-});
-console.log("setup notificaiton provider")
+async function setupAPNProvider() {
+    const apnProvider = new apn.Provider({
+        token: {
+            key: `./env/${PUSH_AUTH_KEY_NAME}`,
+            keyId: PUSH_KEY_ID,
+            teamId: PUSH_TEAM_ID,
+        },
+        production: true, // Set to true for production environment
+    });
+    globalApnProvider = apnProvider;
+    return apnProvider;
+}
 
-async function sendPushAppleNotification({userID, type, notification: {title, subtitle, body}}) {
+async function shutdownAPNProvider(apnProvider) {
+    apnProvider.shutdown();
+    return true;
+}
+
+async function sendPushAppleNotification(apnProvider, {userID, type, notification: {title, subtitle, body}}) {
     const foundUser = await interactDeviceTokenPush.find({notifications: true, userID: userID, [type]: true})
 
     if (!foundUser || foundUser.length === 0) {
@@ -39,7 +47,7 @@ async function sendPushAppleNotification({userID, type, notification: {title, su
         const deviceType = user.deviceType;
         if (!deviceToken) continue;
 
-        await pushAppleNotificationDevice({
+        await pushAppleNotificationDevice(apnProvider, {
             userID: userID,
             deviceToken: deviceToken,
             deviceType: deviceType,
@@ -50,7 +58,7 @@ async function sendPushAppleNotification({userID, type, notification: {title, su
     return true;
 }
 
-async function pushAppleNotificationDevice({userID, deviceToken, deviceType, notification: {title, subtitle, body}}) {
+async function pushAppleNotificationDevice(apnProvider, {userID, deviceToken, deviceType, notification: {title, subtitle, body}}) {
     const notificationSending = new apn.Notification();
     notificationSending.alert = { 
         title: title ? title : "Interact", 
@@ -168,39 +176,10 @@ async function applyNotificationSettings({ userID, deviceToken }) {
     return true;
 }
 
-async function pushLiveChatMessages(notificationData) {
-    const sendDevices = await interactDeviceTokenPush.find({notifications: true, allMessages: true});
-
-    for (const device of sendDevices) {
-        await pushAppleNotificationDevice({
-            userID: device.userID,
-            deviceToken: device.deviceToken,
-            deviceType: device.deviceType,
-            notification: notificationData,
-        })
-    }
-    return true
-}
-
-async function pushNewPostGlobal({notification, subscribedList}) {
-    const sendDevices = await interactDeviceTokenPush.find({notifications: true, allPosts: true});
-
-    for (const device of sendDevices) {
-        if (subscribedList.some(subscribed => subscribed._id === device.userID)) continue;
-
-        await pushAppleNotificationDevice({
-            userID: device.userID,
-            deviceToken: device.deviceToken,
-            deviceType: device.deviceType,
-            notification: notification,
-        })
-    }
-    return true
-}
-
-//async funciton pushNewPost({})
-
 module.exports = {
+    setupAPNProvider,
+    shutdownAPNProvider,
+    pushAppleNotificationDevice,
     sendPushAppleNotification,
     registerDevice,
     deregisterDevice,
@@ -208,6 +187,4 @@ module.exports = {
     updateNotificationSettings,
     getNotificationSettings,
     possibleSettings,
-    pushLiveChatMessages,
-    pushNewPostGlobal
 }

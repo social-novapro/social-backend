@@ -8,12 +8,12 @@ const { checktime } = require('../../checktime');
 const { pushQuotePost } = require('../../../utils/notifications/pustQuotePost');
 const { findPoll } = require('../../polls');
 const interactPostCoSchema = require('../../../schemas/postSchemas/interactPostCoSchema');
-const { sendPushAppleNotification } = require('../../pushNotifications/apnProvider');
 const { checkPostContent } = require('../../checks');
 const { pushNewPost } = require('../../notifications/pushNewPost');
 const { pushPostToIndex } = require('../postIndexManagement');
 const { validPrivacyOption } = require('../../privacy');
 const { searchErrorV2 } = require('../../searchError');
+const { coposterRequestNotification } = require('../../pushNotifications/postActionNotifications');
 
 async function createNewPost({
     content,
@@ -150,18 +150,10 @@ async function newPostIndex(userID, data) {
                 });
                 
                 addedCoposters.push(foundCoposter._id);
-                
-                sendPushAppleNotification({
-                    userID: foundCoposter._id,
-                    type: "coposts", 
-                    notification: {
-                        title: "Interact Copost",
-                        subtitle: `@${userFound.username} wants to copost with you!`,
-                        body: content
-                    }
-                })
             }
         }
+        
+        coposterRequestNotification({coposters: addedCoposters, userData: userFound, content})
     }
 
     await interactUserSchema.findOneAndUpdate({
