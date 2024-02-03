@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const { emailSender } = require('../send');
 const { checktime } = require('../../checktime');
 const { checkPassword } = require('../../userAuth');
+const { awardUserBadge } = require('../../user/badges');
 
 async function verifyEmail({ emailVerID, password }) {
     const emailReqFound = await interactEmailVerificationSchema.findOne({ verificationID: emailVerID });
@@ -64,6 +65,8 @@ async function verifyEmail({ emailVerID, password }) {
             a: `${interactURL}`,
         }
     });
+
+    await awardUserBadge({ userID, badgeID: "email_verified" });
 
     return { success: true, DB: accept };
 }

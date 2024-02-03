@@ -13,7 +13,7 @@
         "name": "1st Year Beta User",
         "description": "User joined interact in first year of development.",
         "technical_description" : "Awarded to users who joined Interact before July 23rd, 2022.",
-        "epoch" : 1658548800,
+        "epoch" : 1658548800000,
         "date_achieved": "Date joined interact",
         "multiple_count": false,
         "version_introduced": "1.4"
@@ -23,7 +23,7 @@
         "name": "Beta User",
         "description": "User joined interact during beta.",
         "technical_description": "Awarded to users who joined Interact before September 1st 2023.",
-        "epoch" : 1693591200,
+        "epoch" : 1693591200000,
         "date_achieved": "Date joined beta",
         "multiple_count": false,
         "version_introduced": "1.4"

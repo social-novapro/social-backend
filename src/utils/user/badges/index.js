@@ -17,7 +17,7 @@ async function getBadge({ userID, badgeID }) {
 };
 
 /* awards a badge to a user */
-async function awardBadge({ userID, badgeID }) {
+async function awardUserBadge({ userID, badgeID }) {
     const validBadge = findBadgeData({badgeID});
     if (!validBadge || validBadge.error) return searchErrorV2("J007", { userID });
 
@@ -44,7 +44,7 @@ async function awardBadge({ userID, badgeID }) {
 }
 
 /* revokes a badge from a user */
-async function revokeBadge({ userID, badgeID }) {
+async function revokeUserBadge({ userID, badgeID }) {
     const badge = await interactBadgeSchema.findOne({ userID, badgeID });
     if (!badge) return searchErrorV2("J006", { userID });
 
@@ -69,7 +69,6 @@ function findBadgeData({badgeID}) {
 /* formats the badge data from db and mixes with json */
 function formatBadge(badge) {
     const fullBadge = findBadgeData({badgeID: badge.badgeID});
-    console.log(fullBadge, badge)
     return {
         id: badge.badgeID,
         name: fullBadge.name,
@@ -90,6 +89,6 @@ function formatBadge(badge) {
 module.exports = {
     getUserBadges,
     getBadge,
-    awardBadge,
-    revokeBadge
+    awardUserBadge,
+    revokeUserBadge
 }

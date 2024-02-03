@@ -7,9 +7,10 @@ const interactVerificationSchema = require('../../../../schemas/interactVerifica
 const interactDeviceTokenPush = require('../../../../schemas/notifications/interactDeviceTokenPush');
 const interactBadgeSchema = require('../../../../schemas/user/interactBadgeSchema');
 const { v4: uuidv4 } = require('uuid');
+const { getiOSAppToken } = require('../../../getiOSBetaToken');
 
 // dev
-const iOSBetaAppToken = "235e9cce-88c0-44e8-94c5-76bc615659a6";
+const iOSBetaAppToken = getiOSAppToken();
 // prod
 //const iOSBetaAppToken = "efb5cadc-45e2-4ba9-943f-0a24c2c88124";
 
@@ -37,7 +38,6 @@ async function updateUserBadges() {
         updates.push(update);
     }
 
-    console.log(updates)
     return { done: true, updates: updates };
 }
 
@@ -66,7 +66,8 @@ async function verifiedBadge(user) {
 
 /* awards year 1 beta user to a user */
 async function year1Badge(user) {
-    if (user.creationTimestamp < 1658548800) return false;
+    // user creation greater than 2022-07-23
+    if (user.creationTimestamp > 1658548800000) return false;
     await interactBadgeSchema.create({
         _id: uuidv4(),
         userID: user._id,
@@ -79,7 +80,8 @@ async function year1Badge(user) {
 
 /* awards beta user to a user */
 async function betaBadge(user) {
-    if (user.creationTimestamp < 1693591200) return false;
+    // user creation greater than 2023-09-01
+    if (user.creationTimestamp > 1693591200000) return false;
     await interactBadgeSchema.create({
         _id: uuidv4(),
         userID: user._id,

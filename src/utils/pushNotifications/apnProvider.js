@@ -6,7 +6,9 @@ const interactDeviceNotifications = require('../../schemas/notifications/interac
 require('dotenv').config({ path: 'secret.env' })
 const notificationOptions = require('./notificationOptions.json');
 const { searchErrorV2 } = require('../searchError');
-
+const { awardUserBadge, revokeUserBadge } = require('../user/badges');
+const { current } = require('../../../config.json')
+const productionMode = current == "prod" ? true : false;
 const {
     PUSH_KEY_ID,
     PUSH_TEAM_ID,
@@ -15,6 +17,17 @@ const {
     PUSH_BUNDLE_IDENTIFIER
 } = process.env;
 
+notifiationStartupTest();
+
+async function notifiationStartupTest() {
+    console.log('---')
+    console.log("Notification Startup Testing")
+    console.log(`running in ${productionMode ? "production" : "non production"} mode`)
+    console.log('---')
+    const apnProvider = await setupAPNProvider();
+    await shutdownAPNProvider(apnProvider);
+}
+
 async function setupAPNProvider() {
     const apnProvider = new apn.Provider({
         token: {
@@ -22,9 +35,9 @@ async function setupAPNProvider() {
             keyId: PUSH_KEY_ID,
             teamId: PUSH_TEAM_ID,
         },
-        production: true, // Set to true for production environment
+        production: productionMode, // Set to true for production environment
     });
-    globalApnProvider = apnProvider;
+    
     return apnProvider;
 }
 
@@ -115,12 +128,14 @@ async function registerDevice({userID, deviceToken, deviceType}) {
     })
 
     await applyNotificationSettings({userID, deviceToken})
+    await awardUserBadge({ userID, badgeID: "mobile_notifications" })
     return true
 }
 
 async function deregisterDevice({userID, deviceToken}) {
     if (!userID || !deviceToken) return searchErrorV2("L017", { userID });
     await interactDeviceTokenPush.deleteOne({userID: userID, deviceToken: deviceToken})
+    await revokeUserBadge({ userID, badgeID: "mobile_notifications" })
     return true
 }
 
