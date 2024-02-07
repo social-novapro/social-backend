@@ -74,13 +74,13 @@ function formatBadge(badge) {
         name: fullBadge.name,
         description: fullBadge.description,
         count: badge.count,
-        showCount: fullBadge.showCount,
+        showCount: fullBadge.multiple_count,
         achieved: badge.timestamp,
         latest: badge.latest_timestamp ? badge.latest_timestamp : null,
         info: {
             technical_description: fullBadge.technical_description,
             date_achieved: fullBadge.date_achieved,
-            version_intoduced: fullBadge.version_intoduced,
+            version_introduced: fullBadge.version_introduced,
             multiple_count: fullBadge.multiple_count,
         }
     }

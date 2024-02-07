@@ -46,7 +46,7 @@ router.get('/:userID', async (req, res) => {
         userData: UserData,
         postData: PostData,
         pinData: pins,
-        badges: badges
+        badgeData: badges
     }
 
     return res.status(200).send(send);
