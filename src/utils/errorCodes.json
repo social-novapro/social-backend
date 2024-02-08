@@ -567,6 +567,14 @@
                     "msg" : "Badge to be awarded was already awarded ,and does not support multiple counts."
                 },
                 {
+                    "code" : "J009",
+                    "msg" : "Could not send badge data, for unknown reason."
+                },
+                {
+                    "code" : "J010",
+                    "msg" : "User has no badges."
+                },
+                {
                     "code" : "K001",
                     "msg" : "postID is required"
                 },

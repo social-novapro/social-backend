@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 /* gets all badges for a user */
 async function getUserBadges({userID}) {
     const badges = await interactBadgeSchema.find({ userID });
+    if (!badges || badges.length <= 0) return searchErrorV2("J010", { userID })
     return badges.map(badge => formatBadge(badge));
 };
 
@@ -66,6 +67,10 @@ function findBadgeData({badgeID}) {
     return badges.find(badge => badge.badgeID === badgeID);
 }
 
+function allBadges() {
+    return badges;
+}
+
 /* formats the badge data from db and mixes with json */
 function formatBadge(badge) {
     const fullBadge = findBadgeData({badgeID: badge.badgeID});
@@ -90,5 +95,6 @@ module.exports = {
     getUserBadges,
     getBadge,
     awardUserBadge,
-    revokeUserBadge
+    revokeUserBadge,
+    allBadges
 }
