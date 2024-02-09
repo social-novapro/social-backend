@@ -532,7 +532,23 @@
                 },
                 {
                     "code" : "I019",
-                    "msg" : "Please use /v1/posts/edit instead of /v1/put/editPost/"
+                    "msg" : "Please use /v1/posts/edit/ instead of /v1/put/editPost/"
+                },
+                {
+                    "code" : "I020",
+                    "msg" : "Please use /v1/admin/signup/deny/:requestID/ instead of /v1/admin/put/denyAdmin/:userID"
+                },
+                {
+                    "code" : "I021",
+                    "msg" : "Please use /v1/admin/signup/accept/:requestID/ instead of /v1/admin/get/acceptAdmin/:userID"
+                },
+                {
+                    "code" : "I022",
+                    "msg" : "Please use /v1/admin/signup/list/ instead of /v1/admin/get/adminRequests/"
+                },
+                {
+                    "code" : "I023",
+                    "msg" : "Please use /v1/admin/list/ instead of /v1/admin/get/adminList/"
                 },
                 {
                     "code" : "J001",

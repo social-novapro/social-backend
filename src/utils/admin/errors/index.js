@@ -1,9 +1,10 @@
+const { v4: uuidv4 } = require("uuid");
 const interactAdminErrorIndexSchema = require("../../../schemas/admin/interactAdminErrorIndexSchema");
 const interactAdminErrorSchema = require("../../../schemas/admin/interactAdminErrorSchema");
 const { checktime } = require('../../checktime');
 const { searchErrorV2 } = require("../../searchError");
 const { getCurrentErrorIndex } = require("../indexesAdmin");
-const { v4: uuidv4 } = require("uuid");
+const { isUserAdmin } = require("../isAdminUser");
 
 /* notes 
     resolving should be done by same user who is reviewing 
@@ -74,7 +75,7 @@ async function resolveErrorDB({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
 
-    const isAdmin = await isUserAdmin({ userID: adminID })
+    const isAdmin = await isUserAdmin({ adminID })
     if (!isAdmin) return;
     
     await interactAdminErrorSchema.findOneAndUpdate({
@@ -93,7 +94,7 @@ async function reviewErrorDB({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
 
-    const isAdmin = await isUserAdmin({ userID: adminID })
+    const isAdmin = await isUserAdmin({ adminID })
     if (isAdmin.error) return isAdmin;
     
     await interactAdminErrorSchema.findOneAndUpdate({
@@ -126,7 +127,7 @@ async function updateErrorHistoryDB({ errorID, reviewedBy, reviewTimestamp, reso
 
 /* gets all errors, and you can change the type of sorting */
 async function getErrorIssues({ adminID, indexID, sort }) {
-    const isAdmin = await isUserAdmin({ userID: adminID })
+    const isAdmin = await isUserAdmin({ adminID })
     if (isAdmin.error) return isAdmin;
 
     var returnData = {
@@ -170,7 +171,7 @@ async function findErrorIssue({ errorID, adminID }) {
     if (!errorID) return searchErrorV2("R001", { userID: adminID });
     if (!adminID) return searchErrorV2("R002", { userID: adminID });
 
-    const isAdmin = await isUserAdmin({ userID: adminID })
+    const isAdmin = await isUserAdmin({ adminID })
     if (isAdmin.error) return isAdmin;
 
     const foundError = await interactAdminErrorSchema.findOne({ _id: errorID });
@@ -179,13 +180,7 @@ async function findErrorIssue({ errorID, adminID }) {
     return foundError;
 }
 
-/* checks if user is admin ***TODO: to be updated */
-async function isUserAdmin({ userID }) {
-    /* will be updated to check once admin is complete */
-    return true;
 
-    // return searchErrorV2("R003", { userID });
-}
 
 module.exports = {
     resolveError,

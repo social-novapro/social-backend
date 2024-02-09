@@ -24,6 +24,4 @@ router.delete('/:postID', async (req, res) => {
     return res.status(200).send(removePin);
 });
 
-
-
 module.exports = router;

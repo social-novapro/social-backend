@@ -96,4 +96,19 @@ router.put('/put/likePost/:postID', async (req, res) => {
     return res.status(400).send(searchErrorV2("I017", { userID: req.headers.userid }));
 })
 
+// ADMIN ROUTES
+router.put('/admin/put/denyAdmin/:userid', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I020", { userID: req.headers.userid }));
+});
+router.put('/admin/put/acceptAdmin/:userid', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I021", { userID: req.headers.userid }));
+});
+router.get('/admin/get/adminRequests/', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I022", { userID: req.headers.userid }));
+});
+router.get('/admin/get/adminList/', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I023", { userID: req.headers.userid }));
+});
+
+
 module.exports = router;
