@@ -1,9 +1,9 @@
 const router = require('express').Router();
-const accept = require('./accept');
-const deny = require('./accept');
+const approve = require('./approve');
+const deny = require('./deny');
 const list = require('./list');
 
-router.use('/accept', accept);
+router.use('/approve', approve);
 router.use('/deny', deny);
 router.use('/list', list);
 

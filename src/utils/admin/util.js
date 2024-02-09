@@ -24,7 +24,7 @@ async function respondAdminRequest({ adminID, requestID, status }) {
     const foundRequest = await interactAdminRequestSchema.findOne({ _id: requestID });
     if (!foundRequest) return { error: true };
 
-    if (status === "accept") {
+    if (status === "approve") {
         await interactAdminRequestSchema.findOneAndUpdate({
             _id: requestID,
         }, {

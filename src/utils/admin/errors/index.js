@@ -59,7 +59,7 @@ async function overrideError({ errorID, adminID }) {
     const foundError = await findErrorIssue({ errorID, adminID });
     if (foundError.error) return foundError;
 
-    if (!foundError.reviewedBy) return searchErrorV2("R010", { userID, adminID });
+    if (!foundError.reviewedBy) return searchErrorV2("R010", { userID: adminID });
     if (foundError.reviewedBy == adminID && !foundError.resolved) return searchErrorV2("R009", { userID: adminID });
 
     await updateErrorHistoryDB({ errorID, reviewedBy: foundError.reviewedBy, reviewTimestamp: foundError.reviewTimestamp, resolvedTimestamp : foundError.resolved ? foundError.resolvedTimestamp : null })
@@ -179,8 +179,6 @@ async function findErrorIssue({ errorID, adminID }) {
 
     return foundError;
 }
-
-
 
 module.exports = {
     resolveError,

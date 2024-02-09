@@ -7,7 +7,7 @@ const interactAdminRequestSchema = mongoose.Schema({
     content: reqString, // description of request
     timestamp: reqNum, // time requested
     adminType: reqNum, // level of request
-    status: reqNum, // 0 = not dismissed, 1 = dismissed, 2 = accepted
+    status: reqNum, // 0 = not dismissed, 1 = denied, 2 = approved
     acceptedBy: nonreqString, // id of admin who accepted request
     acceptedTimestamp: nonreqString, // time request was accepted
 });

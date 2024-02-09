@@ -21,11 +21,8 @@ async function updateBadges({ adminID }) {
 }
 
 async function undoBadges({ adminID }) {
-    await undoUserBadges({ adminID });
-    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "badgesInit" })
-    return { done: true }
+    return afterCompletion();
 }
-
 
 // DEC 2023 - 1.3 - 2
 async function updatePostIndexes({ adminID }) {
@@ -43,11 +40,7 @@ async function updatePostIndexes({ adminID }) {
 }
 
 async function undoPostIndexes({ adminID }) {
-    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "postIndexes" });
-
-    await undoAllPostIndexes({ adminID });
-    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "postIndexes" })
-    return { done: true }
+    return afterCompletion();
 }
 
 // DEC 2023 - 1.3 - 1
@@ -67,10 +60,7 @@ async function updateTimestamps({ adminID }) {
 }
 
 async function undoTimestamps({ adminID }) {
-    /* check adminID later */
-    const result = await undoAllTimestamps();
-    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "timestamps" })
-    return result;
+    return afterCompletion();
 }
 
 // NOV 2023 - 1.1.1
@@ -84,12 +74,12 @@ async function updateUsernameLc({ adminID }) {
 }
 
 async function undoUsernameLc({ adminID }) {
-    /* check adminID later */
-    const result = await undoAllUsernameLc();
-    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "usernameLc" })
-    return result;
+    return afterCompletion();
 }
 
+function afterCompletion() {
+    return { done: false, error: true }
+}
 
 module.exports = { 
     updateUsernameLc,

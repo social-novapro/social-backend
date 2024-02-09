@@ -540,7 +540,7 @@
                 },
                 {
                     "code" : "I021",
-                    "msg" : "Please use /v1/admin/signup/accept/:requestID/ instead of /v1/admin/get/acceptAdmin/:userID"
+                    "msg" : "Please use /v1/admin/signup/approve/:requestID/ instead of /v1/admin/get/acceptAdmin/:userID"
                 },
                 {
                     "code" : "I022",
