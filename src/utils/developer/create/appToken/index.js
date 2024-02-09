@@ -2,6 +2,7 @@ const {v4 : uuidv4} = require('uuid');
 const developerAppToken = require('../../../../schemas/developer/developerAppToken');
 const { SCHEMA_VERSIONS } = require('../../../../../config.json');
 const { checktime } = require('../../../checktime');
+const { awardUserBadge } = require('../../../user/badges');
 
 async function newDevAppToken() {
     const newID = uuidv4();
@@ -32,6 +33,7 @@ async function newDeveloperAppToken(userID, devToken, appName) {
         upsert: true
     });
 
+    await awardUserBadge({ userID, badgeID: "apps_created" });
     return devAppToken;
 };
 

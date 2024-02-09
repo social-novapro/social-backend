@@ -555,6 +555,26 @@
                     "msg" : "User is already an admin."
                 },
                 {
+                    "code" : "J006",
+                    "msg" : "Badge was not previously awarded to user."
+                },
+                {
+                    "code" : "J007",
+                    "msg" : "Badge to be awarded was not a valid badge."
+                },
+                {
+                    "code" : "J008",
+                    "msg" : "Badge to be awarded was already awarded ,and does not support multiple counts."
+                },
+                {
+                    "code" : "J009",
+                    "msg" : "Could not send badge data, for unknown reason."
+                },
+                {
+                    "code" : "J010",
+                    "msg" : "User has no badges."
+                },
+                {
                     "code" : "K001",
                     "msg" : "postID is required"
                 },

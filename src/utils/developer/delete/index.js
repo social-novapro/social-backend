@@ -3,6 +3,7 @@ const developerToken = require("../../../schemas/developer/developerToken");
 const interactUserAccessSchema = require("../../../schemas/interactUserAccessSchema");
 const interactUserPrivSchema = require("../../../schemas/interactUserPrivSchema");
 const { searchErrorV2 } = require("../../searchError");
+const { revokeUserBadge } = require("../../user/badges");
 
 /**
  * get all access tokens from a client
@@ -71,7 +72,7 @@ async function deleteAppToken({ appToken }) {
     const appTokenData = await developerAppToken.findOneAndDelete({ _id: appToken });
 
     const accessTokensData = await deleteAccessTokensFromApp({ appToken });
-
+    await revokeUserBadge({ userID: appTokenData.userID, badgeID: "apps_created" });
     return { appTokenData, accessTokensData};
 }
 
@@ -80,6 +81,7 @@ async function deleteAppToken({ appToken }) {
  */
 async function deleteDevToken({ devToken }) {
     const devTokenData = await developerToken.findOneAndDelete({ _id: devToken});
+    await revokeUserBadge({ userID: devTokenData.userID, badgeID: "developer_account" });
     return devTokenData;
 }
 
