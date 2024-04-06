@@ -3,7 +3,6 @@ const user = require('./user');
 const username = require('./username');
 const allUsers = require('./allUsers');
 const allPublicData = require('./allPublicData');
-const search = require('./search');
 const analyticTrend = require('./analyticTrend');
 const userByID = require('./userByID');
 const developer = require('./developer');
@@ -16,7 +15,6 @@ router.use('/user', user);
 router.use('/username', username);
 router.use('/allUsers', allUsers)
 router.use('/allPublicData', allPublicData);
-router.use('/search', search);
 router.use('/analyticTrend', analyticTrend);
 router.use('/userByID', userByID);
 router.use('/developer', developer);

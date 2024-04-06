@@ -80,6 +80,10 @@
                     "msg" : "Error with user settings"
                 },
                 {
+                    "code" : "U",
+                    "msg" : "Error with searching"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -532,7 +536,11 @@
                 },
                 {
                     "code" : "I019",
-                    "msg" : "Please use /v1/posts/edit instead of /v1/put/editPost/"
+                    "msg" : "Please use /v1/posts/edit/ instead of /v1/put/editPost/"
+                },
+                {
+                    "code" : "I020",
+                    "msg" : "Please use /v1/search/v1/ instead of /v1/get/search/"
                 },
                 {
                     "code" : "J001",
@@ -1170,6 +1178,14 @@
                     "code" : "T013",
                     "msg" : "Post is private.",
                     "ignoreError" : true
+                },
+                {
+                    "code" : "U001",
+                    "msg" : "No lookup key was provided."
+                },
+                {
+                    "code" : "U002",
+                    "msg" : "No userID was provided while searching."
                 },
                 {
                     "code" : "Z001",
