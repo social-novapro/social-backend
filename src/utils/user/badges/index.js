@@ -74,6 +74,8 @@ function allBadges() {
 /* formats the badge data from db and mixes with json */
 function formatBadge(badge) {
     const fullBadge = findBadgeData({badgeID: badge.badgeID});
+    if (!fullBadge) return searchErrorV2("J011", { userID: 'unknown', options: [{name: 'badge', data: badge.badgeID }] });
+
     return {
         id: badge.badgeID,
         name: fullBadge.name,
