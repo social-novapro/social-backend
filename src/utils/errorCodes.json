@@ -583,6 +583,17 @@
                     "msg" : "User has no badges."
                 },
                 {
+                    "code" : "J011",
+                    "msg" : "Full badge data for '%badge%' was not found.",
+                    "options" : [
+                        {
+                            "name" : "badge",
+                            "replacement" : "%badge%",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
                     "code" : "K001",
                     "msg" : "postID is required"
                 },
