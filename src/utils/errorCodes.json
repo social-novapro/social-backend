@@ -80,6 +80,10 @@
                     "msg" : "Error with user settings"
                 },
                 {
+                    "code" : "U",
+                    "msg" : "Error with searching"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -532,7 +536,15 @@
                 },
                 {
                     "code" : "I019",
-                    "msg" : "Please use /v1/posts/edit instead of /v1/put/editPost/"
+                    "msg" : "Please use /v1/posts/edit/ instead of /v1/put/editPost/"
+                },
+                {
+                    "code" : "I020",
+                    "msg" : "Please use /v1/search/ instead of /v1/get/search/"
+                },
+                {
+                    "code" : "I021",
+                    "msg" : "Please use /v1/search/userTag/ instead of /v1/get/taguserSearch/"
                 },
                 {
                     "code" : "J001",
@@ -573,6 +585,17 @@
                 {
                     "code" : "J010",
                     "msg" : "User has no badges."
+                },
+                {
+                    "code" : "J011",
+                    "msg" : "Full badge data for '%badge%' was not found.",
+                    "options" : [
+                        {
+                            "name" : "badge",
+                            "replacement" : "%badge%",
+                            "default" : "Unknown"
+                        }
+                    ]
                 },
                 {
                     "code" : "K001",
@@ -1170,6 +1193,26 @@
                     "code" : "T013",
                     "msg" : "Post is private.",
                     "ignoreError" : true
+                },
+                {
+                    "code" : "U001",
+                    "msg" : "No lookup key was provided."
+                },
+                {
+                    "code" : "U002",
+                    "msg" : "No userID was provided while searching."
+                },
+                {
+                    "code" : "U003",
+                    "msg" : "Incorrect search version found for user."
+                },
+                {
+                    "code" : "U004",
+                    "msg" : "Version requested for new default was not found."
+                },
+                {
+                    "code" : "U005",
+                    "msg" : "Could not find any matching tags."
                 },
                 {
                     "code" : "Z001",

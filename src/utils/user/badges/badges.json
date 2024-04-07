@@ -29,7 +29,7 @@
         "version_introduced": "1.4"
     },
     {
-        "badgeID" : "first_100",
+        "badgeID" : "first_100_user",
         "name": "First 100 Users",
         "description": "User was in the first 100 users of Interact.",
         "technical_description": "Awarded to the first 100 users of Interact.",

@@ -3,7 +3,8 @@ const {
     updateUsernameLc, undoUsernameLc, 
     updateTimestamps, undoTimestamps, 
     updatePostIndexes, undoPostIndexes, 
-    updateBadges, undoBadges 
+    updateBadges, undoBadges,
+    updatePostEmbeddings, undoPostEmbeddings
 } = require('../../../../utils/admin/actions');
 const { searchErrorV2 } = require('../../../../utils/searchError');
 
@@ -54,6 +55,19 @@ router.get('/badges', async (req, res) => {
 
 router.get('/undoBadges', async (req, res) => {
     const foundIssue = await undoBadges({ adminID: req.headers.userid });
+    if (foundIssue?.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
+router.get('/postEmbeddings', async (req, res) => {
+    res.send({ msg: "loading" })
+    const foundIssue = await updatePostEmbeddings({ adminID: req.headers.userid });
+    if (foundIssue.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
+router.get('/undoPostEmbeddings', async (req, res) => {
+    const foundIssue = await undoPostEmbeddings({ adminID: req.headers.userid });
     if (foundIssue?.error) return res.status(400).send(foundIssue);
     return res.status(200).send(foundIssue);
 });

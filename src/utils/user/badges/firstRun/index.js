@@ -25,8 +25,8 @@ async function updateUserBadges() {
         update["verified"] = await verifiedBadge(user);
         update["year_1_beta_user"] = await year1Badge(user);
         update["beta_user"] = await betaBadge(user);
-        if (totalUpdated <= 100) update["first_100"] = await first100Badge(user);
-        else update["first_100"] = false;
+        if (totalUpdated <= 100) update["first_100_user"] = await first100Badge(user);
+        else update["first_100_user"] = false;
         update["interact_user"] = await interactUserBadge(user);
         update["ios_beta_user"] = await iOSBetaBadge(user);
         update["developer_account"] = await developerBadge(user);

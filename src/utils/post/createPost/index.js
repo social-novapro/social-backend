@@ -14,6 +14,7 @@ const { pushPostToIndex } = require('../postIndexManagement');
 const { validPrivacyOption } = require('../../privacy');
 const { searchErrorV2 } = require('../../searchError');
 const { coposterRequestNotification } = require('../../pushNotifications/postActionNotifications');
+const { embedPost } = require('../../search/embed');
 
 async function createNewPost({
     content,
@@ -50,6 +51,7 @@ async function createNewPost({
     if (!postData) return searchErrorV2("D002", { userID });
 
     pushNewPost(userID, postID)
+    embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
     return postData
 }
 
