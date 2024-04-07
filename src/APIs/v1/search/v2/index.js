@@ -8,6 +8,7 @@ router.get('/', async (req, res) => {
         userID: req.headers.userid ?? null
     });
 
+    if (!found || found.error) return res.status(400).send(found);
     return res.status(200).send(found);
 });
 

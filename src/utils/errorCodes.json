@@ -1199,6 +1199,14 @@
                     "msg" : "No userID was provided while searching."
                 },
                 {
+                    "code" : "U003",
+                    "msg" : "Incorrect search version found for user."
+                },
+                {
+                    "code" : "U004",
+                    "msg" : "Version requested for new default was not found."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

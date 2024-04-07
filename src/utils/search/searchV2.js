@@ -123,7 +123,7 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
     }
 
     const similarSentences = cosineSimilarity(searchEmbedding.embedding.sentences[0].embedding, similarArrSentence, sentenceContents);
-    console.log(similarities)
+    // console.log(similarities)
     
     const topSentences = similarSentences.slice(0, 50);
     const topPostIDs = topSentences.map((rank) => {

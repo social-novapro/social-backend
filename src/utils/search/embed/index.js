@@ -6,7 +6,7 @@ const interactEmbedPostFailSchema = require('../../../schemas/embeddings/interac
 const { checktime } = require('../../checktime');
 
 async function embedContent({ content }) {
-    const result = await fetch(`http://localhost:5000/embed`, {
+    const result = await fetch(`http://iron.xnet.com:5000/embed`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ async function embedEditedPost({ postID, userID, timestamp, content }) {
 
 async function deleteEmbedPost({ postID }) {
     const embeddings = await removePostEmbeddings({ postID });
-    return { success: true };
+    return { success: true, embeddings };
 }
 
 async function embedSearch({ content }) {
