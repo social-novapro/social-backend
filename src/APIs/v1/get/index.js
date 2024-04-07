@@ -8,7 +8,6 @@ const userByID = require('./userByID');
 const developer = require('./developer');
 const followers = require('./followers');
 const following = require('./following');
-const taguserSearch = require('./taguserSearch');
 const groupData = require('./groupData');
 
 router.use('/user', user);
@@ -20,7 +19,6 @@ router.use('/userByID', userByID);
 router.use('/developer', developer);
 router.use('/followers', followers);
 router.use('/following', following);
-router.use('/taguserSearch', taguserSearch);
 router.use('/groupData', groupData);
 
 module.exports = router;

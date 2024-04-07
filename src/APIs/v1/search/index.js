@@ -2,11 +2,14 @@ const router = require('express').Router();
 const { updatePrefSearch, exportSearchSettingPage, getUserSearch } = require('../../../utils/search');
 const v1 = require('./v1');
 const v2 = require('./v2');
+const userTag = require('./userTag');
 
 // get v1 search
 router.use('/v1', v1);
 // get v2 search
 router.use('/v2', v2);
+// get tag search
+router.use('/userTag', userTag);
 
 // get default search
 router.get('/', async (req, res) => {
