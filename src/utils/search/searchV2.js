@@ -23,6 +23,7 @@ async function searchV2({ lookUpKey, userID }) {
     const donePostSimliatie = checktime();
     const PostData = [];
     const postsAdded = {};
+
     for (const postID of postIDs) {
         if (postsAdded[postID]) {
             console.log("ALREADY ADDED")
@@ -101,7 +102,6 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
     // console.log(similarities)
     const shortenedRank = similarities.slice(0, 50);
     const postIDs = shortenedRank.map((rank) => allEmbeddings[rank.index]._id);
-
 
     // return postIDs.reversed();
 
