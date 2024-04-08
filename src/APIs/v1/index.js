@@ -17,6 +17,7 @@ const users = require('./users');
 const posts = require('./posts');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
+const search = require('./search');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -35,6 +36,7 @@ router.use('/posts', posts);
 router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
+router.use('/search', search);
 
 // Legacy Routes
 // GET
@@ -65,6 +67,17 @@ router.get('/get/subscriptions/', async (req, res) => {
 router.get('/get/userFeed/:userid', async (req, res) => {
     return res.status(400).send(searchErrorV2("I002", { userID: req.headers.userid }));
 })
+router.get('/get/search/', async (req, res) => {
+    // // redirect to new search via code
+    // const result = await fetch('http://127.0.0.1:5002/v1/search/v1', { method: 'GET', headers: req.headers });
+    // const data = await result.json();
+    // if (data.error) return res.status(400).send(data);
+    // return res.status(200).send(data);   
+    return res.status(400).send(searchErrorV2("I020", { userID: req.headers.userid }));
+});
+router.get('/get/taguserSearch/', async (req, res) => {
+    return res.status(400).send(searchErrorV2('I021', { userID: req.headers.userid }));
+});
 // POST
 router.post('/post/createPost/', async (req, res) => {
     return res.status(400).send(searchErrorV2('I010', { userID: req.headers.userid }))

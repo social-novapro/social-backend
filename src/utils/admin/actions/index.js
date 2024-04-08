@@ -1,9 +1,52 @@
 const interactAdminUpdateActionsSchema = require("../../../schemas/admin/interactAdminUpdateActionsSchema");
 const { checktime } = require("../../checktime");
+const { updateAllPostEmbeddings, undoAllPostEmbeddings } = require("../../search/embed/firstRun");
 const { searchErrorV2 } = require("../../searchError");
+const { updateUserBadges, undoUserBadges } = require("../../user/badges/firstRun");
 const { undoAllUsernameLc, updateAllUsernameLc } = require("../../userAuth");
 const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
+
+// APR 2024 - 1.4
+async function updatePostEmbeddings({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "postEmbeddings" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await updateAllPostEmbeddings();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "postEmbeddings",
+        done: true,
+        timestamp: checktime(),
+    })
+    return result;
+}
+
+async function undoPostEmbeddings({ adminID }) {
+    await undoAllPostEmbeddings();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "postEmbeddings" })
+    return { done: true }
+}
+
+// FEB 2024 - 1.4
+async function updateBadges({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "badgesInit" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await updateUserBadges();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "badgesInit",
+        done: true,
+        timestamp: checktime(),
+    })
+    return result;
+}
+
+async function undoBadges() {
+    await undoUserBadges();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "badgesInit" })
+    return { done: true }
+}
+
 
 // DEC 2023 - 1.3 - 2
 async function updatePostIndexes({ adminID }) {
@@ -76,4 +119,8 @@ module.exports = {
     undoTimestamps,
     updatePostIndexes,
     undoPostIndexes,
+    updateBadges,
+    undoBadges,
+    updatePostEmbeddings,
+    undoPostEmbeddings
 }
