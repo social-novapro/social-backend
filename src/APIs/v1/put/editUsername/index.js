@@ -1,21 +1,11 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
 const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checkUsername } = require('../../../../utils/checks');
 const { checktime } = require('../../../../utils/checktime');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.put('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { newusername, userid } = req.headers;
-    
-    // const checkTokens = await checkRequestTokens(req.headers)
-    // if (checkTokens) if (checkTokens.authorized==false) return res.status(400).send(checkTokens)
-
-
     if (!newusername && !userid) return res.status(400).send(searchErrorV2("C010", { userID: userid }));
     else if (!newusername) return res.status(400).send(searchErrorV2("G001", { userID: userid }));
     else if (!userid) return res.status(400).send(searchErrorV2("B009", { userID: userid }));

@@ -1,12 +1,8 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
 const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.get('/:username', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { username } = req.params;
 
     const UserData = await interactUserSchema.findOne({username});

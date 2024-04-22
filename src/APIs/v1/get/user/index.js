@@ -1,15 +1,11 @@
 const router = require('express').Router();
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
 const { getPostWithData } = require('../../../../utils/post/getPost');
 const { getUserPosts } = require('../../../../utils/post/user');
 const { searchErrorV2 } = require('../../../../utils/searchError');
 const { getUserBadges } = require('../../../../utils/user/badges');
 
 router.get('/:userID', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { userID } = req.params;
     const UserData = await interactUserSchema.findOne({_id: userID});
     const PostData = await getUserPosts({ userID, requesterID: req.headers.userid, coposts: true });

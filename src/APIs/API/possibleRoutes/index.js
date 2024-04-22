@@ -1,13 +1,10 @@
 const router = require('express').Router();
-const { checkRequestTokens } = require('../../../utils/checkRequestTokens');
 const fs = require('fs');
 const path = require('path');
 
 const data = []
 
 router.get('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
     if (!data[0])await readFunctions('../../');
 
     return res.status(200).send(data);

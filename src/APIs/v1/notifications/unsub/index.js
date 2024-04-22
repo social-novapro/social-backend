@@ -1,11 +1,7 @@
 const router = require('express').Router();
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { unsubFromUser } = require('../../../../utils/notifications/subscriptions');
 
 router.delete('/:unsubUserID', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { unsubUserID } = req.params;
     const { userid } = req.headers;
 

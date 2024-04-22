@@ -1,14 +1,9 @@
 const router = require('express').Router();
 const interactFollowSchema = require('../../../../schemas/user/interactFollowSchema')
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const { searchError } = require('../../../../utils/searchError');
 const { checktime } = require('../../../../utils/checktime');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.post('/:followUserID', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { followUserID } = req.params;
     const { userid } = req.headers;
 
