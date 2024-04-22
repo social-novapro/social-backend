@@ -12,10 +12,13 @@ async function checkRequestTokens(req, withoutAnalytic) {
     if (userTokensCheck) if (userTokensCheck.authorized == false) return userTokensCheck;
 
     if (withoutAnalytic == true ) {
-        return { "authrized" : true };
+        console.log("checkRequestTokens: bypassing analytics")
+        return { "authorized" : true };
     } else {
         await analytics(req);
-        return { "authrized" : true };
+        console.log("checkRequestTokens: analytics")
+
+        return { "authorized" : true };
     }
 }
 

@@ -84,6 +84,10 @@
                     "msg" : "Error with searching"
                 },
                 {
+                    "code" : "V",
+                    "msg" : "Error with analytics"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -1213,6 +1217,10 @@
                 {
                     "code" : "U005",
                     "msg" : "Could not find any matching tags."
+                },
+                {
+                    "code" : "V001",
+                    "msg" : "Could not find user analytic data."
                 },
                 {
                     "code" : "Z001",
