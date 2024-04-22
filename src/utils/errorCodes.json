@@ -1025,7 +1025,8 @@
                 },
                 {
                     "code" : "Q003",
-                    "msg" : "There was no found post data"
+                    "msg" : "There was no found post data",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "R001",
@@ -1221,6 +1222,14 @@
                 {
                     "code" : "V001",
                     "msg" : "Could not find user analytic data."
+                },
+                {
+                    "code" : "V002",
+                    "msg" : "Could not find user analytic index for provided userID."
+                },
+                {
+                    "code" : "V003",
+                    "msg" : "Error while fixing user analytic data."
                 },
                 {
                     "code" : "Z001",

@@ -1,9 +1,20 @@
+const { saveConnection } = require("../analytics/trends");
 const { checkDevTokens } = require("../checkDevTokens");
 const { checkRequestTokens } = require("../checkRequestTokens");
+const { checktime } = require("../checktime");
 
 async function authV1(req, res, next) {
     console.log('----');
     console.log(req.originalUrl)
+    const startTime = checktime();
+    await saveConnection({
+        userID: req.headers?.userid ?? 'unknown',
+        url_base: req.baseUrl ? req.baseUrl : req.originalUrl,
+        url_full: req.originalUrl
+    })
+    const endTime = checktime();
+    console.log(`authV1: ${endTime - startTime}ms`);
+
     if ( 
         req.originalUrl.startsWith('/v1/serverStatus') ||
         req.originalUrl.startsWith('/v1/get/analyticTrend') ||
@@ -30,7 +41,7 @@ async function authV1(req, res, next) {
         else return next();
     } else {
         console.log("authV1: checking auth")
-        const tokenData = await checkRequestTokens(req, true);
+        const tokenData = await checkRequestTokens(req);
         if (tokenData.authorized == false) return res.status(401).send(tokenData);
         else return next();
     }
