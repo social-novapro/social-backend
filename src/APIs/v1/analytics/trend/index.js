@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const interactUserAnalyticSchema = require('../../../../schemas/analytics/interactUserAnalyticSchema');
-const { getAnalyticsV1 } = require('../../../../utils/analytics/data');
+const { getAnalyticsV1, getAnalyticConnectionsPerUser, getAnalyticConnectionsPerUserPlain } = require('../../../../utils/analytics/data');
 const possibleFunctions = require('../../../../utils/analytics/functions');
 
 // change to /og
@@ -10,9 +10,7 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/1', async (req, res) => {
-    const analytics = await interactUserAnalyticSchema.find();
-    const functionData = possibleFunctions.buildFunction1(analytics);
-
+    const functionData = await getAnalyticConnectionsPerUser();
     return res.status(200).send(functionData);
 })
 
