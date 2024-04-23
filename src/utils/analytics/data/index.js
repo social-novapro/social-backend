@@ -52,62 +52,31 @@ async function getAnalyticConnectionsPerUser() {
 
     var totalX = 0;
     var totalY = 0;
-
-    var functionPointsXandY = []
     
-    var highestx = 0;
-    var lowestx = -1;
-    var highesty = 0;
-    var lowesty = -1;
-
     const pointsXs = [];
     const pointsYs = [];
-    var xDomain = [];
-    var yDomain = [];
 
-    var userCount = 0;
     indexes.forEach(index => {
         const { analyticUserID, count } = index;
-        console.log(`analyticUserID: ${analyticUserID}, count: ${count}`)
         totalY += count;
 
-        if (!users[analyticUserID]) {
-            users[analyticUserID] = count
-            totalX += 1;
-            userCount++;
-        }
+        if (!users[analyticUserID]) users[analyticUserID] = count
         else users[analyticUserID] += count;
     });
 
-    var userCount = 0;
-
     for (const key in users) {
         var value = users[key];
-        userCount++;
+        totalX++;
 
-        pointsXs.push(`User ${userCount}: ${value}`);
+        pointsXs.push(`User ${totalX}: ${value}`);
         pointsYs.push(value);
-
-        functionPointsXandY.push([userCount,value]);
-
-        if (highesty < value) {
-            highesty = value
-        };
     }
 
-    highestx = userCount;
-    xDomain = [lowestx, highestx];
-    yDomain = [lowesty, highesty];
-    
     return {
         pointsXs,
         pointsYs,
         totalX,
         totalY,
-        points: functionPointsXandY,
-        xDomain,
-        yDomain,
-        plainData: users,
         ready: true
     };
 }
