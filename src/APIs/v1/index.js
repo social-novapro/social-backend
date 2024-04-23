@@ -18,6 +18,7 @@ const posts = require('./posts');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
 const search = require('./search');
+const analytics = require('./analytics');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -37,6 +38,7 @@ router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
 router.use('/search', search);
+router.use('/analytics', analytics);
 
 // Legacy Routes
 // GET
@@ -78,6 +80,9 @@ router.get('/get/search/', async (req, res) => {
 router.get('/get/taguserSearch/', async (req, res) => {
     return res.status(400).send(searchErrorV2('I021', { userID: req.headers.userid }));
 });
+router.get('/get/analyticTrend/', async (req, res) => {
+    return res.status(400).send(searchErrorV2('I022', { userID: req.headers.userid ?? "unknown" }));
+})
 // POST
 router.post('/post/createPost/', async (req, res) => {
     return res.status(400).send(searchErrorV2('I010', { userID: req.headers.userid }))

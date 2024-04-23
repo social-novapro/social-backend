@@ -1,6 +1,6 @@
 const router = require('express').Router();
-const analyticTrend = require("./analyticTrend")
+const trend = require("./trend")
 
-router.use('/analyticTrend', analyticTrend);
+router.use('/trend', trend);
 
 module.exports = router;

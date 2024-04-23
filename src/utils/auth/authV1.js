@@ -17,7 +17,7 @@ async function authV1(req, res, next) {
 
     if ( 
         req.originalUrl.startsWith('/v1/serverStatus') ||
-        req.originalUrl.startsWith('/v1/get/analyticTrend') ||
+        req.originalUrl.startsWith('/v1/analytics/trend') ||
         req.originalUrl.startsWith('/v1/emails/requests') ||
         req.originalUrl.startsWith('/v1/users/public') || 
         req.originalUrl.startsWith('/v1/auth/password/requests') ||

@@ -7,7 +7,6 @@ const interactAnalyticUseIndexSchema = require('../../../schemas/analytics/inter
 
 // FIRST SAVE OF USER WILL GIVE USER MULTIPLE RECORDS
 
-
 // save connection when someone opens api route
 async function saveConnection({
     userID,
@@ -18,12 +17,14 @@ async function saveConnection({
     var user = await findAnalyticUser({ userID });
     if (!user) return searchErrorV2("V001", { userID })
     if (user.error) return user;
-    const index = await getCurrentIndex({ analyticUserID: user.analyticUserID });
-    // if (!user.indexID) {
-    //     const newIndex = await createNewIndex({ analyticUserID: user.analyticUserID });
-    //     if (newIndex.error) return newIndex;
-    //     user = await findAnalyticUser({ userID });
-    // }
+
+    const index = await getCurrentIndex({
+        analyticUserID: user.analyticUserID,
+        analyticUserData: user,
+        makeIndex: true
+    });
+
+    console.log(index)
 
     // save connection
     const connectionID = uuidv4();
@@ -58,9 +59,7 @@ async function findAnalyticUser({
 
     // find user by userID, and will work with unknown
     const userFound = await interactAnalyticUserSchema.findOne({ userID });
-    if (userFound) {
-        return userFound
-    };
+    if (userFound) return userFound;
 
     // user was not found
     // const userFoundAttempt = await interactAnalyticUserSchema.findOne({ _id: userID });
@@ -99,23 +98,29 @@ async function createNewIndex({
     const user = await findAnalyticUserByAnalyticID({ analyticUserID });
     if (user.error) return user;
 
+    // update previous index if one
+    if (user.indexID) {
+        await interactAnalyticUseIndexSchema.findOneAndUpdate({
+            _id: user.indexID
+        }, {
+            current: false,
+            nextIndexID: newIndexID
+        });
+    }
+    // look for new index made previously
+    const findIndex = await getCurrentIndex({ analyticUserID, makeIndex: false });
+    if (findIndex) return findIndex;
+
     // create new index record
+    const timestamp = checktime();
     await interactAnalyticUseIndexSchema.create({
         _id: newIndexID,
-        timestamp: checktime(),
+        timestamp,
         current: true,
         count: 0,
         analyticUserID,
         prevIndexID: user?.indexID ? user.indexID : null,
         nextIndexID: null
-    });
-
-    // update previous index
-    await interactAnalyticUseIndexSchema.findOneAndUpdate({
-        _id: user.indexID
-    }, {
-        current: false,
-        nextIndexID: newIndexID
     });
 
     // update user index
@@ -125,28 +130,35 @@ async function createNewIndex({
         indexID: newIndexID
     });
 
-    const userIndex = await getCurrentIndex({ analyticUserID });
-    return userIndex;
+    // const userIndex = await getCurrentIndex({ analyticUserID, makeIndex: false });
+    // return userIndex;
+    return {
+        _id: newIndexID,
+        timestamp,
+        current: true,
+        count: 0,
+        analyticUserID,
+        prevIndexID: user?.indexID ? user.indexID : null,
+        nextIndexID: null
+    };
 }
 
 // get current index for user
 async function getCurrentIndex({
-    analyticUserID
+    analyticUserID,
+    analyticUserData = undefined,
+    makeIndex = true
 }) {
+    
+    if (!analyticUserData) analyticUserData = await findAnalyticUserByAnalyticID({ analyticUserID });
     const userIndex = await interactAnalyticUseIndexSchema.findOne({ 
+        // UGH THIS ISNT GOOD, FIX IT
+        _id: analyticUserData.indexID,
         analyticUserID,
         current: true
     });
     
-    console.log(userIndex)
-    if (!userIndex) {
-        // const foundUser = await findAnalyticUserByAnalyticID({ analyticUserID });
-        return searchErrorV2("V002", { userID: foundUser._id });
-        // return foundUser;
-    }
-
-    console.log(userIndex.count)
-    if (userIndex.count > 100) {
+    if ((!userIndex || userIndex.count > 100) && makeIndex) {
         const newIndex = await createNewIndex({ analyticUserID });
         return newIndex;
     }

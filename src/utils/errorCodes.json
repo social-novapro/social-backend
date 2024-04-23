@@ -551,6 +551,10 @@
                     "msg" : "Please use /v1/search/userTag/ instead of /v1/get/taguserSearch/"
                 },
                 {
+                    "code" : "I022",
+                    "msg" : "Please use /v1/analytic/trend/og instead of /v1/get/analyticTrend"
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },
