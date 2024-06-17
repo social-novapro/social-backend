@@ -79,9 +79,12 @@ async function allNewPostNotifications({
 
     if (postData.hasTags) {
         // get mentioned users 
+        const mentionedUsers = [];
         const foundTags = await getPostTags({ postID: postData._id });
         for (const tag of foundTags) {
+            if (mentionedUsers.includes(tag.userIDTagged)) continue; // already mentioned
             if (tag.tagTextOriginal.startsWith("@")) {
+                mentionedUsers.push(tag.userIDTagged);
                 pushMentionNotification(apnProvider, {username: userData.username, postData, tagData: tag});
             }
         }

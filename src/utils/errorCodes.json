@@ -1215,6 +1215,14 @@
                     "msg" : "Could not find any matching tags."
                 },
                 {
+                    "code" : "U006",
+                    "msg" : "No lookup key was provided for tags."
+                },
+                {
+                    "code" : "U007",
+                    "msg" : "No results found for tags."
+                },
+                {
                     "code" : "X001",
                     "msg" : "No content provided while searching for tags."
                 },
