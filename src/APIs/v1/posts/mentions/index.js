@@ -1,11 +1,11 @@
 const router = require('express').Router();
-const { getUserMentions } = require('../../../../utils/post');
+const { getUserMentions } = require('../../../../utils/post/tags');
 
 router.get('/:userID', async (req, res) => {
-    const { postID } = req.params;
-    const quotesFound = await getUserMentions({ postID, userID: req.headers.userid });
-    if (quotesFound.error) return res.status(403).send(quotesFound);
-    return res.status(200).send(quotesFound);
+    const { userID } = req.params;
+    const mentionsFound = await getUserMentions({ userID });
+    if (mentionsFound.error) return res.status(403).send(mentionsFound);
+    return res.status(200).send(mentionsFound);
 })
 
 module.exports = router;

@@ -1223,6 +1223,10 @@
                     "msg" : "tagText nor indexID was given to look for index."
                 },
                 {
+                    "code" : "X003",
+                    "msg" : "Tagged user does not exist."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

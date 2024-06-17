@@ -17,6 +17,7 @@ const interactDeviceTokenPush = mongoose.Schema({
     likes: nonreqBool, // if device should receive likes
     quotes: nonreqBool, // if device should receive quotes
     coposts: nonreqBool, // if device should receive coposts
+    mentions: nonreqBool, // if device should receive mentinos
     allPosts: nonreqBool, // if device should receive all posts
     allMessages: nonreqBool, // if device should receive all messages
 });

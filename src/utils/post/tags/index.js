@@ -1,6 +1,7 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactPostTagIndexSchema = require("../../../schemas/posts/interactPostTagIndexSchema");
 const interactPostTagSchema = require("../../../schemas/posts/interactPostTagSchema");
+const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { checktime } = require("../../checktime");
 const { v4: uuidv4 } = require("uuid");
 const { searchErrorV2 } = require("../../searchError");
@@ -56,6 +57,16 @@ async function pushPostTag({
     wordIndex,
     postedTimestamp
 }) {
+    // make sure user tagged is valid user
+    var foundUser = null;
+    if (tagType === 0) {
+        foundUser = await interactUserSchema.findOne({ usernameLc: `${tagText.replace("@", "")}` });
+
+        if (!foundUser) {
+            return searchErrorV2("X003", { userID });
+        }
+    }
+
     const tagIndex = await findTagIndex({tagText, tagType});
     const tagID = uuidv4();
 
@@ -70,17 +81,13 @@ async function pushPostTag({
         wordIndex,
         timestamp: postedTimestamp ? postedTimestamp : checktime(),
         indexID: tagIndex._id,
+        userIDTagged: tagType == 0 ? foundUser._id : null,
         userID,
         postID,
     });
 
     return interactPostTag;
 }
-
-// async function getPostTags({ postID }) {
-//     const postTags = await interactPostTagSchema.find({postID});
-//     return postTags;
-// }
 
 async function getTagTextIndex({ indexID }) {
     const tagIndex = await interactPostTagIndexSchema.findOne({_id: indexID});
@@ -149,6 +156,7 @@ async function checkForTags({userID, postID, content, postedTimestamp}) {
 
     // { type: 1/2, text, id }
     const foundTags = [];
+    const usedTags = [];
     const contentArgs = content.split(/[ ]+/)
     // const tagRegex = /^(@|#)[(a-z)0-9]+$/g;
     const tagRegex = /^[@|#][a-z0-9]*$/g;
@@ -163,6 +171,7 @@ async function checkForTags({userID, postID, content, postedTimestamp}) {
             tagRegex.lastIndex = 0; // reset the regex
 
             if (!validRegex) continue;
+            // if (usedTags.includes(currentWordLc)) continue; // removes retags
 
             // add to the tag index
             const tagReturn = await pushPostTag({ 
@@ -174,8 +183,11 @@ async function checkForTags({userID, postID, content, postedTimestamp}) {
                 wordIndex: index,
                 postedTimestamp
             })
+            
+            if (tagReturn == null || tagReturn.error) continue;
 
             foundTags.push(tagReturn);
+            usedTags.push(currentWordLc);
         }
     }
 
@@ -186,8 +198,22 @@ async function checkForTags({userID, postID, content, postedTimestamp}) {
             hasTags: true
         })
     };
-    
+
     return foundTags;
+}
+
+async function getHashtags({ userID, content }) {
+    const tagText = content.startsWith("#") ? content.toLowerCase() : `#${content.toLowerCase()}`
+    const postTags = await getTagTextPosts({userID, tagText });
+    return postTags;
+}
+
+async function getUserMentions({ userID }) {
+    const foundUser = await interactUserSchema.findOne({_id: userID});
+    if (!foundUser) return searchErrorV2("X003", {userID});
+
+    const postTags = await getTagTextPosts({userID, tagText: `@${foundUser.usernameLc}`});
+    return postTags;
 }
 
 module.exports = {
@@ -197,5 +223,7 @@ module.exports = {
     getTagTextIndex,
     checkForTags,
     editTags,
-    removeTags
+    removeTags,
+    getUserMentions,
+    getHashtags
 };

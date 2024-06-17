@@ -1,3 +1,4 @@
+const { getPostTags } = require("../../post/tags/getPostTags")
 const { setupAPNProvider, shutdownAPNProvider, sendPushAppleNotification } = require("../apnProvider")
 const { pushGlobalPostNotification } = require("../globalPostNotification")
 const { pushSubscriptionPostNotification } = require("../subscriptionPostNotification")
@@ -75,6 +76,16 @@ async function allNewPostNotifications({
     if (postData.isReply && postData.replyData && postData.replyData.userID) {
         pushReplyNotification(apnProvider, {username: userData.username, postData});
     };
+
+    if (postData.hasTags) {
+        // get mentioned users 
+        const foundTags = await getPostTags({ postID: postData._id });
+        for (const tag of foundTags) {
+            if (tag.tagTextOriginal.startsWith("@")) {
+                pushMentionNotification(apnProvider, {username: userData.username, postData, tagData: tag});
+            }
+        }
+    }
   
     await shutdownAPNProvider(apnProvider)
 }
@@ -98,6 +109,17 @@ async function pushReplyNotification(apnProvider, {username, postData}) {
         userID: postData.replyData.userID, 
         type: "replies",
         notification: { title: "Interact Reply", subtitle, body: postData.content }
+    })
+}
+
+/* notifications from a new post, for mentioned user */
+async function pushMentionNotification(apnProvider, {username, postData, tagData}) {
+    const subtitle = `@${username} mentioned you in a post!`
+    
+    await sendPushAppleNotification(apnProvider, { 
+        userID: tagData.userIDTagged, 
+        type: "mentions",
+        notification: { title: "Interact Mention", subtitle, body: postData.content }
     })
 }
 

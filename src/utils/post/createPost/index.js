@@ -51,7 +51,7 @@ async function createNewPost({
     const postData = await interactPostSchema.findOne({_id: postID});
     if (!postData) return searchErrorV2("D002", { userID });
 
-    checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
+    await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
     pushNewPost(userID, postID)
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
 
@@ -81,8 +81,7 @@ async function newPostIndex(userID, data) {
     const postID = await newPostID();
     const currentTime = checktime();
     // const newIndex = await newReplyIndex(postID);
-    // const mentionData = await checkForMentions(content);
-    // console.log(mentionData);
+
     const spotifyIncludedContent = await getSpotifyEmbeds(content);
     //const userFound = await interactUserSchema.findOne({ _id: userID });
     //if (!userFound) return searchError("E004");

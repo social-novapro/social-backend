@@ -65,12 +65,6 @@ const interactPostSchema = mongoose.Schema({
 
     hasTags: nonreqBool,
 
-    // hasMentions: reqBool,
-    // mentionData: [mentionDataSchema], // max 10 ideally
-
-    // hasTags: reqBool,
-    // tagsData: [reqString],
-
     // legacy data
     authorID: nonreqString, // legacy
     timePosted: nonreqString, // legacy

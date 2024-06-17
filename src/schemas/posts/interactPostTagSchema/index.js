@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString } = require('../../types');
+const { reqNum, reqString, nonreqString } = require('../../types');
 
 const interactPostTagSchema = mongoose.Schema({
     _id: reqString, // UUID
@@ -8,6 +8,7 @@ const interactPostTagSchema = mongoose.Schema({
     timestamp: reqNum, // time posted
     indexID: reqString, // tagIndexID
     userID: reqString, // userID of poster
+    userIDTagged: nonreqString, // userID of tagged user
     postID: reqString, // postID of post with tag
 });
 
