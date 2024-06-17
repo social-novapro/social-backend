@@ -15,6 +15,7 @@ const { validPrivacyOption } = require('../../privacy');
 const { searchErrorV2 } = require('../../searchError');
 const { coposterRequestNotification } = require('../../pushNotifications/postActionNotifications');
 const { embedPost } = require('../../search/embed');
+const { pushPostTag } = require('../tags');
 
 async function createNewPost({
     content,
@@ -49,7 +50,7 @@ async function createNewPost({
     //const check
     const postData = await interactPostSchema.findOne({_id: postID});
     if (!postData) return searchErrorV2("D002", { userID });
-
+    checkForTags({userID, postID, content});
     pushNewPost(userID, postID)
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
     return postData
@@ -168,6 +169,45 @@ async function newPostIndex(userID, data) {
 
     return postID;
 };
+
+async function checkForTags({userID, postID, content}) {
+    if (!content) return searchErrorV2("X001", {userID});
+
+    // { type: 1/2, text, id }
+    const foundTags = [];
+    const contentArgs = content.split(/[ ]+/)
+    // const tagRegex = /^(@|#)[(a-z)0-9]+$/g;
+    const tagRegex = /^[@|#][a-z0-9]*$/g;
+
+    // const found
+    for (var index = 0; index < contentArgs.length; index++) {
+        console.log(contentArgs[index])
+        // is usetag or hashtag
+        if (contentArgs[index].startsWith("@") || contentArgs[index].startsWith("#")) {
+            const currentWord = contentArgs[index];
+            const currentWordLc = currentWord.toLowerCase();
+            const validRegex = tagRegex.test(currentWordLc);
+            tagRegex.lastIndex = 0; // reset the regex
+
+            if (!validRegex) continue;
+
+            // add to the tag index
+            const tagReturn = await pushPostTag({ 
+                userID: userID,
+                postID: postID,
+
+                tagText: currentWordLc,
+                tagTextOriginal: currentWord,
+                wordIndex: index
+            })
+
+            foundTags.push(tagReturn);
+        }
+    }
+    
+    return foundTags;
+}
+
 
 async function checkForMentions(content) {
     const foundTags = [];
