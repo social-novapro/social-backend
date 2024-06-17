@@ -5,6 +5,7 @@ const { checktime } = require("../../checktime");
 const { v4: uuidv4 } = require("uuid");
 const { searchErrorV2 } = require("../../searchError");
 const { getPostWithData } = require("../getPost");
+const { getPostTags } = require("./getPostTags");
 
 async function findTagIndex({tagText, tagType}) {
     const tagIndex = await interactPostTagIndexSchema.findOne({tagText, tagType, current: true});
@@ -52,7 +53,8 @@ async function pushPostTag({
     tagText, 
     tagTextOriginal, 
     tagType,
-    wordIndex 
+    wordIndex,
+    postedTimestamp
 }) {
     const tagIndex = await findTagIndex({tagText, tagType});
     const tagID = uuidv4();
@@ -66,6 +68,7 @@ async function pushPostTag({
         _id: tagID,
         tagTextOriginal,
         wordIndex,
+        timestamp: postedTimestamp ? postedTimestamp : checktime(),
         indexID: tagIndex._id,
         userID,
         postID,
@@ -74,10 +77,10 @@ async function pushPostTag({
     return interactPostTag;
 }
 
-async function getPostTags({ postID }) {
-    const postTags = await interactPostTagSchema.find({postID});
-    return postTags;
-}
+// async function getPostTags({ postID }) {
+//     const postTags = await interactPostTagSchema.find({postID});
+//     return postTags;
+// }
 
 async function getTagTextIndex({ indexID }) {
     const tagIndex = await interactPostTagIndexSchema.findOne({_id: indexID});
@@ -90,37 +93,109 @@ async function getCurrentTagTextIndex({ tagText }) {
 }
 
 async function getTagTextPosts({ userID, tagText, indexID }) {
-    console.log("Searching " + tagText + " " + indexID)
     var tagIndex;
 
     if (indexID) {
         tagIndex = await getTagTextIndex({ indexID });
     } else if (tagText) {
         tagIndex = await getCurrentTagTextIndex({ tagText });
-        console.log(tagIndex)
     } else {
         return searchErrorV2("X002", { userID });
     }
-    // const tagIndex = await getCurrentTagTextIndex({ tagText });
+
     const posts = [];
     
     if (!tagIndex) return posts;
     if (!tagIndex.postIDs) return posts;
 
-    console.log(tagIndex.postIDs)
     for (const postID of tagIndex.postIDs) {
         const post = await getPostWithData({ userID, postID });
-        console.log(post)
         posts.push(post);
     }
     
     return posts;
 }
 
+async function editTags({ userID, postID, newContent, postedTimestamp }) {
+    // remove tags
+    await removeTags({ userID, postID });
+
+    // check for tags
+    const tags = await checkForTags({ userID, postID, content: newContent, postedTimestamp });
+    return tags;
+}
+
+async function removeTags({ userID, postID }) {
+    const postTags = await getPostTags({ postID });
+
+    for (const tag of postTags) {
+        await interactPostTagSchema.findOneAndDelete({_id: tag._id});
+        await interactPostTagIndexSchema.findOneAndUpdate({
+            _id: tag.indexID
+        }, {
+            $pull: {
+                tagIDs: tag._id,
+                postIDs: postID
+            },
+            $inc: {
+                count: -1
+            }
+        });
+    }
+}
+
+async function checkForTags({userID, postID, content, postedTimestamp}) {
+    if (!content) return searchErrorV2("X001", {userID});
+
+    // { type: 1/2, text, id }
+    const foundTags = [];
+    const contentArgs = content.split(/[ ]+/)
+    // const tagRegex = /^(@|#)[(a-z)0-9]+$/g;
+    const tagRegex = /^[@|#][a-z0-9]*$/g;
+
+    // const found
+    for (var index = 0; index < contentArgs.length; index++) {
+        // is usetag or hashtag
+        if (contentArgs[index].startsWith("@") || contentArgs[index].startsWith("#")) {
+            const currentWord = contentArgs[index];
+            const currentWordLc = currentWord.toLowerCase();
+            const validRegex = tagRegex.test(currentWordLc);
+            tagRegex.lastIndex = 0; // reset the regex
+
+            if (!validRegex) continue;
+
+            // add to the tag index
+            const tagReturn = await pushPostTag({ 
+                userID: userID,
+                postID: postID,
+                tagType: currentWord.startsWith("@") ? 0 : 1,
+                tagText: currentWordLc,
+                tagTextOriginal: currentWord,
+                wordIndex: index,
+                postedTimestamp
+            })
+
+            foundTags.push(tagReturn);
+        }
+    }
+
+    if (foundTags.length > 0) {
+        await interactPostSchema.findOneAndUpdate({
+            _id: postID,
+        }, {
+            hasTags: true
+        })
+    };
+    
+    return foundTags;
+}
+
 module.exports = {
     findTagIndex, 
     pushPostTag,
-    getPostTags,
     getTagTextPosts,
-    getTagTextIndex
+    getTagTextIndex,
+    checkForTags,
+    editTags,
+    removeTags
 };

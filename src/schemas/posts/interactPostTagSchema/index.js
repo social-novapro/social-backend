@@ -5,7 +5,7 @@ const interactPostTagSchema = mongoose.Schema({
     _id: reqString, // UUID
     tagTextOriginal: reqString, // tag text (with actual case)
     wordIndex: reqNum, // index of word in post
-    // timestamp: reqNum, // time posted
+    timestamp: reqNum, // time posted
     indexID: reqString, // tagIndexID
     userID: reqString, // userID of poster
     postID: reqString, // postID of post with tag
