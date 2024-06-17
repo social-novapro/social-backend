@@ -6,6 +6,8 @@ const interactQuotesSchema = require("../../../schemas/postSchemas/interactQuote
 const interactDeletedSchema = require("../../../schemas/deleted/interactDeletedSchema");
 const { deletePostNotifications } = require("../../notifications/deleteRemovedPost");
 const { pullPostBookmarks } = require("../../bookmarks");
+const { removePostFromIndex } = require("../postIndexManagement");
+const { deleteEmbedPost } = require("../../search/embed");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -16,6 +18,8 @@ async function removePost(postData) {
     await deleteLikes({ postID: postData._id });
     await interactPostSchema.findOneAndDelete({_id: postData._id});
 
+    await removePostFromIndex({ userID: postData.userID, postID: postData._id });
+    
     await interactPostSchema.findOneAndUpdate({
         _id: postData.postID
     }, {
@@ -35,6 +39,9 @@ async function removePost(postData) {
 
     // pulls previously saved bookmarks
     await pullPostBookmarks({ postID: postData._id, userID: postData.userID });
+
+    // pulls embedding
+    deleteEmbedPost({ postID: postData._id });
     
     return true;
 };

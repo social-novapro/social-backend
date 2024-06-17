@@ -6,6 +6,7 @@ const { SCHEMA_VERSIONS } = require('../../../../config.json');
 const { checktime } = require('../../checktime');
 const { createAccessToken } = require('../createAccessToken');
 const { setPassword } = require('../../userAuth');
+const { awardUserBadge } = require('../badges');
 
 async function newUUID(usage, userID) {
     const newID = uuidv4();
@@ -75,6 +76,8 @@ async function newUserIndex(newUserDataForEntry) {
     }, {
         upsert: true
     });
+
+    await awardUserBadge({ userID, badgeID: "interact_user" });
 
     return userID;
 };

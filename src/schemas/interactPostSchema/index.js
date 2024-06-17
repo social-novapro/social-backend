@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString, reqBool, nonreqBool } = require('../types');
+const { reqNum, reqString, reqBool, nonreqBool, nonreqString, nonreqNum } = require('../types');
 
 // type 06
 const privacySettingSchema = mongoose.Schema({
@@ -27,34 +27,41 @@ const mentionDataSchema = mongoose.Schema({
     userID: reqString,
     username: reqString, // text to find to replace
     //index: reqNum
+    index: reqNum
 });
 
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
     userID: reqString,
-    timePosted: reqString,
+    indexID: nonreqString,
+    coposters: [nonreqString], // only populate when approved
+    timestamp: reqNum,
     content: reqString,
     totalLikes: reqNum,
     totalReplies: reqNum,
     totalQuotes: reqNum,
 
-    privacySetting: privacySettingSchema,
+    privacyOverride: nonreqNum,
+    /*
+    0 = none
+    */
+
     edited: reqBool,
-    editedTimestamp: reqString,
-    editedAmount: reqNum,
+    editedTimestamp: nonreqString,
+    editedAmount: nonreqNum,
     
     isQuote: reqBool,
     quoteData: postQuoteSchema,
-    quoteIndexID: reqString,
+    quoteIndexID: nonreqString,
 
-    isReply: reqBool,
+    isReply: nonreqBool,
     replyData: postReplySchema,
-    replyIndexID: reqString, 
+    replyIndexID: nonreqString, 
     
-    deleted: reqBool,
+    deleted: nonreqBool,
 
     hasPoll: reqBool,
-    pollID: reqString,
+    pollID: nonreqString,
 
     hasMentions: reqBool,
     mentionData: [mentionDataSchema], // max 10 ideally
@@ -62,8 +69,13 @@ const interactPostSchema = mongoose.Schema({
     hasTags: reqBool,
     tagsData: [reqString],
 
-    quoteReplyPostID: reqString, // legacy
-    replyingPostID: reqString, // legacy
+    // legacy data
+    authorID: nonreqString, // legacy
+    timePosted: nonreqString, // legacy
+    quoteReplyPostID: nonreqString, // legacy
+    replyingPostID: nonreqString, // legacy
+    quotedPost: nonreqBool, // legacy
+    quotedUser: nonreqBool, // legacy
     liked: nonreqBool, // this stays null, but is used to check if the user liked the post
     pinned: nonreqBool // this stays null, but is used to check if the user pinned the post
 });

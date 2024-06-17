@@ -1,0 +1,103 @@
+[
+    {
+        "badgeID": "verified",
+        "name": "Verified",
+        "description": "Interact Verified Account.",
+        "technical_description": "Awarded to users who are verified, this also shows up on the main page",
+        "date_achieved": "date verified",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "year_1_beta_user",
+        "name": "1st Year Beta User",
+        "description": "User joined interact in first year of development.",
+        "technical_description" : "Awarded to users who joined Interact before July 23rd, 2022.",
+        "epoch" : 1658548800000,
+        "date_achieved": "Date joined interact",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "beta_user",
+        "name": "Beta User",
+        "description": "User joined interact during beta.",
+        "technical_description": "Awarded to users who joined Interact before September 1st 2023.",
+        "epoch" : 1693591200000,
+        "date_achieved": "Date joined beta",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID" : "first_100_user",
+        "name": "First 100 Users",
+        "description": "User was in the first 100 users of Interact.",
+        "technical_description": "Awarded to the first 100 users of Interact.",
+        "date_achieved": "Date joined",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "interact_user",
+        "name": "Interact User",
+        "description" : "User joined Interact.",
+        "technical_description": "Awarded to users who joined Interact.",
+        "date_achieved": "Date joined Interact",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "ios_beta_user",
+        "name": "iOS Beta User",
+        "description": "Users connected to Interact iOS beta.",
+        "technical_description": "Awarded to users who connected their Interact account to iOS beta.",
+        "date_achieved": "Date joined iOS beta",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "developer_account",
+        "name": "Developer",
+        "description": "User has created a developer account.",
+        "technical_description": "Awarded to users who invoked a developer token.",
+        "date_achieved": "Date dev account created",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "apps_created",
+        "name": "Apps Created",
+        "description": "Deveoper created an app token for Interact.",
+        "technical_description": "Awarded when Interact developers makes new app tokens, shows +1 for each app token created.",
+        "date_achieved": "Date first app developed",
+        "multiple_count": true,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "email_verified",
+        "name": "Email Verified",
+        "description": "User verified their email.",
+        "technical_description": "Awarded to users when they verify their email",
+        "date_achieved": "Date email verified",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "admin_account",
+        "name": "Admin",
+        "description": "User is an Interact admin.",
+        "technical_description": "Awarded to users who are Interact admins.",
+        "date_achieved": "Date account elevated to admin",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    },
+    {
+        "badgeID": "mobile_notifications",
+        "name": "Mobile Notificaitons",
+        "description": "User has enabled notifications.",
+        "technical_description": "Awarded to users who activated notifications on the mobile app.",
+        "date_achieved": "Date enabled notifications",
+        "multiple_count": false,
+        "version_introduced": "1.4"
+    }
+]

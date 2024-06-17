@@ -2,6 +2,7 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPostLikeSchema");
 const { checktime } = require("../../checktime");
+const { pushLikeNotifications } = require("../../pushNotifications/postActionNotifications");
 const { searchErrorV2 } = require("../../searchError");
 
 async function postIsLiked({ postID, userID }) {
@@ -31,6 +32,24 @@ async function unlikePost({postID, userID}) {
     if (!postFound.totalLikes) newTotalLikes = 1
     else newTotalLikes = postFound.totalLikes - 1;
 
+    // update like counts
+    const foundUser = await interactUserSchema.findOne({ _id: userID});
+    const foundUserLikedCount = foundUser.likedCount ? foundUser.likedCount - 1 : 0;
+    await interactUserSchema.findOneAndUpdate({ _id: userID }, { likedCount: foundUserLikedCount }, { upsert: true });
+
+    const userFoundOgPost = await interactUserSchema.findOne({ _id: postFound.userID });
+    const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount - 1 : 0;
+    await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
+
+    if (postFound.coposters && postFound.coposters.length > 0) {
+        for (const coposter of postFound.coposters) {
+            // like on profile
+            const coposterFound = await interactUserSchema.findOne({ _id: coposter });
+            const foundUserLikeCount = coposterFound.likeCount ? coposterFound.likeCount - 1 : 0;
+            await interactUserSchema.findOneAndUpdate({ _id: coposter }, { likeCount: foundUserLikeCount }, { upsert: true });
+        }
+    }
+
     await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
     return postFoundNew;
@@ -42,6 +61,7 @@ async function likePost({ postID, userID }) {
 
     const foundLiked = await postIsLiked({ postID, userID });
     if (foundLiked) return searchErrorV2("D010", { userID: userID });
+    const foundUser = await interactUserSchema.findOne({ _id: userID});
 
     await interactPostLikeSchema.findOneAndUpdate(
         { _id: postID }, 
@@ -56,6 +76,26 @@ async function likePost({ postID, userID }) {
     await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
     
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
+   
+    // update like counts
+    const foundUserLikedCount = foundUser.likedCount ? foundUser.likedCount + 1 : 1;
+    await interactUserSchema.findOneAndUpdate({ _id: userID }, { likedCount: foundUserLikedCount }, { upsert: true });
+
+    const userFoundOgPost = await interactUserSchema.findOne({ _id: postFound.userID });
+    const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount + 1 : 1;
+    await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
+
+    pushLikeNotifications({username: foundUser.username, postData: postFoundNew});
+
+    if (postFound.coposters && postFound.coposters.length > 0) {
+        for (const coposter of postFound.coposters) {
+            // like on profile
+            const coposterFound = await interactUserSchema.findOne({ _id: coposter });
+            const foundUserLikeCount = coposterFound.likeCount ? coposterFound.likeCount + 1 : 1;
+            await interactUserSchema.findOneAndUpdate({ _id: coposter }, { likeCount: foundUserLikeCount }, { upsert: true });
+        }
+    }
+
     return postFoundNew;
 }
 
@@ -67,7 +107,7 @@ async function getLikes({ postID }) {
         peopleLiked: []
     };
 
-    if (!foundPost) return res.status(404).send(searchErrorV2("D005", { userID: req.headers.userid }));
+    if (!foundPost) return searchErrorV2("D005", { userID: "unknown" });
 
     for (const people of foundPost.peopleLiked) {
         const user = await interactUserSchema.findOne({_id: people._id});
