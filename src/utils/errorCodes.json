@@ -1215,6 +1215,14 @@
                     "msg" : "Could not find any matching tags."
                 },
                 {
+                    "code" : "X001",
+                    "msg" : "No content provided while searching for tags."
+                },
+                {
+                    "code" : "X002",
+                    "msg" : "tagText nor indexID was given to look for index."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

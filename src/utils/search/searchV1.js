@@ -4,6 +4,7 @@ const { getPostWithData } = require("../post/getPost");
 const { getPrivacySetting } = require("../privacy");
 const { searchErrorV2 } = require("../searchError");
 const { getUserRelation } = require("../user/relations");
+const { searchPostTags } = require("./searchPostTags");
 
 async function searchV1({ lookUpKey, userID }) {
     if (!lookUpKey) return searchErrorV2("U001", { userID: "unknown" });
@@ -14,6 +15,8 @@ async function searchV1({ lookUpKey, userID }) {
     const ownUser = await interactUserSchema.findOne({_id: userID});
 
     const lookUpKeyLower = lookUpKey.toLowerCase();
+    const lookupkeysArr = lookUpKeyLower.split(/[ ]+/) 
+
     var usersFound = [];
 
     for (user of UserData) {
@@ -47,7 +50,6 @@ async function searchV1({ lookUpKey, userID }) {
     };
 
     var postsFound = [];
-    
     for (post of PostData) {
         var username;
         var displayname;
@@ -61,11 +63,18 @@ async function searchV1({ lookUpKey, userID }) {
         };
     };
 
+    var tagsFound = await searchPostTags(userID, lookupkeysArr);
+    
     var found = {
         usersFound,
-        postsFound
+        postsFound, 
+        tagsFound
     };
 
+    console.log(found)
+    console.log(found.postsFound[0])
+
+    console.log('done search')
     return found;
 }
 

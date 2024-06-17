@@ -181,7 +181,6 @@ async function checkForTags({userID, postID, content}) {
 
     // const found
     for (var index = 0; index < contentArgs.length; index++) {
-        console.log(contentArgs[index])
         // is usetag or hashtag
         if (contentArgs[index].startsWith("@") || contentArgs[index].startsWith("#")) {
             const currentWord = contentArgs[index];
@@ -195,7 +194,7 @@ async function checkForTags({userID, postID, content}) {
             const tagReturn = await pushPostTag({ 
                 userID: userID,
                 postID: postID,
-
+                tagType: currentWord.startsWith("@") ? 0 : 1,
                 tagText: currentWordLc,
                 tagTextOriginal: currentWord,
                 wordIndex: index
@@ -205,40 +204,6 @@ async function checkForTags({userID, postID, content}) {
         }
     }
     
-    return foundTags;
-}
-
-
-async function checkForMentions(content) {
-    const foundTags = [];
-    var foundUsers = {};
-    // lookFor("@", content)
-
-    const tagRegex = /@\\?(?:[a-zA-Z]+)/g;
-    console.log(content.matchAll(tagRegex))
-
-    for (const word of content.matchAll(tagRegex)) {
-        // if (foundUsers[word.input]) break;
-        // else foundUsers[`${word.input}`] = true;
-        console.log(word)
-        const mentionUser = word.input.replace("@", "")
-        const wasTag = await interactUserSchema.findOne({ username: mentionUser })
-        console.log(word.input.replace("@", ""))
-        console.log(mentionUser)
-        if (wasTag) {
-            mentionData = {
-                "userID" : wasTag._id,
-                "username" : wasTag.username,
-                "index": word.input.index,
-                "end" : word.index+word.input.length
-            }
-            console.log(mentionData)
-            foundTags.push(mentionData);
-        };
-        
-        console.log(`"${word[0]}" starts at index ${word.index}.`);
-    }
-
     return foundTags;
 }
 
@@ -494,6 +459,8 @@ async function getSpotifyEmbeds(text) {
     const spotifyRegex = /(?:https?:\/\/(?:open\.spotify\.com|spotify\.link)\/(?:embed\/)?[a-zA-Z0-9]+\/?[a-zA-Z0-9_-]*)/g;
     const spotifyLinks = text.matchAll(spotifyRegex);
 
+    if (!spotifyLinks) return text;
+    
     var newText = text;
     const spotifyEmbeds = [];
     var currentNumber = 0;

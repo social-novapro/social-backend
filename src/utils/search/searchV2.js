@@ -8,6 +8,7 @@ const { getPostWithData } = require('../post/getPost');
 const { getPrivacySetting } = require('../privacy');
 const { getUserRelation } = require('../user/relations');
 const { embedSearch } = require('./embed');
+const { searchPostTags } = require('./searchPostTags');
 
 async function searchV2({ lookUpKey, userID }) {
     const start = checktime();
@@ -71,9 +72,12 @@ async function searchV2({ lookUpKey, userID }) {
         };
     };
 
+    var tagsFound = await searchPostTags(userID, lookupkeysArr);
+
     var found = {
         usersFound,
-        postsFound: PostData
+        postsFound: PostData,
+        tagsFound,
     };
 
     const end = checktime();
