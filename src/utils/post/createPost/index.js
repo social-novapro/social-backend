@@ -129,7 +129,7 @@ async function newPostIndex(userID, data) {
     }
     if (coposters) {
         const userFound = await interactUserSchema.findOne({ _id: userID });
-        if (!userFound) return searchError("E004");
+        if (!userFound) return searchErrorV2("E004", {userID});
         var addedCoposters = [];
         for (const coposter of coposters) {
             if (addedCoposters.includes(coposter)) {

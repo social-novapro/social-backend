@@ -31,18 +31,20 @@ async function searchHashTags({userID, text}) {
     const allTags = await interactPostTagIndexSchema.find({current: true, tagType: 1});
 
     const tags = [];
+    const addedTags = [];
     for (const tag of allTags) {
         if (tag.tagText.toLowerCase().startsWith(lowerCaseHashtag)) {
             const newText = tag.tagText.replace(lowerCaseHashtag, text);
+            if (addedTags.includes(newText)) continue;
 
             const possibility = lowerCaseHashtag.length / tag.tagText.length
             const pushTag = {
                 possibility: possibility.toFixed(3),
-
-                newText
+                tag: newText
             }
 
             tags.push(pushTag)
+            addedTags.push(newText)
         }
     }
     if (!tags) return searchErrorV2("U007", { userID })

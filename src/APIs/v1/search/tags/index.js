@@ -1,9 +1,9 @@
 const router = require('express').Router();
-const { searchHashTags } = require('../../../../utils/search/searchPostTags');
+const { searchTagText } = require('../../../../utils/search/searchTags');
 
 router.get('/:text', async (req, res) => {
     console.log("Searching for " + req.params.text);
-    const found = await searchHashTags({
+    const found = await searchTagText({
         text: req.params.text ?? null, 
         userID: req.headers.userid ?? null
     });
