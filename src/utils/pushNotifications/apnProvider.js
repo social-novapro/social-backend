@@ -52,6 +52,8 @@ async function sendPushAppleNotification(apnProvider, {userID, type, notificatio
     if (!foundUser || foundUser.length === 0) {
         console.log("no user found")
         return searchErrorV2("L013", {userID: userID});
+    } else {
+        console.log("user found, will send")
     }
 
     for (let i = 0; i < foundUser.length; i++) {

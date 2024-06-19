@@ -163,7 +163,6 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
     };
 }
 
-
 async function saveEmail(email, status) {
     const emailData = await interactEmailSchema.create({ 
         _id: email.emailID,
