@@ -1,41 +1,33 @@
 {
-    "current" : "prod",
-    "demoEmailAdr" : "daniel@novapro.net",
-    "dev" : {
-        "mongo_url" : "deprecated"
+    "current": "prod",
+    "demoEmailAdr": "daniel@novapro.net",
+    "dev": {
+        "mongo_url": "deprecated"
     },
-    "prod" : {
-        "mongo_url" : "deprecated" 
+    "prod": {
+        "mongo_url": "deprecated"
     },
-    "PORT" : 5002,
-    "LATEST_API" : "v1",
+    "PORT": 5002,
+    "LATEST_API": "v1",
     "SCHEMA_VERSIONS": {
-        "posts" : {
-
+        "posts": {},
+        "users": {},
+        "userPrivs": {},
+        "notifications": {},
+        "polls": {
+            "interactPollSchema": 1,
+            "interactPollVoteSchema": 1,
+            "interactPollVoteIndexSchema": 1
         },
-        "users" : {
-
-        },
-        "userPrivs" : {
-
-        },
-        "notifications" : {
-                
-        },
-        "polls" : {
-            "interactPollSchema" : 1.00,
-            "interactPollVoteSchema" : 1.00,
-            "interactPollVoteIndexSchema" : 1.00
-        },
-        "interactPostSchema" : "1.000",
-        "interactUserSchema" : "1.000",
-        "interactUserPrivSchema" : "1.000",
-        "interactHomeSchema" : "1.000",
-        "interactMainSchema" : "1.000",
-        "developerToken" : "1.000",
-        "developerAppToken" : "1.000",
-        "liveChatSchema" : "1.000",
-        "interactUserAccessSchema" : "1.000",
-        "interactRepliesSchema" : "1.000"
+        "interactPostSchema": "1.000",
+        "interactUserSchema": "1.000",
+        "interactUserPrivSchema": "1.000",
+        "interactHomeSchema": "1.000",
+        "interactMainSchema": "1.000",
+        "developerToken": "1.000",
+        "developerAppToken": "1.000",
+        "liveChatSchema": "1.000",
+        "interactUserAccessSchema": "1.000",
+        "interactRepliesSchema": "1.000"
     }
 }

@@ -4,9 +4,18 @@ const interactEmbedSentenceSchema = require('../../../schemas/embeddings/interac
 const interactEmbedSentencePostSchema = require('../../../schemas/embeddings/interactEmbedSentencePost');
 const interactEmbedPostFailSchema = require('../../../schemas/embeddings/interactEmbedPostFail');
 const { checktime } = require('../../checktime');
+const { current } = require('../../../../config.json')
+const productionMode = current == "prod" ? true : false;
+const {
+    EMBED_API_DEV_ROUTE,
+    EMBED_API_PROD_ROUTE,
+} = process.env;
+
+const EMBED_API_ROUTE = productionMode == true ? EMBED_API_PROD_ROUTE : EMBED_API_DEV_ROUTE;
+console.log(`---\nEmbedding API: ${EMBED_API_ROUTE}`)
 
 async function embedContent({ content }) {
-    const result = await fetch(`http://iron.xnet.com:5000/embed`, {
+    const result = await fetch(EMBED_API_ROUTE, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -169,11 +169,12 @@ async function checkForTags({userID, postID, content, postedTimestamp}) {
         // is usetag or hashtag
         if (contentArgs[index].startsWith("@") || contentArgs[index].startsWith("#")) {
             const currentWord = contentArgs[index];
+            if (currentWord=="@" || currentWord=="#") continue; // only has 1 letter
             const currentWordLc = currentWord.toLowerCase();
             const validRegex = tagRegex.test(currentWordLc);
             tagRegex.lastIndex = 0; // reset the regex
 
-            if (!validRegex) continue;
+            if (!validRegex) continue; // isnt valid tag
             // if (usedTags.includes(currentWordLc)) continue; // removes retags
 
             // add to the tag index
