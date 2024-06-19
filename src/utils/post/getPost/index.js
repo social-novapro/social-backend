@@ -7,6 +7,7 @@ const { checkIfPinned } = require("../../user/edit/checkIfPinned");
 const { getUserRelation, canView } = require("../../user/relations");
 const { getBookmarkSave } = require("../bookmarks");
 const { postIsLiked } = require("../likeUtil");
+const { getPostTags } = require("../tags/getPostTags");
 
 async function getPostWithData({ userID, postID, post, ownUser }) {
     if (!postID && !post) return searchErrorV2("Q003", { userID })
@@ -24,6 +25,7 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         replyUser: null
     };
     var coposterData = null;
+    var tagData = null;
     var extraData = {
         liked: false,
         pinned: false,
@@ -138,6 +140,16 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        // has tags
+        if (postData.hasTags) {
+            const foundTags = await getPostTags({ postID: postData._id });
+
+            if (foundTags && foundTags.length > 0) {
+                tagData = foundTags;
+                type["tag"] = "included";
+            }
+        }
+
         var dataSend = { 
             type, 
             postData,
@@ -147,6 +159,7 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             quoteData,
             replyData,
             coposterData,
+            tagData,
             extraData
         };
 

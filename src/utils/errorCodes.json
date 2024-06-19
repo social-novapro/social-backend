@@ -1215,6 +1215,26 @@
                     "msg" : "Could not find any matching tags."
                 },
                 {
+                    "code" : "U006",
+                    "msg" : "No lookup key was provided for tags."
+                },
+                {
+                    "code" : "U007",
+                    "msg" : "No results found for tags."
+                },
+                {
+                    "code" : "X001",
+                    "msg" : "No content provided while searching for tags."
+                },
+                {
+                    "code" : "X002",
+                    "msg" : "tagText nor indexID was given to look for index."
+                },
+                {
+                    "code" : "X003",
+                    "msg" : "Tagged user does not exist."
+                },
+                {
                     "code" : "Z001",
                     "msg" : "An unknown error has occurred for the provided user."
                 },

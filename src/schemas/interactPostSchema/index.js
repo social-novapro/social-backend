@@ -23,10 +23,11 @@ const postQuoteSchema = mongoose.Schema({
 });
 
 const mentionDataSchema = mongoose.Schema({
-    // _id: reqString,
-    userID: nonreqString,
-    username: nonreqString,
-    index: nonreqNum
+    _id: reqString, // index of word
+    userID: reqString,
+    username: reqString, // text to find to replace
+    //index: reqNum
+    index: reqNum
 });
 
 const interactPostSchema = mongoose.Schema({
@@ -62,8 +63,7 @@ const interactPostSchema = mongoose.Schema({
     hasPoll: reqBool,
     pollID: nonreqString,
 
-    hasMentions: nonreqBool,
-    mentionData: [ mentionDataSchema ],
+    hasTags: nonreqBool,
 
     // legacy data
     authorID: nonreqString, // legacy
@@ -72,7 +72,6 @@ const interactPostSchema = mongoose.Schema({
     replyingPostID: nonreqString, // legacy
     quotedPost: nonreqBool, // legacy
     quotedUser: nonreqBool, // legacy
-
     liked: nonreqBool, // this stays null, but is used to check if the user liked the post
     pinned: nonreqBool // this stays null, but is used to check if the user pinned the post
 });
