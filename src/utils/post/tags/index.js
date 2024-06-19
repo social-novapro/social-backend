@@ -101,6 +101,7 @@ async function getCurrentTagTextIndex({ tagText }) {
 
 async function getTagTextPosts({ userID, tagText, indexID }) {
     var tagIndex;
+    var postsAdded = []
 
     if (indexID) {
         tagIndex = await getTagTextIndex({ indexID });
@@ -116,8 +117,10 @@ async function getTagTextPosts({ userID, tagText, indexID }) {
     if (!tagIndex.postIDs) return posts;
 
     for (const postID of tagIndex.postIDs) {
+        if (postsAdded.includes(postID)) continue;
         const post = await getPostWithData({ userID, postID });
         posts.push(post);
+        postsAdded.push(postID);
     }
     
     return posts;

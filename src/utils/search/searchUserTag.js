@@ -32,6 +32,7 @@ async function searchUserTag({ username, userID }) {
 
 /* lookup users for userID, username, and displayname */
 async function lookupUsers({ userID, lookUpKey, lookUpKeyLower, UserData }) {
+    if (lookUpKey == "@") return [];
     var usersFound = [];
 
     for (user of UserData) {

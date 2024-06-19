@@ -159,6 +159,7 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             quoteData,
             replyData,
             coposterData,
+            tagData,
             extraData
         };
 

@@ -29,13 +29,14 @@ async function searchHashTags({userID, text}) {
     const lowerCaseHashtag = text.toLowerCase();
 
     const allTags = await interactPostTagIndexSchema.find({current: true, tagType: 1});
+    if (text=="#") return [];
 
     const tags = [];
     const addedTags = [];
     for (const tag of allTags) {
-        if (tag.tagText.toLowerCase().startsWith(lowerCaseHashtag)) {
+        if (tag.tagText.startsWith(lowerCaseHashtag)) {
             const newText = tag.tagText.replace(lowerCaseHashtag, text);
-            if (addedTags.includes(newText)) continue;
+            if (addedTags.includes(tag.tagText)) continue;
 
             const possibility = lowerCaseHashtag.length / tag.tagText.length
             const pushTag = {
@@ -44,10 +45,10 @@ async function searchHashTags({userID, text}) {
             }
 
             tags.push(pushTag)
-            addedTags.push(newText)
+            addedTags.push(tag.tagText)
         }
     }
-    
+
     if (!tags) return searchErrorV2("U007", { userID })
     tags.sort((firstItem, secondItem) => firstItem.possibility - secondItem.possibility);
     tags.reverse()
