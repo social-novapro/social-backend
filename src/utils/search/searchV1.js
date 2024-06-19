@@ -2,7 +2,7 @@ const interactPostSchema = require("../../schemas/interactPostSchema");
 const interactUserSchema = require("../../schemas/interactUserSchema");
 const { getPostWithData } = require("../post/getPost");
 const { searchErrorV2 } = require("../searchError");
-const { searchPostTags } = require("./searchPostTags");
+const { searchPostTags, searchHashTags } = require("./searchPostTags");
 const { lookupUsers } = require("./searchUserTag");
 
 async function searchV1({ lookUpKey, userID }) {
