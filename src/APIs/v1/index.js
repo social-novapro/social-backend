@@ -78,6 +78,15 @@ router.get('/get/search/', async (req, res) => {
 router.get('/get/taguserSearch/', async (req, res) => {
     return res.status(400).send(searchErrorV2('I021', { userID: req.headers.userid }));
 });
+router.get("/get/user/:userID", async (req, res) => {
+    return res.status(400).send(searchErrorV2('I022', { userID: req.headers.userid}))
+})
+router.get("/get/userByID/:userID", async (req, res) => {
+    return res.status(400).send(searchErrorV2('I023', { userID: req.headers.userid}))
+})
+router.get("/get/username/:useranme", async (req, res) => {
+    return res.status(400).send(searchErrorV2('I024', { userID: req.headers.userid}))
+})
 // POST
 router.post('/post/createPost/', async (req, res) => {
     return res.status(400).send(searchErrorV2('I010', { userID: req.headers.userid }))
