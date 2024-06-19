@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./src/app.js",
     "trace": "node --trace-warnings ./src/app.js",
-    "dev": "node ./runMode/dev.js && node ./src/app.js",
-    "prod": "node ./runMode/prod.js && node ./src/app.js"
+    "dev": "node ./runMode/verifyEnv.js && node --trace-warnings ./runMode/dev.js && node ./src/app.js",
+    "prod": "node ./runMode/verifyEnv.js && node ./runMode/prod.js && node ./src/app.js"
   },
   "author": "",
   "license": "ISC",
