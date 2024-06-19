@@ -5,6 +5,7 @@ const { getPrivacySetting } = require("../privacy");
 const { searchErrorV2 } = require("../searchError");
 const { getUserRelation } = require("../user/relations");
 const { searchPostTags } = require("./searchPostTags");
+const { lookupUsers } = require("./searchUserTag");
 
 async function searchV1({ lookUpKey, userID }) {
     if (!lookUpKey) return searchErrorV2("U001", { userID: "unknown" });
@@ -17,42 +18,10 @@ async function searchV1({ lookUpKey, userID }) {
     const lookUpKeyLower = lookUpKey.toLowerCase();
     const lookupkeysArr = lookUpKeyLower.split(/[ ]+/) 
 
-    var usersFound = [];
-
-    for (user of UserData) {
-        var username;
-        var displayname;
-
-        const userPrivacy = await getPrivacySetting({ userID: user._id, privacy: "profile" });
-        if (userPrivacy == 4 && user._id != userID) continue;
-
-        if (userPrivacy == 3) { 
-            const userRelation = await getUserRelation({ userID, otherUserID: userID });
-            if (userRelation.privacyCode != 3 || userRelation.privacyCode != 4 ) continue;
-        }
-    
-        if (lookUpKey == user._id) usersFound.push(user);
-        else if (user.username && user.displayName) {
-            username = user.username.toLowerCase();
-            displayname = user.displayName.toLowerCase();
-
-            if (username.startsWith(lookUpKeyLower) && displayname.startsWith(lookUpKeyLower)) usersFound.push(user);
-            else if (username.startsWith(lookUpKeyLower)) usersFound.push(user);
-            else if (displayname.startsWith(lookUpKeyLower)) usersFound.push(user);
-        } else if (user.username) {
-            username = user.username.toLowerCase();
-            if (username.startsWith(lookUpKeyLower)) usersFound.push(user);
-        } else if (user.displayName) {
-            displayname = user.username.toLowerCase();
-
-            if (displayname.startsWith(lookUpKeyLower)) usersFound.push(user);
-        };
-    };
+    const usersFound = await lookupUsers({ userID, lookUpKey, lookUpKeyLower, UserData });
 
     var postsFound = [];
     for (post of PostData) {
-        var username;
-        var displayname;
         if (post.content) {
             content = post.content.toLowerCase();
 
@@ -70,9 +39,6 @@ async function searchV1({ lookUpKey, userID }) {
         postsFound, 
         tagsFound
     };
-
-    console.log(found)
-    console.log(found.postsFound[0])
 
     console.log('done search')
     return found;
