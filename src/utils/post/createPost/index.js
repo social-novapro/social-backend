@@ -15,6 +15,7 @@ const { validPrivacyOption } = require('../../privacy');
 const { searchErrorV2 } = require('../../searchError');
 const { coposterRequestNotification } = require('../../pushNotifications/postActionNotifications');
 const { embedPost } = require('../../search/embed');
+const { pushPostTag, checkForTags } = require('../tags');
 
 async function createNewPost({
     content,
@@ -50,8 +51,10 @@ async function createNewPost({
     const postData = await interactPostSchema.findOne({_id: postID});
     if (!postData) return searchErrorV2("D002", { userID });
 
+    await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
     pushNewPost(userID, postID)
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
+
     return postData
 }
 
@@ -78,8 +81,7 @@ async function newPostIndex(userID, data) {
     const postID = await newPostID();
     const currentTime = checktime();
     // const newIndex = await newReplyIndex(postID);
-    // const mentionData = await checkForMentions(content);
-    // console.log(mentionData);
+
     const spotifyIncludedContent = await getSpotifyEmbeds(content);
     //const userFound = await interactUserSchema.findOne({ _id: userID });
     //if (!userFound) return searchError("E004");
@@ -127,7 +129,7 @@ async function newPostIndex(userID, data) {
     }
     if (coposters) {
         const userFound = await interactUserSchema.findOne({ _id: userID });
-        if (!userFound) return searchError("E004");
+        if (!userFound) return searchErrorV2("E004", {userID});
         var addedCoposters = [];
         for (const coposter of coposters) {
             if (addedCoposters.includes(coposter)) {
@@ -168,39 +170,6 @@ async function newPostIndex(userID, data) {
 
     return postID;
 };
-
-async function checkForMentions(content) {
-    const foundTags = [];
-    var foundUsers = {};
-    // lookFor("@", content)
-
-    const tagRegex = /@\\?(?:[a-zA-Z]+)/g;
-    console.log(content.matchAll(tagRegex))
-
-    for (const word of content.matchAll(tagRegex)) {
-        // if (foundUsers[word.input]) break;
-        // else foundUsers[`${word.input}`] = true;
-        console.log(word)
-        const mentionUser = word.input.replace("@", "")
-        const wasTag = await interactUserSchema.findOne({ username: mentionUser })
-        console.log(word.input.replace("@", ""))
-        console.log(mentionUser)
-        if (wasTag) {
-            mentionData = {
-                "userID" : wasTag._id,
-                "username" : wasTag.username,
-                "index": word.input.index,
-                "end" : word.index+word.input.length
-            }
-            console.log(mentionData)
-            foundTags.push(mentionData);
-        };
-        
-        console.log(`"${word[0]}" starts at index ${word.index}.`);
-    }
-
-    return foundTags;
-}
 
 async function addQuoteToIndex(quotingPost, postID) {
     const quoteIndex = await getQuoteIndex(quotingPost);
@@ -454,6 +423,8 @@ async function getSpotifyEmbeds(text) {
     const spotifyRegex = /(?:https?:\/\/(?:open\.spotify\.com|spotify\.link)\/(?:embed\/)?[a-zA-Z0-9]+\/?[a-zA-Z0-9_-]*)/g;
     const spotifyLinks = text.matchAll(spotifyRegex);
 
+    if (!spotifyLinks) return text;
+    
     var newText = text;
     const spotifyEmbeds = [];
     var currentNumber = 0;

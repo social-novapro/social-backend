@@ -1,5 +1,5 @@
 {
-    "modified": "December 18, 2023",
+    "modified": "June 17, 2024",
     "options" : [
         {
             "name": "notifications",
@@ -54,6 +54,13 @@
             "name": "coposts",
             "displayName" : "Coposts",
             "description" : "Enable or disable notifications when someone requests to copost with you.",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name" : "mentions",
+            "displayName" : "Mentions",
+            "description" : "Enable or disable notifications when someone mentions you in a post.",
             "type" : "boolean",
             "defaultValue" : true
         },

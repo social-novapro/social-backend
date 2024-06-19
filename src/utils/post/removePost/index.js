@@ -8,6 +8,7 @@ const { deletePostNotifications } = require("../../notifications/deleteRemovedPo
 const { pullPostBookmarks } = require("../../bookmarks");
 const { removePostFromIndex } = require("../postIndexManagement");
 const { deleteEmbedPost } = require("../../search/embed");
+const { removeTags } = require("../tags");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -42,6 +43,9 @@ async function removePost(postData) {
 
     // pulls embedding
     deleteEmbedPost({ postID: postData._id });
+
+    // pulls tags
+    removeTags({ userID: postData.userID, postID: postData._id });
     
     return true;
 };

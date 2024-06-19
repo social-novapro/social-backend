@@ -3,6 +3,8 @@ const { updatePrefSearch, exportSearchSettingPage, getUserSearch } = require('..
 const v1 = require('./v1');
 const v2 = require('./v2');
 const userTag = require('./userTag');
+const tags = require('./tags');
+const hashTag = require('./hashTag');
 
 // get v1 search
 router.use('/v1', v1);
@@ -10,6 +12,8 @@ router.use('/v1', v1);
 router.use('/v2', v2);
 // get tag search
 router.use('/userTag', userTag);
+router.use('/hashTag', hashTag);
+router.use('/tags', tags);
 
 // get default search
 router.get('/', async (req, res) => {
