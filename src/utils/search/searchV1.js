@@ -1,9 +1,7 @@
 const interactPostSchema = require("../../schemas/interactPostSchema");
 const interactUserSchema = require("../../schemas/interactUserSchema");
 const { getPostWithData } = require("../post/getPost");
-const { getPrivacySetting } = require("../privacy");
 const { searchErrorV2 } = require("../searchError");
-const { getUserRelation } = require("../user/relations");
 const { searchPostTags } = require("./searchPostTags");
 const { lookupUsers } = require("./searchUserTag");
 
@@ -32,12 +30,17 @@ async function searchV1({ lookUpKey, userID }) {
         };
     };
 
-    var tagsFound = await searchPostTags(userID, lookupkeysArr);
+    const tagsFound = await searchPostTags(userID, lookupkeysArr);
+    var hashtagsFound = []
+    if (lookUpKey.startsWith("#")) {
+        hashtagsFound = await searchHashTags({ userID, text: lookUpKey });
+    }
     
     var found = {
         usersFound,
         postsFound, 
-        tagsFound
+        tagsFound,
+        hashtagsFound
     };
 
     console.log('done search')

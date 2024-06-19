@@ -47,6 +47,7 @@ async function searchHashTags({userID, text}) {
             addedTags.push(newText)
         }
     }
+    
     if (!tags) return searchErrorV2("U007", { userID })
     tags.sort((firstItem, secondItem) => firstItem.possibility - secondItem.possibility);
     tags.reverse()
