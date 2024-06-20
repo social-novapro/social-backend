@@ -280,6 +280,14 @@
                     "msg" : "Post was not pinned to profile."
                 },
                 {
+                    "code" : "C020",
+                    "msg" : "Client does not exist"
+                },
+                {
+                    "code" : "C021",
+                    "msg" : "No search term was provided when looking for user."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -545,6 +553,18 @@
                 {
                     "code" : "I021",
                     "msg" : "Please use /v1/search/userTag/ instead of /v1/get/taguserSearch/"
+                },
+                {
+                    "code" : "I022",
+                    "msg" : "Please use /v1/users/get/:userID instead of /v1/get/user/:userID"
+                },
+                {
+                    "code" : "I023",
+                    "msg" : "Please use /v1/users/get/basic/:userID instead of /v1/get/userByID/:userID"
+                },
+                {
+                    "code" : "I024",
+                    "msg" : "Please use /v1/users/get/basic/:username instead of /v1/get/username/:username"
                 },
                 {
                     "code" : "J001",
@@ -1213,6 +1233,26 @@
                 {
                     "code" : "U005",
                     "msg" : "Could not find any matching tags."
+                },
+                {
+                    "code" : "U006",
+                    "msg" : "No lookup key was provided for tags."
+                },
+                {
+                    "code" : "U007",
+                    "msg" : "No results found for tags."
+                },
+                {
+                    "code" : "X001",
+                    "msg" : "No content provided while searching for tags."
+                },
+                {
+                    "code" : "X002",
+                    "msg" : "tagText nor indexID was given to look for index."
+                },
+                {
+                    "code" : "X003",
+                    "msg" : "Tagged user does not exist."
                 },
                 {
                     "code" : "Z001",
