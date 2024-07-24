@@ -8,14 +8,20 @@ const { v4: uuidv4 } = require('uuid');
 
 // Get Followers of user
 // GET /followers
-async function getFollowers() {
+async function getFollowers({ userID, ownUserID, page }) {
+    // TODO: pages, not implemented yet
 
+    const foundFollowersIndex = await findFollowIndexID({ userID: userID, type: 1, createNew: false });
+    return foundFollowersIndex;
 }
 
 // Get Following of user
 // GET /following
-async function getFollowing() {
+async function getFollowing({ userID, ownUserID, page }) {
+    // TODO: pages, not implemented yet
 
+    const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: false });
+    return foundFollowingIndex;
 }
 
 // Get shared following data
@@ -29,16 +35,12 @@ async function getFollowActivity() {
 // Follow user
 // POST /follow
 async function followUser({ userID, followedUserID}) {
-    console.log("following")
     // check if followed
     const foundFollow = await findFollow({ userID, followedUserID });
-    console.log(foundFollow)
     if (foundFollow.found==true) return searchErrorV2("C022", { userID });
 
     const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: true});
-    console.log(foundFollowingIndex)
     const foundFollowersIndex = await findFollowIndexID({ userID: followedUserID, type: 1, createNew: true });
-    console.log(foundFollowersIndex)
     
     const followUUID = uuidv4()
     const createdFollow = await interactFollowSchema.create({
@@ -51,7 +53,6 @@ async function followUser({ userID, followedUserID}) {
         indexFollowersID: foundFollowersIndex.indexData._id
     });
 
-    console.log(createdFollow)
     const addedToIndexes = await addToFollowIndexes({
         userID, followedUserID,
         followID: followUUID,
@@ -59,7 +60,6 @@ async function followUser({ userID, followedUserID}) {
         followersIndex: foundFollowersIndex.indexData
     });
 
-    console.log(addedToIndexes)
     return createdFollow;
 }
 

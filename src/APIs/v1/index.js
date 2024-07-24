@@ -84,9 +84,15 @@ router.get("/get/user/:userID", async (req, res) => {
 router.get("/get/userByID/:userID", async (req, res) => {
     return res.status(400).send(searchErrorV2('I023', { userID: req.headers.userid}))
 })
-router.get("/get/username/:useranme", async (req, res) => {
+router.get("/get/username/:username", async (req, res) => {
     return res.status(400).send(searchErrorV2('I024', { userID: req.headers.userid}))
 })
+router.get('/get/following/:userID', async (req, res) => {
+    return res.status(400).send(searchErrorV2('I025', { userID: req.headers.userid})) 
+});
+router.get('/get/followers/:userID', async (req, res) => {
+    return res.status(400).send(searchErrorV2('I026', { userID: req.headers.userid})) 
+});
 // POST
 router.post('/post/createPost/', async (req, res) => {
     return res.status(400).send(searchErrorV2('I010', { userID: req.headers.userid }))
@@ -96,6 +102,9 @@ router.post('/post/savePost/', async (req, res) => {
 });
 router.post('/post/subUser/:subUserID', async (req, res) => {
     return res.status(400).send(searchErrorV2("I004", { userID: req.headers.userid }));
+});
+router.post('/post/followUser/:followUserID', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I027", { userID: req.headers.userid }));
 });
 // DELETE
 router.delete('/delete/dismissNotification/:notificationID', async (req, res) => {
@@ -110,6 +119,9 @@ router.delete('/delete/unlikePost/:postID', async (req, res) => {
 router.delete('/delete/unsubUser/:unsubUserID', async (req, res) => {
     return res.status(400).send(searchErrorV2("I005", { userID: req.headers.userid }));
 });
+// router.delete('/delete/unfollowUser/:unfollowUserID', async (req, res) => {
+//     return res.status(400).send(searchErrorV2("I028", { userID: req.headers.userid }));
+// });
 // PUT
 router.put('/put/editPost/', async (req, res) => {
     return res.status(400).send(searchErrorV2("I019", { userID: req.headers.userid }));

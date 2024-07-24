@@ -584,11 +584,19 @@
                 },
                 {
                     "code" : "I025",
-                    "msg" : "Please use /v1/users/followers/:userID instead of /v1/get/followers/:userID"
+                    "msg" : "Please use /v1/users/following/:userID instead of /v1/get/following/:userID"
                 },
                 {
                     "code" : "I026",
-                    "msg" : "Please use /v1/users/following/:userID instead of /v1/get/following/:userID"
+                    "msg" : "Please use /v1/users/followers/:userID instead of /v1/get/followers/:userID"
+                },
+                {
+                    "code" : "I027",
+                    "msg" : "Please use /v1/users/follow/:followUserID instead of /v1/post/followUser/:followUserID"
+                },
+                {
+                    "code" : "I028",
+                    "msg" : "Please use /v1/users/unfollow/:unfollowUserID instead of /v1/delete/unfollowUser/:unfollowUserID"
                 },
                 {
                     "code" : "J001",
