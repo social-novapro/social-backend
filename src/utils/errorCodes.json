@@ -289,11 +289,11 @@
                 },
                 {
                     "code" : "C022",
-                    "msg" : "Already following user."
+                    "msg" : "Client already following user."
                 },
                 {
                     "code" : "C023",
-                    "msg" : "No type provided searching for follow index"
+                    "msg" : "No type provided searching for follow index."
                 },
                 {
                     "code" : "C024",
@@ -301,7 +301,15 @@
                 },
                 {
                     "code" : "C025",
-                    "msg" : "No userID provided while searching for follow index"
+                    "msg" : "No userID provided while searching for follow index."
+                },
+                {
+                    "code" : "C026",
+                    "msg" : "Client was not previously following user."
+                },
+                {
+                    "code" : "C027",
+                    "msg" : "Client requested to follow a user that does not exist."
                 },
                 {
                     "code" : "D001",

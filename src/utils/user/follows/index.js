@@ -1,5 +1,6 @@
 
 
+const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactFollowIndexSchema = require("../../../schemas/user/interactFollowIndexSchema");
 const interactFollowSchema = require("../../../schemas/user/interactFollowSchema");
 const { checktime } = require("../../checktime");
@@ -39,6 +40,10 @@ async function followUser({ userID, followedUserID}) {
     const foundFollow = await findFollow({ userID, followedUserID });
     if (foundFollow.found==true) return searchErrorV2("C022", { userID });
 
+    // make sure user exists
+    const userFound = await interactUserSchema.findOne({ _id: followedUserID });
+    if (!userFound) return searchErrorV2("C027", { userID });
+
     const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: true});
     const foundFollowersIndex = await findFollowIndexID({ userID: followedUserID, type: 1, createNew: true });
     
@@ -53,8 +58,7 @@ async function followUser({ userID, followedUserID}) {
         indexFollowersID: foundFollowersIndex.indexData._id
     });
 
-    const addedToIndexes = await addToFollowIndexes({
-        userID, followedUserID,
+    await addToFollowIndexes({
         followID: followUUID,
         followingsIndex: foundFollowingIndex.indexData,
         followersIndex: foundFollowersIndex.indexData
@@ -65,9 +69,30 @@ async function followUser({ userID, followedUserID}) {
 
 // Unfollow user
 // DELETE /unfollow
-async function unfollowUser() {
+async function unfollowUser({userID, unfollowUserID }) {
+    const foundFollow = await findFollow({ userID, followedUserID: unfollowUserID });
+    if (foundFollow.found!=true) return searchErrorV2("C026", { userID });
+    
+    // user by default should exist
+    // remove from indexes    
+    await removeFromFollowIndexes({
+        followID: foundFollow.followData._id,
+        followingsIndex: foundFollow.followData.indexFollowingID,
+        followersIndex: foundFollow.followData.indexFollowersID
+    });
+    
+    const removedFollow = await interactFollowSchema.findOneAndUpdate({
+        _id: foundFollow.followData._id
+    }, {
+        current: false,
+        timestampUnfollowed: checktime()
+    }, { 
+        upsert: true
+    });
 
-}
+    return removedFollow;
+};
+
 // Get mutual followers
 // GET /mutual/followers
 async function getMutualFollowers() {
@@ -175,6 +200,35 @@ async function addToFollowIndexes({
         { $push : { "follow" : { 
             _id: followID,
             timestamp: checktime()
+        }}},
+        { upsert: true }
+    );
+
+    return {
+        newFollowIndex,
+        newFollowingIndex
+    };
+};
+
+async function removeFromFollowIndexes({
+    followID,
+    followingsIndex,
+    followersIndex
+}) {
+    // update following
+    const newFollowIndex = await interactFollowIndexSchema.findOneAndUpdate( 
+        { _id: followingsIndex._id },
+        { $pull : { "follow" : { 
+            _id: followID
+        }}},
+        { upsert: true }
+    );
+
+    // update followers
+    const newFollowingIndex = await interactFollowIndexSchema.findOneAndUpdate(
+        { _id: followersIndex._id },
+        { $pull : { "follow" : { 
+            _id: followID
         }}},
         { upsert: true }
     );

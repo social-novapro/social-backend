@@ -4,7 +4,6 @@ const { searchErrorV2 } = require('../../utils/searchError');
 // Legacy Routes Imports (still used)
 const getAPI = require('./get');
 const postAPI = require('./post');
-const deleteAPI = require('./delete');
 const putAPI = require('./put');
 
 // Feature Routes Imports
@@ -22,7 +21,6 @@ const search = require('./search');
 // Legacy Routes (still used)
 router.use('/get', getAPI);
 router.use('/post', postAPI);
-router.use('/delete', deleteAPI);
 router.use('/put', putAPI);
 
 // Feature Routes
@@ -119,9 +117,9 @@ router.delete('/delete/unlikePost/:postID', async (req, res) => {
 router.delete('/delete/unsubUser/:unsubUserID', async (req, res) => {
     return res.status(400).send(searchErrorV2("I005", { userID: req.headers.userid }));
 });
-// router.delete('/delete/unfollowUser/:unfollowUserID', async (req, res) => {
-//     return res.status(400).send(searchErrorV2("I028", { userID: req.headers.userid }));
-// });
+router.delete('/delete/unfollowUser/:unfollowUserID', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I028", { userID: req.headers.userid }));
+});
 // PUT
 router.put('/put/editPost/', async (req, res) => {
     return res.status(400).send(searchErrorV2("I019", { userID: req.headers.userid }));

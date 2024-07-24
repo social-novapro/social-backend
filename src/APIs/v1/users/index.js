@@ -7,6 +7,7 @@ const privacy = require('./privacy');
 const badges = require('./badges');
 const getApi = require('./get');
 const follow = require('./follow');
+const unfollow = require('./unfollow');
 const following = require('./following');
 const followers = require('./followers');
 
@@ -18,6 +19,7 @@ router.use('/privacy', privacy);
 router.use('/badges', badges);
 router.use('/get', getApi);
 router.use('/follow', follow);
+router.use('/unfollow', unfollow);
 router.use('/following', following);
 router.use('/followers', followers);
 
