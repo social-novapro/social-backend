@@ -8,8 +8,8 @@ const interactFollowSchema = mongoose.Schema({
     current: reqBool, // if the user is currently following
     userID: reqString, // user that is following
     followedUserID: reqString, // user that was followed
-    indexFollowID: reqString, // index that follow is saved in (for follow)
-    indexFollowedID: reqString, // index that follow is saved in (for followed)
+    indexFollowingID: reqString, // index that follow is saved in (for following)
+    indexFollowersID: reqString, // index that follow is saved in (for followers)
 });
 
 module.exports = mongoose.model('interact-follow-schema', interactFollowSchema);

@@ -35,10 +35,10 @@ async function followUser({ userID, followedUserID}) {
     console.log(foundFollow)
     if (foundFollow.found==true) return searchErrorV2("C022", { userID });
 
-    const foundFollowIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: true});
-    console.log(foundFollowIndex)
-    const foundFollowingIndex = await findFollowIndexID({ userID: followedUserID, type: 1, createNew: true });
+    const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: true});
     console.log(foundFollowingIndex)
+    const foundFollowersIndex = await findFollowIndexID({ userID: followedUserID, type: 1, createNew: true });
+    console.log(foundFollowersIndex)
     
     const followUUID = uuidv4()
     const createdFollow = await interactFollowSchema.create({
@@ -47,13 +47,19 @@ async function followUser({ userID, followedUserID}) {
         current: true,
         userID,
         followedUserID,
-        indexFollowID: foundFollowIndex.indexData._id,
-        indexFollowedID: foundFollowingIndex.indexData._id
+        indexFollowingID: foundFollowingIndex.indexData._id,
+        indexFollowersID: foundFollowersIndex.indexData._id
     });
-    console.log(createdFollow)
 
-    const addedToIndexes = await addToFollowIndexes({ userID, followedUserID, followIndex:foundFollowIndex.indexData, followingIndex:foundFollowingIndex.indexData });
-console.log(addedToIndexes)
+    console.log(createdFollow)
+    const addedToIndexes = await addToFollowIndexes({
+        userID, followedUserID,
+        followID: followUUID,
+        followingsIndex: foundFollowingIndex.indexData,
+        followersIndex: foundFollowersIndex.indexData
+    });
+
+    console.log(addedToIndexes)
     return createdFollow;
 }
 
@@ -149,26 +155,25 @@ async function createFollowIndexID({ userID, type, prevIndex }) {
 };
 
 async function addToFollowIndexes({
-    userID,
-    followedUserID,
-    followIndex,
-    followingIndex
+    followID,
+    followingsIndex,
+    followersIndex
 }) {
-    // update follow
+    // update following
     const newFollowIndex = await interactFollowIndexSchema.findOneAndUpdate( 
-        { _id: followIndex._id },
+        { _id: followingsIndex._id },
         { $push : { "follow" : { 
-            _id: userID,
+            _id: followID,
             timestamp: checktime()
         }}},
         { upsert: true }
     );
 
-    // update following
+    // update followers
     const newFollowingIndex = await interactFollowIndexSchema.findOneAndUpdate(
-        { _id: followingIndex._id },
+        { _id: followersIndex._id },
         { $push : { "follow" : { 
-            _id: followedUserID,
+            _id: followID,
             timestamp: checktime()
         }}},
         { upsert: true }
@@ -177,7 +182,7 @@ async function addToFollowIndexes({
     return {
         newFollowIndex,
         newFollowingIndex
-    }
+    };
 };
 
 module.exports = {
