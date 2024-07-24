@@ -288,6 +288,22 @@
                     "msg" : "No search term was provided when looking for user."
                 },
                 {
+                    "code" : "C022",
+                    "msg" : "Already following user."
+                },
+                {
+                    "code" : "C023",
+                    "msg" : "No type provided searching for follow index"
+                },
+                {
+                    "code" : "C024",
+                    "msg" : "CreateNew must be false or true while searching for follow index."
+                },
+                {
+                    "code" : "C025",
+                    "msg" : "No userID provided while searching for follow index"
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -565,6 +581,14 @@
                 {
                     "code" : "I024",
                     "msg" : "Please use /v1/users/get/basic/:username instead of /v1/get/username/:username"
+                },
+                {
+                    "code" : "I025",
+                    "msg" : "Please use /v1/users/followers/:userID instead of /v1/get/followers/:userID"
+                },
+                {
+                    "code" : "I026",
+                    "msg" : "Please use /v1/users/following/:userID instead of /v1/get/following/:userID"
                 },
                 {
                     "code" : "J001",
