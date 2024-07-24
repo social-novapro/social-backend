@@ -7,22 +7,66 @@ const { checktime } = require("../../checktime");
 const { searchErrorV2 } = require("../../searchError");
 const { v4: uuidv4 } = require('uuid');
 
+/* TODO
+[-] get pages working
+    - mainly for get following and followers
+    - if amount < 10, add a next page, do in prettyFollowList()
+[-] get mutual followers
+    - who are they following that you follow
+[-] get mutual following
+    - who follows you and you follow them
+[-] get friends
+    - you are both following each other
+[-] get follow activity 
+    - can include previous follows, unfollows, etc
+[-] get follow suggestions
+    - based on mutual followers, following, etc (?)
+[-] privacy settings for follows
+    - public, private
+*/
+
 // Get Followers of user
 // GET /followers
 async function getFollowers({ userID, ownUserID, page }) {
     // TODO: pages, not implemented yet
-
     const foundFollowersIndex = await findFollowIndexID({ userID: userID, type: 1, createNew: false });
-    return foundFollowersIndex;
+    if (!foundFollowersIndex.found) return foundFollowersIndex;
+    
+    const finalFollowList = await prettyFollowList({ownUserID, followIndex: foundFollowersIndex.indexData})
+    return finalFollowList;
 }
 
 // Get Following of user
 // GET /following
 async function getFollowing({ userID, ownUserID, page }) {
     // TODO: pages, not implemented yet
-
     const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: false });
-    return foundFollowingIndex;
+    if (!foundFollowingIndex.found) return foundFollowingIndex;
+    const finalFollowList = await prettyFollowList({ownUserID, followIndex: foundFollowingIndex.indexData})
+    return finalFollowList;
+}
+
+async function prettyFollowList({ ownUserID, followIndex }) {
+    var finalFollowList = {
+        followIndexID: followIndex._id,
+        prevIndexID: followIndex.prevIndexID,
+        nextIndexID: followIndex.nextIndexID,
+        timestamp: followIndex.timestamp,
+        current: followIndex.current,
+        type: followIndex.type,
+        userID: followIndex.userID,
+        follows: followIndex.follows,
+        amount: followIndex.amount,
+        followData: []
+    };
+
+    if (!followIndex.follows || followIndex.follows<0) return finalFollowList;
+    for (const followID of followIndex.follows) {
+        const foundFollow = await interactFollowSchema.findOne({_id: followID})
+        finalFollowList.followData.push(foundFollow)
+    }
+
+    return finalFollowList;
 }
 
 // Get shared following data
@@ -173,7 +217,7 @@ async function createFollowIndexID({ userID, type, prevIndex }) {
         prevIndexID: prevIndex? prevIndex._id : null,
         amount: 0,
         timestamp: checktime(),
-        follow: []
+        follows: []
     });
 
     return newIndex;
@@ -185,27 +229,27 @@ async function addToFollowIndexes({
     followersIndex
 }) {
     // update following
-    const newFollowIndex = await interactFollowIndexSchema.findOneAndUpdate( 
+    const newFollowerIndex = await interactFollowIndexSchema.findOneAndUpdate( 
         { _id: followingsIndex._id },
-        { $push : { "follow" : { 
-            _id: followID,
-            timestamp: checktime()
-        }}},
+        { 
+            $push : { follows: followID },
+            $inc: { amount: 1 }
+        },
         { upsert: true }
     );
 
     // update followers
     const newFollowingIndex = await interactFollowIndexSchema.findOneAndUpdate(
         { _id: followersIndex._id },
-        { $push : { "follow" : { 
-            _id: followID,
-            timestamp: checktime()
-        }}},
+        { 
+            $push : { follows: followID },
+            $inc: { amount: 1 }
+        },
         { upsert: true }
     );
 
     return {
-        newFollowIndex,
+        newFollowerIndex,
         newFollowingIndex
     };
 };
@@ -216,25 +260,35 @@ async function removeFromFollowIndexes({
     followersIndex
 }) {
     // update following
-    const newFollowIndex = await interactFollowIndexSchema.findOneAndUpdate( 
-        { _id: followingsIndex._id },
-        { $pull : { "follow" : { 
-            _id: followID
-        }}},
+    const newFollowerIndex = await interactFollowIndexSchema.findOneAndUpdate( 
+        { _id: followingsIndex },
+        { 
+            $pull : { follows: followID },
+            $inc: { amount: -1}
+        },
         { upsert: true }
     );
 
+    // var a1 = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
+    // console.log(a1)
     // update followers
     const newFollowingIndex = await interactFollowIndexSchema.findOneAndUpdate(
-        { _id: followersIndex._id },
-        { $pull : { "follow" : { 
-            _id: followID
-        }}},
+        { _id: followersIndex },
+        { 
+            $pull : { follows: followID },
+            $inc: { amount: -1}
+        },
         { upsert: true }
     );
 
+    // a1 = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
+    // console.log(a1)
+
+    // const newFollowerIndex = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
+    // const newFollowingIndex = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
+
     return {
-        newFollowIndex,
+        newFollowerIndex,
         newFollowingIndex
     };
 };
