@@ -78,7 +78,8 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
         amount: followIndex.amount,
         includedIndexes: [followIndex._id],
         follows: followIndex.follows,
-        followData: []
+        followData: [],
+        userData: []
     };
 
     if ((followIndex.prevIndexID!=null) && (followIndex.amount<5)) {
@@ -102,6 +103,9 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
     for (const followID of finalFollowList.follows) {
         const foundFollow = await interactFollowSchema.findOne({_id: followID})
         finalFollowList.followData.push(foundFollow)
+
+        const foundUser = await interactUserSchema.findOne({_id: foundFollow.followedUserID});
+        finalFollowList.userData.push({...foundUser._doc, followed: true});
     }
 
     return finalFollowList;
@@ -149,6 +153,12 @@ async function followUser({ userID, followedUserID}) {
         followersIndex: foundFollowersIndex.indexData
     });
 
+    await updateUserFolllowFollowingCount({ 
+        userID,
+        followedUserID: followedUserID,
+        change: "add"
+    });
+
     return createdFollow;
 }
 
@@ -161,6 +171,15 @@ async function unfollowUser({userID, unfollowUserID }) {
     const foundFollow = await findFollow({ userID, followedUserID: unfollowUserID });
     if (foundFollow.found!=true) return searchErrorV2("C026", { userID });
     
+    const removedFollow = await interactFollowSchema.findOneAndUpdate({
+        _id: foundFollow.followData._id
+    }, {
+        current: false,
+        timestampUnfollowed: checktime()
+    }, { 
+        upsert: true
+    });
+
     // user by default should exist
     // remove from indexes    
     await removeFromFollowIndexes({
@@ -169,13 +188,10 @@ async function unfollowUser({userID, unfollowUserID }) {
         followersIndex: foundFollow.followData.indexFollowersID
     });
     
-    const removedFollow = await interactFollowSchema.findOneAndUpdate({
-        _id: foundFollow.followData._id
-    }, {
-        current: false,
-        timestampUnfollowed: checktime()
-    }, { 
-        upsert: true
+    await updateUserFolllowFollowingCount({ 
+        userID,
+        followedUserID: unfollowUserID,
+        change: "remove"
     });
 
     return removedFollow;
@@ -220,6 +236,10 @@ async function findFollowIndexID({ userID, indexID, type, createNew }) {
             _id: indexID
         });
         if (!foundSpecificIndex) return { found: false };
+
+        // newest first, oldest last
+        foundSpecificIndex.follows.reverse();
+
         return {
             found: true,
             indexData: foundSpecificIndex
@@ -231,6 +251,9 @@ async function findFollowIndexID({ userID, indexID, type, createNew }) {
         type,
         current: true
     });
+
+    // newest first, oldest last
+    foundIndex.follows.reverse();
 
     if (createNew==false && !foundIndex) return { found: false };
     if (createNew==true && !foundIndex) {
@@ -341,6 +364,31 @@ async function removeFromFollowIndexes({
         newFollowingIndex
     };
 };
+
+// update user following and followers count
+async function updateUserFolllowFollowingCount({ userID, followedUserID, change}) {
+    if (change=="add") {
+        await interactUserSchema.findOneAndUpdate(
+            { _id: userID },
+            { $inc: { followingCount: 1 } }
+        );
+
+        await interactUserSchema.findOneAndUpdate(
+            { _id: followedUserID },
+            { $inc: { followerCount: 1 } }
+        );
+    } else if (change=="remove") {
+        await interactUserSchema.findOneAndUpdate(
+            { _id: userID },
+            { $inc: { followingCount: -1 } }
+        );
+
+        await interactUserSchema.findOneAndUpdate(
+            { _id: followedUserID },
+            { $inc: { followerCount: -1 } }
+        );
+    };
+}
 
 module.exports = {
     getFollowers,
