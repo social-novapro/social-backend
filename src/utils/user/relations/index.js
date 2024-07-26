@@ -7,7 +7,7 @@ async function getUserRelation({ userID, otherUserID }) {
     //if (!foundRelationship) return { error: "No relationship found" };
     //return foundRelationship;
 }
-async function canView({ userID, otherUserID, privacyNum }) {
+async function canView({ userID, otherUserID, privacyNum, userIDFollowOther }) {
     if (userID == otherUserID) return true;
     const userRelation = await getUserRelation({ userID, otherUserID });
 

@@ -4,6 +4,7 @@ const { getUserPosts } = require("../../post/user");
 const { searchErrorV2 } = require("../../searchError");
 const { getUserBadges } = require("../badges");
 const { getUserPins } = require("../edit");
+const { findFollow } = require("../follows");
 
 async function getUser({userID, searchTerm}) {
     const foundViaUsername = await interactUserSchema.findOne({usernameLc: searchTerm.toLowerCase()});
@@ -42,21 +43,27 @@ async function getAllUserData({userID, searchTerm}) {
     // mentions
     const mentionData = await getUserMentions({userID: userData._id})
 
-    // TODO - likes (requires update)
+    // follow
+    const userFollowing = await findFollow({ userID: ownUser._id, followedUserID: userData._id });
 
+    // TODO - likes (requires update)
     const sendBack = {
         included: {
             user: "true",
             posts: `${postData ? true : false}`,
             pins: pinData.length > 0 ? true : false,
             badges: badgeData.length > 0 ? true : false,
-            mentions: mentionData.length > 0 ? true : false
+            mentions: mentionData.length > 0 ? true : false,
+            extraData: true
         },
         userData: userData,
         postData: postData,
         pinData: pinData,
         badgeData: badgeData,
-        mentionData: mentionData
+        mentionData: mentionData,
+        extraData: {
+            followed: userFollowing.found ? true : false,
+        }
     }
 
     return sendBack;
@@ -70,8 +77,12 @@ async function getBasicUserData({userID, searchTerm}) {
     const userData = await getUser({userID, searchTerm});
     if (userData.error) return userData;
 
-    return userData;
+    const userFollowing = await findFollow({ userID, followedUserID: userData._id });
     
+    var userDataExtra = {...userData._doc, followed: false};
+    userDataExtra.followed = userFollowing.found ? true : false;
+
+    return userDataExtra;
 }
 
 module.exports = {

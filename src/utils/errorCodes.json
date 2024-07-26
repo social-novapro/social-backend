@@ -312,6 +312,14 @@
                     "msg" : "Client requested to follow a user that does not exist."
                 },
                 {
+                    "code" : "C028",
+                    "msg" : "User can not follow themself."
+                },
+                {
+                    "code" : "C029",
+                    "msg" : "User can not unfollow themself."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },

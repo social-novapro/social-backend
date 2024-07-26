@@ -67,6 +67,7 @@ async function getFollowing({ userID, ownUserID, indexID }) {
 
 async function prettyFollowList({ userID, ownUserID, followIndex }) {
     var finalFollowList = {
+        found: true,
         followIndexID: followIndex._id,
         prevIndexID: followIndex.prevIndexID,
         nextIndexID: followIndex.nextIndexID ? followIndex.nextIndexID : null,
@@ -80,8 +81,6 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
         followData: []
     };
 
-    // console.log("followIndex", followIndex, (followIndex.prevIndexID!=null), (followIndex.amount<5))
-
     if ((followIndex.prevIndexID!=null) && (followIndex.amount<5)) {
         // console.log("doing next")
         const prevIndex = await findFollowIndexID({
@@ -92,7 +91,6 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
         });
 
         if (prevIndex.found == true) {
-            // console.log("prevIndex", prevIndex)
             finalFollowList.follows = finalFollowList.follows.concat(prevIndex.indexData.follows);
             finalFollowList.prevIndexID = prevIndex.indexData.prevIndexID;
             finalFollowList.amount += prevIndex.indexData.amount;
@@ -120,6 +118,9 @@ async function getFollowActivity() {
 // Follow user
 // POST /follow
 async function followUser({ userID, followedUserID}) {
+    if (!followedUserID) return searchErrorV2("C021", { userID });
+    if (userID == followedUserID) return searchErrorV2("C028", { userID });
+
     // check if followed
     const foundFollow = await findFollow({ userID, followedUserID });
     if (foundFollow.found==true) return searchErrorV2("C022", { userID });
@@ -154,6 +155,9 @@ async function followUser({ userID, followedUserID}) {
 // Unfollow user
 // DELETE /unfollow
 async function unfollowUser({userID, unfollowUserID }) {
+    if (!unfollowUserID) return searchErrorV2("C021", { userID });
+    if (userID == unfollowUserID) return searchErrorV2("C029", { userID });
+
     const foundFollow = await findFollow({ userID, followedUserID: unfollowUserID });
     if (foundFollow.found!=true) return searchErrorV2("C026", { userID });
     
@@ -189,6 +193,7 @@ async function getMutualFollowing() {
 
 }
 
+// find if user is following another user
 async function findFollow({ userID, followedUserID }) {
     const foundFollowing = await interactFollowSchema.findOne({
         current: true,
@@ -344,5 +349,6 @@ module.exports = {
     followUser,
     unfollowUser,
     getMutualFollowers,
-    getMutualFollowing
+    getMutualFollowing,
+    findFollow
 }
