@@ -1,16 +1,16 @@
-
-
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactFollowIndexSchema = require("../../../schemas/user/interactFollowIndexSchema");
 const interactFollowSchema = require("../../../schemas/user/interactFollowSchema");
 const { checktime } = require("../../checktime");
 const { searchErrorV2 } = require("../../searchError");
 const { v4: uuidv4 } = require('uuid');
+const INDEX_LIMIT = 20;
 
 /* TODO
-[-] get pages working
+[+] get pages working
     - mainly for get following and followers
-    - if amount < 10, add a next page, do in prettyFollowList()
+    [+] if amount < 10, add a next page, do in prettyFollowList()
+    (test followers list, following list works)
 [-] get mutual followers
     - who are they following that you follow
 [-] get mutual following
@@ -27,41 +27,81 @@ const { v4: uuidv4 } = require('uuid');
 
 // Get Followers of user
 // GET /followers
-async function getFollowers({ userID, ownUserID, page }) {
-    // TODO: pages, not implemented yet
-    const foundFollowersIndex = await findFollowIndexID({ userID: userID, type: 1, createNew: false });
+async function getFollowers({ userID, ownUserID, indexID }) {
+    const foundFollowersIndex = await findFollowIndexID({ 
+        userID,
+        indexID : indexID ? indexID: null,
+        type: 1,
+        createNew: false
+    });
+
     if (!foundFollowersIndex.found) return foundFollowersIndex;
-    
-    const finalFollowList = await prettyFollowList({ownUserID, followIndex: foundFollowersIndex.indexData})
+    const finalFollowList = await prettyFollowList({
+        userID,
+        ownUserID,
+        followIndex: foundFollowersIndex.indexData
+    });
+
     return finalFollowList;
 }
 
 // Get Following of user
 // GET /following
-async function getFollowing({ userID, ownUserID, page }) {
-    // TODO: pages, not implemented yet
-    const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: false });
+async function getFollowing({ userID, ownUserID, indexID }) {
+    const foundFollowingIndex = await findFollowIndexID({ 
+        userID,
+        indexID : indexID ? indexID: null,
+        type: 0, 
+        createNew: false
+    });
+
     if (!foundFollowingIndex.found) return foundFollowingIndex;
-    const finalFollowList = await prettyFollowList({ownUserID, followIndex: foundFollowingIndex.indexData})
+    const finalFollowList = await prettyFollowList({
+        userID,
+        ownUserID,
+        followIndex: foundFollowingIndex.indexData
+    });
+
     return finalFollowList;
 }
 
-async function prettyFollowList({ ownUserID, followIndex }) {
+async function prettyFollowList({ userID, ownUserID, followIndex }) {
     var finalFollowList = {
         followIndexID: followIndex._id,
         prevIndexID: followIndex.prevIndexID,
-        nextIndexID: followIndex.nextIndexID,
+        nextIndexID: followIndex.nextIndexID ? followIndex.nextIndexID : null,
         timestamp: followIndex.timestamp,
         current: followIndex.current,
         type: followIndex.type,
         userID: followIndex.userID,
-        follows: followIndex.follows,
         amount: followIndex.amount,
+        includedIndexes: [followIndex._id],
+        follows: followIndex.follows,
         followData: []
     };
 
-    if (!followIndex.follows || followIndex.follows<0) return finalFollowList;
-    for (const followID of followIndex.follows) {
+    // console.log("followIndex", followIndex, (followIndex.prevIndexID!=null), (followIndex.amount<5))
+
+    if ((followIndex.prevIndexID!=null) && (followIndex.amount<5)) {
+        // console.log("doing next")
+        const prevIndex = await findFollowIndexID({
+            userID,
+            indexID: followIndex.prevIndexID,
+            type: 0,
+            createNew: false
+        });
+
+        if (prevIndex.found == true) {
+            // console.log("prevIndex", prevIndex)
+            finalFollowList.follows = finalFollowList.follows.concat(prevIndex.indexData.follows);
+            finalFollowList.prevIndexID = prevIndex.indexData.prevIndexID;
+            finalFollowList.amount += prevIndex.indexData.amount;
+            finalFollowList.includedIndexes.push(prevIndex.indexData._id);
+        };
+    }
+
+    if (!finalFollowList.follows || finalFollowList.follows<0) return finalFollowList;
+    for (const followID of finalFollowList.follows) {
         const foundFollow = await interactFollowSchema.findOne({_id: followID})
         finalFollowList.followData.push(foundFollow)
     }
@@ -164,10 +204,22 @@ async function findFollow({ userID, followedUserID }) {
 }
 
 // type: 0 = following, 1 = followed
-async function findFollowIndexID({ userID, type, createNew }) {
+async function findFollowIndexID({ userID, indexID, type, createNew }) {
     if (!userID) return searchErrorV2("C025", { userID: null });
     if (type == (null || undefined)) return searchErrorV2("C023", { userID });
     if (createNew == (null || undefined)) return searchErrorV2("C024", { userID });
+
+    // if indexID is provided, return that index
+    if (indexID) {
+        const foundSpecificIndex = await interactFollowIndexSchema.findOne({
+            _id: indexID
+        });
+        if (!foundSpecificIndex) return { found: false };
+        return {
+            found: true,
+            indexData: foundSpecificIndex
+        };
+    }
 
     const foundIndex = await interactFollowIndexSchema.findOne({
         userID, 
@@ -184,7 +236,7 @@ async function findFollowIndexID({ userID, type, createNew }) {
         };
     };
 
-    if (createNew==true && foundIndex.amount>50) {
+    if (createNew==true && foundIndex.amount>=INDEX_LIMIT) {
         const newIndex = await createFollowIndexID({ userID, type, prevIndex: foundIndex });
         return {
             found: true,
@@ -269,8 +321,6 @@ async function removeFromFollowIndexes({
         { upsert: true }
     );
 
-    // var a1 = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
-    // console.log(a1)
     // update followers
     const newFollowingIndex = await interactFollowIndexSchema.findOneAndUpdate(
         { _id: followersIndex },
@@ -280,12 +330,6 @@ async function removeFromFollowIndexes({
         },
         { upsert: true }
     );
-
-    // a1 = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
-    // console.log(a1)
-
-    // const newFollowerIndex = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
-    // const newFollowingIndex = await interactFollowIndexSchema.findOne({ _id: followingsIndex._id });
 
     return {
         newFollowerIndex,
