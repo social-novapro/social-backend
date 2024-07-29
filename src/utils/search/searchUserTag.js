@@ -1,6 +1,7 @@
 const interactUserSchema = require("../../schemas/interactUserSchema");
 const { getPrivacySetting } = require("../privacy");
 const { searchErrorV2 } = require("../searchError");
+const { findFollow } = require("../user/follows");
 const { getUserRelation } = require("../user/relations");
 
 async function searchUserTag({ username, userID }) {
@@ -41,16 +42,20 @@ async function lookupUsers({ userID, lookUpKey, lookUpKeyLower, UserData }) {
 
         const userPrivacy = await getPrivacySetting({ userID: user._id, privacy: "profile" });
         if (userPrivacy == 4 && user._id != userID) continue;
-
+    
         if (userPrivacy == 3) { 
             const userRelation = await getUserRelation({ userID, otherUserID: userID });
             if (userRelation.privacyCode != 3 || userRelation.privacyCode != 4 ) continue;
         }
 
         const tempKey = lookUpKeyLower.startsWith("@") ? lookUpKeyLower.replace('@', '') : lookUpKeyLower;
-    
-        if (lookUpKey == user._id) usersFound.push(user);
-        else if (username.startsWith(tempKey) || displayname.startsWith(tempKey)) usersFound.push(user);
+        const userFollowing = await findFollow({ userID, followedUserID: user._id });
+
+        var userData = {...user._doc, followed: false};
+        userData.followed = userFollowing.found ? true : false;
+
+        if (lookUpKey == user._id) usersFound.push(userData);
+        else if (username.startsWith(tempKey) || displayname.startsWith(tempKey)) usersFound.push(userData);
     };
 
     return usersFound;

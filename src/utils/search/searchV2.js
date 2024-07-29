@@ -33,6 +33,7 @@ async function searchV2({ lookUpKey, userID }) {
         const post = await interactPostSchema.findOne({ _id: postID });
         if (post) {
             const fullPost = await getPostWithData({ userID: userID, post, ownUser });
+            console.log(fullPost)
             if (fullPost && !fullPost.error) PostData.push(fullPost);
             postsAdded[postID] = true;
         }
