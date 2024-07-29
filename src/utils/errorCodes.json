@@ -320,6 +320,10 @@
                     "msg" : "User can not unfollow themself."
                 },
                 {
+                    "code" : "C030",
+                    "msg" : "Can not follow user due to privacy settings."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },

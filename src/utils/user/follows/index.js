@@ -2,6 +2,7 @@ const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactFollowIndexSchema = require("../../../schemas/user/interactFollowIndexSchema");
 const interactFollowSchema = require("../../../schemas/user/interactFollowSchema");
 const { checktime } = require("../../checktime");
+const { getPrivacySetting } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");
 const { v4: uuidv4 } = require('uuid');
 const INDEX_LIMIT = 20;
@@ -21,7 +22,7 @@ const INDEX_LIMIT = 20;
     - can include previous follows, unfollows, etc
 [-] get follow suggestions
     - based on mutual followers, following, etc (?)
-[-] privacy settings for follows
+[.5] privacy settings for follows
     - public, private
 */
 
@@ -101,7 +102,9 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
     if (!finalFollowList.follows || finalFollowList.follows<0) return finalFollowList;
     for (const followID of finalFollowList.follows) {
         const foundFollow = await interactFollowSchema.findOne({_id: followID})
-        const foundUser = await interactUserSchema.findOne({_id: foundFollow.followedUserID});
+        const foundUser = await interactUserSchema.findOne({
+            _id: followIndex.type==0? foundFollow.followedUserID : foundFollow.userID
+        });
 
         // if user following looking at
         var followed = false;
@@ -146,7 +149,16 @@ async function followUser({ userID, followedUserID}) {
     if (!userFound) return searchErrorV2("C027", { userID });
 
     // make sure user can follow
-    
+    var canFollow = false
+    const followPrivacy = await getPrivacySetting({ userID: followedUserID, privacy: "follow" });
+    // TODO: need to change 2
+    if (followPrivacy==1 || followPrivacy==2) canFollow = true;
+    if (followPrivacy==5) {
+        const foundFollow = await findFollow({ userID: followedUserID, followedUserID: userID });
+        if (foundFollow?.found==true) canFollow = true
+    }
+
+    if (canFollow==false) return searchErrorV2("C030", { userID });
 
     // get indexes
     const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: true});
