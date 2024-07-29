@@ -67,6 +67,7 @@ async function getFollowing({ userID, ownUserID, indexID }) {
 }
 
 async function prettyFollowList({ userID, ownUserID, followIndex }) {
+    const userData = await interactUserSchema.findOne({ _id: userID });
     var finalFollowList = {
         found: true,
         followIndexID: followIndex._id,
@@ -76,6 +77,7 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
         current: followIndex.current,
         type: followIndex.type,
         userID: followIndex.userID,
+        userData: userData,
         amount: followIndex.amount,
         includedIndexes: [followIndex._id],
         follows: followIndex.follows,
