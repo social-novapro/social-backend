@@ -56,7 +56,11 @@ async function getFollowing({ userID, ownUserID, indexID }) {
         createNew: false
     });
 
-    if (!foundFollowingIndex.found) return foundFollowingIndex;
+    if (!foundFollowingIndex.found) {
+        const userData = await interactUserSchema.findOne({ _id: userID });
+        return {...foundFollowingIndex._doc, userData};
+    };
+    
     const finalFollowList = await prettyFollowList({
         userID,
         ownUserID,
