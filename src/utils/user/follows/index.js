@@ -78,8 +78,7 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
         amount: followIndex.amount,
         includedIndexes: [followIndex._id],
         follows: followIndex.follows,
-        followData: [],
-        userData: []
+        data: [], // { followData, userData }
     };
 
     if ((followIndex.prevIndexID!=null) && (followIndex.amount<5)) {
@@ -102,10 +101,21 @@ async function prettyFollowList({ userID, ownUserID, followIndex }) {
     if (!finalFollowList.follows || finalFollowList.follows<0) return finalFollowList;
     for (const followID of finalFollowList.follows) {
         const foundFollow = await interactFollowSchema.findOne({_id: followID})
-        finalFollowList.followData.push(foundFollow)
-
         const foundUser = await interactUserSchema.findOne({_id: foundFollow.followedUserID});
-        finalFollowList.userData.push({...foundUser._doc, followed: true});
+
+        // if user following looking at
+        var followed = false;
+        if (ownUserID == foundFollow.userID) {
+            followed = true;
+        } else {
+            const foundFollow = await findFollow({ userID: ownUserID, followedUserID: foundUser._id });
+            if (foundFollow.found==true) followed = true;
+        }
+
+        finalFollowList.data.push({
+            followData: foundFollow,
+            userData: {...foundUser._doc, followed}
+        });
     }
 
     return finalFollowList;
@@ -122,7 +132,9 @@ async function getFollowActivity() {
 // Follow user
 // POST /follow
 async function followUser({ userID, followedUserID}) {
+    // check if followedUserID was provided
     if (!followedUserID) return searchErrorV2("C021", { userID });
+    // check if user is following themselves
     if (userID == followedUserID) return searchErrorV2("C028", { userID });
 
     // check if followed
@@ -133,6 +145,10 @@ async function followUser({ userID, followedUserID}) {
     const userFound = await interactUserSchema.findOne({ _id: followedUserID });
     if (!userFound) return searchErrorV2("C027", { userID });
 
+    // make sure user can follow
+    
+
+    // get indexes
     const foundFollowingIndex = await findFollowIndexID({ userID: userID, type: 0, createNew: true});
     const foundFollowersIndex = await findFollowIndexID({ userID: followedUserID, type: 1, createNew: true });
     
@@ -253,7 +269,7 @@ async function findFollowIndexID({ userID, indexID, type, createNew }) {
     });
 
     // newest first, oldest last
-    foundIndex.follows.reverse();
+    if (foundIndex && foundIndex.folllows) foundIndex.follows?.reverse();
 
     if (createNew==false && !foundIndex) return { found: false };
     if (createNew==true && !foundIndex) {
