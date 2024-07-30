@@ -10,6 +10,7 @@ const follow = require('./follow');
 const unfollow = require('./unfollow');
 const following = require('./following');
 const followers = require('./followers');
+const update = require('./update');
 
 router.use('/profile', profile);
 router.use('/public', public);
@@ -22,5 +23,6 @@ router.use('/follow', follow);
 router.use('/unfollow', unfollow);
 router.use('/following', following);
 router.use('/followers', followers);
+router.use('/update', update);
 
 module.exports = router;

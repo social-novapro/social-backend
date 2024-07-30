@@ -24,25 +24,29 @@ const pinnedPostsSchema = mongoose.Schema({
 
 const interactUserSchema = mongoose.Schema({
     _id: reqString,
+
     username: reqString,
     usernameLc: reqString,
     displayName: reqString,
     description: reqString,
-    creationTimestamp: reqNum,
 
     profileURL: nonreqString,
+    pronouns: nonreqString,
+    statusTitle: nonreqString,
+    userAge: nonreqNum, // timestamp rounded to day
+
+    creationTimestamp: reqNum,
+
 
     followerCount: reqNum,
     followingCount: reqNum,
     likeCount: reqNum,
     likedCount: reqNum,
 
-    lastEdit: reqNum,
-    lastEditUsername: reqNum,
+    // lastEdit: reqNum,
+    // lastEditUsername: reqNum,
 
     pins: [pinnedPostsSchema],
-    pronouns: nonreqString,
-    statusTitle: nonreqString,
 
     themeData: themeSchema, // theme id
 
@@ -53,7 +57,6 @@ const interactUserSchema = mongoose.Schema({
     privacySetting: privacySettingSchema,
     
     isBrandAccount: reqBool,
-    userAge: nonreqNum, //yyyy-mm-dd
     verified: reqBool,
     demo: nonreqBool, 
 });

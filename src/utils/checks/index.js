@@ -5,14 +5,14 @@ async function checkUsername(username) {
     const usernameCheck = await interactUserSchema.findOne({ 
         usernameLc: username.toLowerCase() 
     });
-    if (usernameCheck) return { "allowed" : false, "error" : searchError("C001")};
+    if (usernameCheck) return { "allowed" : false, "reason": "taken", "error" : searchError("C001")};
 
-    if (username.length > 20) return { "allowed" : false, "error" : "Username to long!"};
+    if (username.length > 20) return { "allowed" : false, "reason": "to long", "error" : "Username to long!"};
 
     const alowedPattern = /^[a-zA-Z._-]+$/;
     const allowedUsername = alowedPattern.test(username);
 
-    if (!allowedUsername) return { "allowed" : false, "error" : searchError("C012")};
+    if (!allowedUsername) return { "allowed" : false, "reason": "invalid", "error" : searchError("C012")};
     else return { "allowed" : true};
 }
 
