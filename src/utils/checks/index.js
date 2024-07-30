@@ -1,4 +1,4 @@
-const { searchError } = require("../searchError");
+const { searchError, searchErrorV2 } = require("../searchError");
 const interactUserSchema = require('../../schemas/interactUserSchema');
 
 async function checkUsername(username) {
@@ -17,6 +17,22 @@ async function checkUsername(username) {
     else return { "allowed" : true};
 }
 
+async function checkUserage(userAge) {
+    // make sure its a number
+    if (isNaN(userAge)) {
+        return {"allowed": false, error: searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `userAge was not a number.`}] })};
+    }
+    // make sure user is 13 years old
+    const timediff = checktime() - userAge;
+    const firstYears = Math.floor(timediff / 31556952000);
+    if (firstYears < 13) {
+        return {"allowed": false, error: searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `user is not 13 years old.`}] })};
+    }        
+    return {
+        "allowed" : true
+    }
+}
+
 async function checkPassword(password) {
     return { "allowed" : true };
 };
@@ -33,4 +49,4 @@ async function checkPostContent(content) {
     else return true;
 };
 
-module.exports = { checkUsername, checkDisplayname, checkPostContent, checkPassword };
+module.exports = { checkUsername, checkUserage, checkDisplayname, checkPostContent, checkPassword };

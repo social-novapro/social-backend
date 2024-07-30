@@ -30,7 +30,7 @@ async function doubleCheckNewID(newID) {
 };
 
 async function newUserIndex(newUserDataForEntry) {
-    var { username, displayName, password, description, pronouns, statusTitle, devToken, appToken } = newUserDataForEntry;
+    var { username, displayName, password, description, pronouns, statusTitle, userAge, devToken, appToken } = newUserDataForEntry;
 
     const userID = await newUUID("userID");
     const userToken = await newUUID("userToken");
@@ -60,12 +60,10 @@ async function newUserIndex(newUserDataForEntry) {
         __v: SCHEMA_VERSIONS.interactUserSchema,
         username,
         usernameLc: username.toLowerCase(),
-        lastEditUsername: currentTime,
         displayName,
         description, 
         pronouns,
         statusTitle,
-        lastEditDisplayname: currentTime,
         creationTimestamp: currentTime,
         followerCount: 0,
         followingCount: 0,

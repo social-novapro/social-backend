@@ -2,7 +2,7 @@ const options = require('./options');
 const { searchErrorV2 } = require('../../../utils/searchError');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactUserUpdateSchema = require('../../../schemas/user/interactUserUpdateSchema');
-const { checkUsername } = require('../../checks');
+const { checkUsername, checkUserage } = require('../../checks');
 const { checktime } = require('../../checktime');
 const { v4: uuidv4 } = require('uuid');
 const { checkSafeURL } = require('../../checkSafeURL');
@@ -133,16 +133,20 @@ async function validateNewUpdate({ userID, update }) {
         
     } else if (update.field == "description") {
     } else if (update.field == "userAge") {
-        // make sure its a number
-        if (isNaN(update.value)) {
-            return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `userAge was not a number.`}] })};
+        const checkedUserAge = await checkUserage(update.value);
+        if (checkedUserAge.error) {
+            return {field: update.field, ...checkedUserAge.error};
         }
-        // make sure user is 13 years old
-        const timediff = checktime() - update.value;
-        const firstYears = Math.floor(timediff / 31556952000);
-        if (firstYears < 13) {
-            return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `user is not 13 years old.`}] })};
-        }        
+        // make sure its a number
+        // if (isNaN(update.value)) {
+        //     return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `userAge was not a number.`}] })};
+        // }
+        // // make sure user is 13 years old
+        // const timediff = checktime() - update.value;
+        // const firstYears = Math.floor(timediff / 31556952000);
+        // if (firstYears < 13) {
+        //     return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `user is not 13 years old.`}] })};
+        // }        
     } else if (update.field == "pronouns") {
     } else if (update.field == "profileURL") {
         if (update.value.startsWith('dataurl://')) {
