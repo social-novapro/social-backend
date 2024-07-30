@@ -9,10 +9,11 @@ async function checkUsername(username) {
 
     if (username.length > 20) return { "allowed" : false, "reason": "to long", "error" : "Username to long!"};
 
-    const alowedPattern = /^[a-zA-Z._-]+$/;
-    const allowedUsername = alowedPattern.test(username);
+    // const alowedPattern = /^[a-zA-Z._-]+$/;
+    const allowedPattern = /^[a-zA-Z0-9._-]+$/;
+    const allowedUsername = allowedPattern.test(username);
 
-    if (!allowedUsername) return { "allowed" : false, "reason": "invalid", "error" : searchError("C012")};
+    if (!allowedUsername) return { "allowed" : false, "reason": "not allowed", "error" : searchError("C012")};
     else return { "allowed" : true};
 }
 

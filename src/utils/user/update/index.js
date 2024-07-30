@@ -4,26 +4,18 @@ const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactUserUpdateSchema = require('../../../schemas/user/interactUserUpdateSchema');
 const { checkUsername } = require('../../checks');
 const { checktime } = require('../../checktime');
-
-validField({ userID: "userID", field: "newUsername" });
-validField({ userID: "userID", field: "username" });
+const { v4: uuidv4 } = require('uuid');
+const { checkSafeURL } = require('../../checkSafeURL');
 
 async function validField({ userID, field }) {
     for (const option of options.options) {
         if (option.dbName === field) return true
     };
 
-    return searchErrorV2("C031", { userID, options: [{ name: "reason", data: "field was invalid." }] });
+    return searchErrorV2("C031", { userID, options: [{ name: "field", data: field }, { name: "reason", data: "field does not exist." }] });
 }
 
 async function getCurrentUserUpdate({ userID }) {
-    /*
-    fields
-    [{
-        ...option
-        currentValue:
-    }]
-    */
     const userData = await interactUserSchema.findOne({ _id: userID });
     if (!userData) return searchErrorV2("C032", { userID });
     
@@ -56,58 +48,78 @@ async function userUpdate({ userID, body }) {
     const prevUpdates = await formatUserData({ userID, userData });
     const fails = [];
     const toUpdates = [];
+    const noUpdates = [];
+    const invalidFields = [];
     // arr = { field: "", value: "" }
 
     for (const field in body) {
-        console.log(field)
         const validated = await validField({ userID, field });
         if (validated.error) {
             // non valid field
-            fails.push({
+            invalidFields.push({
                 field,
                 error: validated
             });
             continue;
         };
 
-        if (prevUpdates[field] && prevUpdates === body[field]) {
+        // step 1 - make sure its not the same as the current value
+        const prevUpdate = prevUpdates.find(update => update.dbName === field);
+        if (prevUpdate && prevUpdate.currentValue === body[field]) {
             // no need to update
+            noUpdates.push({
+                field,
+                value: body[field]
+            });
             continue;
         }
-
+    
         // update field
-        
-
-        toUpdates.push({"field": field, "value": body[field]});
+        toUpdates.push({"field": field, "value": body[field], "prevValue": prevUpdate.currentValue});
         // await lastUpdatedField({ userID, field });
     }
 
     // updates
     const acceptedChanges = [];
     for (const update of toUpdates) {
-        // step 1 - make sure not updated recently
-        const lastUpdate = await lastUpdatedField({ userID, field: update.field });
-        if (lastUpdate.error) {
-            fails.push(lastUpdate);
-            continue;
-        }
-        // step 2 - validate update
+        // step 1 - validate update
         const validatedUpdate = await validateNewUpdate({ userID, update });
         if (validatedUpdate.error) {
             fails.push(validatedUpdate);
             continue;
         }
-        // step 3 - update user record
-        
-        // step 4 - create update record
+
+        // step 2 - make sure not updated recently
+        const lastUpdate = await lastUpdatedField({ userID, field: update.field });
+        if (lastUpdate.error) {
+            fails.push(lastUpdate);
+            continue;
+        }
+
         acceptedChanges.push(update);
+        userData[update.field] = update.value;
+        if (update.field == "username") {
+            userData.usernameLc = update.value.toLowerCase();
+        }
+    }
+    // step 3 - update user record
+    const newUser = await interactUserSchema.findOneAndUpdate({ _id: userID }, userData, { new: true });
+    const newUpdates = await formatUserData({ userID, userData: newUser });
+    
+    // step 4 - create update record
+    for (const update of acceptedChanges) {
+        await createUpdateRecord({ userID, field: update.field, prevValue: update.prevValue, value: update.value });
     }
 
     return {
         "success": true,
         "partialSuccess": false,
-        "fails": fails,
-        "updated": acceptedChanges
+        invalidFields,
+        fails,
+        noUpdates,
+        acceptedChanges,
+        "oldData": prevUpdates,
+        "newData": newUpdates
     }
 }
 
@@ -115,14 +127,30 @@ async function validateNewUpdate({ userID, update }) {
     if (update.field == "username") {
         const checkedUser = await checkUsername(update.value);
         if (checkedUser.error) {
-            return searchErrorV2("C031", { userID, options: [{ name: "reason", data: `username was ${checkedUser.reason}.`}] });
+            return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "username" },{ name: "reason", data: `it was ${checkedUser.reason}.`}] })};
         }
     } else if (update.field == "displayName") {
         
     } else if (update.field == "description") {
     } else if (update.field == "userAge") {
+        // make sure its a number
+        if (isNaN(update.value)) {
+            return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `userAge was not a number.`}] })};
+        }
+        // make sure user is 13 years old
+        const timediff = checktime() - update.value;
+        const firstYears = Math.floor(timediff / 31556952000);
+        if (firstYears < 13) {
+            return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `user is not 13 years old.`}] })};
+        }        
     } else if (update.field == "pronouns") {
     } else if (update.field == "profileURL") {
+        if (update.value.startsWith('dataurl://')) {
+            console.log('dataurl');
+        } else {
+            const checkedProfile = await checkSafeURL(update.value);
+            if (checkedProfile.safe==false) return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "profileURL" }, { name: "reason", data: `profileURL was not safe.`}] })};
+        }
     } else if (update.field == "statusTitle") {
     }
 
@@ -145,6 +173,7 @@ function timesince(currenttime, timestamp) {
 
     return timeuntil;
 }
+
 async function lastUpdatedField({ userID, field }) {
     // if timediff < 1800000 
     const updateRecord = await findUpdateRecord({ userID, field });
@@ -152,11 +181,11 @@ async function lastUpdatedField({ userID, field }) {
     
     const currenttime = checktime();
     if ((currenttime - updateRecord.timestamp) < 1800000) {
-        return searchErrorV2("E004", { userID,  options: [{ 
+        return {field: field, ...searchErrorV2("C033", { userID,  options: [{ 
             name: "time", data: timesince(currenttime, updateRecord.timestamp)
         }, {
             name: "field", data: field 
-        }]});
+        }]})};
     }
     return {allowed: true};
 }
@@ -170,38 +199,27 @@ async function findUpdateRecord({ userID, field }) {
     return updateRecord;
 }
 
-async function createUpdateRecord({ userID, field, value }) {
-    // const updateRecord = {
-    //     userID,
-    //     field,
-    //     value,
-    //     timestamp: checktime()
-    // };
+async function createUpdateRecord({ userID, field, prevValue, value }) {
+    await interactUserUpdateSchema.findOneAndUpdate({
+        userID,
+        field,
+        current: true
+    }, {
+        current: false
+    });
+
+    const updateRecord = await interactUserUpdateSchema.create({
+        _id: uuidv4(),
+        timestamp: checktime(),
+        current: true,
+        userID,
+        field,
+        fromValue: prevValue,
+        toValue: value,
+    });
 
     return updateRecord;
 }
-
-// async function updateUsername() {
-
-// }
-
-// async function updateDisplayName() {
-
-// }
-
-// async function updateDescription() {
-
-// }
-
-// async function updateUserAge() {
-
-// }
-
-// async function updatePronouns() {
-
-// }
-
-
 
 module.exports = { 
     userUpdate,

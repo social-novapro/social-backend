@@ -40,7 +40,7 @@
             "dbName" : "userAge",
             "required" : true,
             "showAtCreation" : true,
-            "type" : "String"
+            "type" : "Number"
         }, {
             "title" : "Pronouns",
             "description" : "Change your username",

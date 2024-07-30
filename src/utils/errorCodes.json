@@ -325,8 +325,13 @@
                 },
                 {
                     "code" : "C031",
-                    "msg" : "Requested to edit field that is not valid because %r",
+                    "msg" : "Could not update %f, because %r",
                     "options" : [
+                        {
+                            "name" : "field",
+                            "replacement" : "%f",
+                            "default" : "field"
+                        },
                         {
                             "name" : "reason",
                             "replacement" : "%r",
@@ -648,6 +653,18 @@
                 {
                     "code" : "I028",
                     "msg" : "Please use /v1/users/unfollow/:unfollowUserID instead of /v1/delete/unfollowUser/:unfollowUserID"
+                },
+                {
+                    "code" : "I029",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/userEdit"
+                },
+                {
+                    "code" : "I030",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/editUsername"
+                },
+                {
+                    "code" : "I031",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/editDisplayname"
                 },
                 {
                     "code" : "J001",
