@@ -1,5 +1,6 @@
 const { searchError, searchErrorV2 } = require("../searchError");
 const interactUserSchema = require('../../schemas/interactUserSchema');
+const { checktime } = require("../checktime");
 
 async function checkUsername(username) {
     const usernameCheck = await interactUserSchema.findOne({ 
@@ -17,7 +18,7 @@ async function checkUsername(username) {
     else return { "allowed" : true};
 }
 
-async function checkUserage(userAge) {
+async function checkUserage(userID, userAge) {
     // make sure its a number
     if (isNaN(userAge)) {
         return {"allowed": false, error: searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `userAge was not a number.`}] })};

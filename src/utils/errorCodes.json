@@ -360,6 +360,10 @@
                     ]
                 },
                 {
+                    "code" : "C034",
+                    "msg" : "No userAge provided."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },

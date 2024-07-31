@@ -64,6 +64,7 @@ async function newUserIndex(newUserDataForEntry) {
         description, 
         pronouns,
         statusTitle,
+        userAge,
         creationTimestamp: currentTime,
         followerCount: 0,
         followingCount: 0,

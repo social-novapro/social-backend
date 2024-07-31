@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
     else if (!username) return res.status(400).send(searchErrorV2("C003", { userID: null }));
     else if (!displayName) return res.status(400).send(searchErrorV2("C004", { userID: null }));
     else if (!password) return res.status(400).send(searchErrorV2("C006", { userID: null }));
-    else if (!userAge) return res.status(400).send(searchErrorV2("C007", { userID: null }));
+    else if (!userAge) return res.status(400).send(searchErrorV2("C034", { userID: null }));
 
     const checkedUser = await checkUsername(username);
     if (checkedUser.error) return res.status(400).send(checkedUser.error);
@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
     const checkedPassword = await checkPassword(password);
     if (checkedPassword.error) return res.status(400).send(checkedPassword.error);
 
-    const checkedUserAge = await checkUserage(userAge);
+    const checkedUserAge = await checkUserage("newUser", userAge);
     if (checkedUserAge.error) return res.status(400).send(checkedUserAge.error);
 
     const { devtoken, apptoken }  = req.headers;

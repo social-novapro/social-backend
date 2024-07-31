@@ -1,15 +1,15 @@
-const options = require('./options');
-const { searchErrorV2 } = require('../../../utils/searchError');
+const { v4: uuidv4 } = require('uuid');
+const options = require('./options.json');
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactUserUpdateSchema = require('../../../schemas/user/interactUserUpdateSchema');
+const { searchErrorV2 } = require('../../../utils/searchError');
 const { checkUsername, checkUserage } = require('../../checks');
 const { checktime } = require('../../checktime');
-const { v4: uuidv4 } = require('uuid');
 const { checkSafeURL } = require('../../checkSafeURL');
 
 async function validField({ userID, field }) {
     for (const option of options.options) {
-        if (option.dbName === field) return true
+        if (option.dbName === field) return option
     };
 
     return searchErrorV2("C031", { userID, options: [{ name: "field", data: field }, { name: "reason", data: "field does not exist." }] });
@@ -75,7 +75,7 @@ async function userUpdate({ userID, body }) {
         }
     
         // update field
-        toUpdates.push({"field": field, "value": body[field], "prevValue": prevUpdate.currentValue});
+        toUpdates.push({"field": field, "value": body[field], "prevValue": prevUpdate.currentValue, type: validated.type});
         // await lastUpdatedField({ userID, field });
     }
 
@@ -133,20 +133,10 @@ async function validateNewUpdate({ userID, update }) {
         
     } else if (update.field == "description") {
     } else if (update.field == "userAge") {
-        const checkedUserAge = await checkUserage(update.value);
+        const checkedUserAge = await checkUserage(userID, update.value);
         if (checkedUserAge.error) {
             return {field: update.field, ...checkedUserAge.error};
         }
-        // make sure its a number
-        // if (isNaN(update.value)) {
-        //     return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `userAge was not a number.`}] })};
-        // }
-        // // make sure user is 13 years old
-        // const timediff = checktime() - update.value;
-        // const firstYears = Math.floor(timediff / 31556952000);
-        // if (firstYears < 13) {
-        //     return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "userAge" }, { name: "reason", data: `user is not 13 years old.`}] })};
-        // }        
     } else if (update.field == "pronouns") {
     } else if (update.field == "profileURL") {
         if (update.value.startsWith('dataurl://')) {
