@@ -3,7 +3,7 @@ const { newUserIndex } = require('../../../../utils/user/createUser');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
 const { searchErrorV2 } = require('../../../../utils/searchError/');
-const { checkUsername, checkPassword } = require('../../../../utils/checks/');
+const { checkUsername, checkPassword, checkUserage } = require('../../../../utils/checks/');
 const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
 const SHA1 = require("crypto-js/sha1");
@@ -14,12 +14,13 @@ router.post('/', async (req, res) => {
     const tokenData = await checkDevTokens(req.headers.devtoken, req.headers.apptoken);
     if (tokenData.authorized == false) return res.status(401).send(tokenData);
 
-    const { username, displayName, password, description, pronouns, statusTitle, email } = req.body;
+    const { username, displayName, password, description, pronouns, statusTitle, email, userAge } = req.body;
 
     if (!username && !displayName) return res.status(400).send(searchErrorV2("C002", { userID: null }));
     else if (!username) return res.status(400).send(searchErrorV2("C003", { userID: null }));
     else if (!displayName) return res.status(400).send(searchErrorV2("C004", { userID: null }));
     else if (!password) return res.status(400).send(searchErrorV2("C006", { userID: null }));
+    else if (!userAge) return res.status(400).send(searchErrorV2("C034", { userID: null }));
 
     const checkedUser = await checkUsername(username);
     if (checkedUser.error) return res.status(400).send(checkedUser.error);
@@ -27,8 +28,11 @@ router.post('/', async (req, res) => {
     const checkedPassword = await checkPassword(password);
     if (checkedPassword.error) return res.status(400).send(checkedPassword.error);
 
+    const checkedUserAge = await checkUserage("newUser", userAge);
+    if (checkedUserAge.error) return res.status(400).send(checkedUserAge.error);
+
     const { devtoken, apptoken }  = req.headers;
-    const newUserDataForEntry = { username, displayName, password, description, pronouns, statusTitle, devToken: devtoken, appToken: apptoken };  
+    const newUserDataForEntry = { username, displayName, password, description, pronouns, statusTitle, userAge, devToken: devtoken, appToken: apptoken };  
     const newUserID = await newUserIndex(newUserDataForEntry);
 
     if (newUserID.error) return res.status(400).send(newUserID.error);

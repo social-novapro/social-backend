@@ -4,7 +4,6 @@ const { searchErrorV2 } = require('../../utils/searchError');
 // Legacy Routes Imports (still used)
 const getAPI = require('./get');
 const postAPI = require('./post');
-const putAPI = require('./put');
 
 // Feature Routes Imports
 const serverStatus = require('./serverStatus');
@@ -21,7 +20,6 @@ const search = require('./search');
 // Legacy Routes (still used)
 router.use('/get', getAPI);
 router.use('/post', postAPI);
-router.use('/put', putAPI);
 
 // Feature Routes
 router.use('/serverStatus', serverStatus);
@@ -127,5 +125,15 @@ router.put('/put/editPost/', async (req, res) => {
 router.put('/put/likePost/:postID', async (req, res) => {
     return res.status(400).send(searchErrorV2("I017", { userID: req.headers.userid }));
 })
+router.put('/put/userEdit/', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I029", { userID: req.headers.userid }));
+})
+router.put('/put/editUsername/', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I030", { userID: req.headers.userid }));
+})
+router.put('/put/editDisplayname/', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I031", { userID: req.headers.userid }));
+})
+
 
 module.exports = router;
