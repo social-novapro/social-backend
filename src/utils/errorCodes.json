@@ -288,6 +288,82 @@
                     "msg" : "No search term was provided when looking for user."
                 },
                 {
+                    "code" : "C022",
+                    "msg" : "Client already following user."
+                },
+                {
+                    "code" : "C023",
+                    "msg" : "No type provided searching for follow index."
+                },
+                {
+                    "code" : "C024",
+                    "msg" : "CreateNew must be false or true while searching for follow index."
+                },
+                {
+                    "code" : "C025",
+                    "msg" : "No userID provided while searching for follow index."
+                },
+                {
+                    "code" : "C026",
+                    "msg" : "Client was not previously following user."
+                },
+                {
+                    "code" : "C027",
+                    "msg" : "Client requested to follow a user that does not exist."
+                },
+                {
+                    "code" : "C028",
+                    "msg" : "User can not follow themself."
+                },
+                {
+                    "code" : "C029",
+                    "msg" : "User can not unfollow themself."
+                },
+                {
+                    "code" : "C030",
+                    "msg" : "Can not follow user due to privacy settings."
+                },
+                {
+                    "code" : "C031",
+                    "msg" : "Could not update %f, because %r",
+                    "options" : [
+                        {
+                            "name" : "field",
+                            "replacement" : "%f",
+                            "default" : "field"
+                        },
+                        {
+                            "name" : "reason",
+                            "replacement" : "%r",
+                            "default" : "unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "C032",
+                    "msg" : "Could not find user to get data for updates."
+                },
+                {
+                    "code" : "C033",
+                    "msg" : "Please wait %t before editing %f.",
+                    "options" : [
+                        {
+                            "name" : "time",
+                            "replacement" : "%t",
+                            "default" : "30m"
+                        },
+                        {
+                            "name" : "field",
+                            "replacement" : "%f",
+                            "default" : "(field)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "C034",
+                    "msg" : "No userAge provided."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -565,6 +641,34 @@
                 {
                     "code" : "I024",
                     "msg" : "Please use /v1/users/get/basic/:username instead of /v1/get/username/:username"
+                },
+                {
+                    "code" : "I025",
+                    "msg" : "Please use /v1/users/following/:userID instead of /v1/get/following/:userID"
+                },
+                {
+                    "code" : "I026",
+                    "msg" : "Please use /v1/users/followers/:userID instead of /v1/get/followers/:userID"
+                },
+                {
+                    "code" : "I027",
+                    "msg" : "Please use /v1/users/follow/:followUserID instead of /v1/post/followUser/:followUserID"
+                },
+                {
+                    "code" : "I028",
+                    "msg" : "Please use /v1/users/unfollow/:unfollowUserID instead of /v1/delete/unfollowUser/:unfollowUserID"
+                },
+                {
+                    "code" : "I029",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/userEdit"
+                },
+                {
+                    "code" : "I030",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/editUsername"
+                },
+                {
+                    "code" : "I031",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/editDisplayname"
                 },
                 {
                     "code" : "J001",

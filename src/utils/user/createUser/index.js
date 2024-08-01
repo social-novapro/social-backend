@@ -7,6 +7,8 @@ const { checktime } = require('../../checktime');
 const { createAccessToken } = require('../createAccessToken');
 const { setPassword } = require('../../userAuth');
 const { awardUserBadge } = require('../badges');
+const { getPrivacySettings } = require('../../privacy');
+const { getPreference } = require('../../feeds/preference');
 
 async function newUUID(usage, userID) {
     const newID = uuidv4();
@@ -30,7 +32,7 @@ async function doubleCheckNewID(newID) {
 };
 
 async function newUserIndex(newUserDataForEntry) {
-    var { username, displayName, password, description, pronouns, statusTitle, devToken, appToken } = newUserDataForEntry;
+    var { username, displayName, password, description, pronouns, statusTitle, userAge, devToken, appToken } = newUserDataForEntry;
 
     const userID = await newUUID("userID");
     const userToken = await newUUID("userToken");
@@ -60,12 +62,11 @@ async function newUserIndex(newUserDataForEntry) {
         __v: SCHEMA_VERSIONS.interactUserSchema,
         username,
         usernameLc: username.toLowerCase(),
-        lastEditUsername: currentTime,
         displayName,
         description, 
         pronouns,
         statusTitle,
-        lastEditDisplayname: currentTime,
+        userAge,
         creationTimestamp: currentTime,
         followerCount: 0,
         followingCount: 0,
@@ -78,6 +79,10 @@ async function newUserIndex(newUserDataForEntry) {
     });
 
     await awardUserBadge({ userID, badgeID: "interact_user" });
+
+    // create privacy and feed settings
+    await getPreference({ userID });
+    await getPrivacySettings({ userID });
 
     return userID;
 };

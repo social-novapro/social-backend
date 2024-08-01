@@ -47,6 +47,7 @@ async function exportIndex({ userID, indexID }) {
 async function getCurrentIndex() {
     currentIndexID = await getPostIndex();
     
+    // TODO: possible fix this, duplicating ?
     if (!currentIndexID) currentIndexID = await createIndex({});
 
     currentIndex = await interactPostIndexSchema.findOne({ _id: currentIndexID });

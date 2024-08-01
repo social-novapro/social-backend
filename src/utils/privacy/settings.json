@@ -2,6 +2,10 @@
 {
     "modified" : "December 31, 2023",
     "amountOptions" : 5,
+    "baseOptions" : {
+        "PUBLIC" : 1,
+        "FRIENDS_OF_FRIENDS" : 2
+    },
     "options" : [
         {
             "intTitle" : 1,
@@ -76,15 +80,12 @@
         },
         {
             "title" : "Follow Privacy",
-            "description" : "Choose who can send you follow requests.",
+            "description" : "Choose who can follow you.",
             "default" : 1,
             "shortTitle" : "follow",
             "dbTitle" : "follow",
             "options" : [{
                 "value" : 1,
-                "description" : 2
-            }, {
-                "value" : 2,
                 "description" : 2
             }, {
                 "value" : 5,
