@@ -7,6 +7,8 @@ const { checktime } = require('../../checktime');
 const { createAccessToken } = require('../createAccessToken');
 const { setPassword } = require('../../userAuth');
 const { awardUserBadge } = require('../badges');
+const { getPrivacySettings } = require('../../privacy');
+const { getPreference } = require('../../feeds/preference');
 
 async function newUUID(usage, userID) {
     const newID = uuidv4();
@@ -77,6 +79,10 @@ async function newUserIndex(newUserDataForEntry) {
     });
 
     await awardUserBadge({ userID, badgeID: "interact_user" });
+
+    // create privacy and feed settings
+    await getPreference({ userID });
+    await getPrivacySettings({ userID });
 
     return userID;
 };
