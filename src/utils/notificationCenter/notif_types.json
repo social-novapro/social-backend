@@ -1,0 +1,153 @@
+{
+    "headerTypes" : [
+        {
+            "name" : "User",
+            "id" : 100,
+            "sectionId" : 8
+        }, {
+            "name" : "Post",
+            "id" : 200,
+            "sectionId" : 7
+        }, {
+            "name" : "Direct Message",
+            "id" : 300,
+            "sectionId" : 8
+        }, {
+            "name" : "Mention",
+            "id" : 400,
+            "sectionId" : 7
+        }, {
+            "name" : "Subscription",
+            "id" : 500,
+            "sectionId" : 7
+        }, {
+            "name" : "Other",
+            "id" : 1000,
+            "sectionId" : 7
+        }
+    ],
+    "notificationSections" : [
+        {
+            "name" : "like",
+            "description" : "New likes",
+            "id" : 1
+        }, {
+            "name" : "reply",
+            "description" : "New replies",
+            "id" : 2
+        }, {
+            "name" : "mention",
+            "description" : "New mentions",
+            "id" : 3
+        }, {
+            "name" : "follow",
+            "description" : "New followers",
+            "id" : 4
+        }, {
+            "name" : "subscription",
+            "description" : "New post notifications",
+            "id" : 5
+        }, {
+            "name" : "copost",
+            "description" : "New copost requests",
+            "id" : 6
+        }, {
+            "name" : "other",
+            "description" : "New notifications",
+            "id" : 7
+        }, {
+            "name" : "hidden",
+            "description" : "Notifications that do not show up in app.",
+            "id" : 8
+        }
+    ],
+    "types" : [
+        {
+            "name" : "email verification",
+            "description" : "Verify your email",
+            "id" : 101
+        }, {
+            "name" : "welcome",
+            "description" : "Welcome to your account",
+            "id" : 102
+        }, {
+            "name" : "password reset",
+            "id" : 103
+        }, {
+            "name" : "New Post",
+            "id" : 201
+        }, {
+            "name" : "Post edited",
+            "id" : 202
+        }, {
+            "name" : "Post deleted",
+            "id" : 203
+        }, {
+            "name" : "Copost request",
+            "id" : 204
+        }, {
+            "name" : "Copost approved",
+            "id" : 205
+        }, {
+            "name" : "Copost accepted",
+            "id" : 206
+        }, {
+            "name" : "New message",
+            "id" : 301
+        }, {
+            "name" : "New message request",
+            "id" : 302
+        }, {
+            "name" : "Message reacted",
+            "id" : 303
+        }, {
+            "name" : "Message replied",
+            "id" : 304
+        }, {
+            "name" : "Message unsent",
+            "id" : 305
+        }, {
+            "name" : "Message edited",
+            "id" : 306
+        }, {
+            "name" : "User mentioned",
+            "id" : 401
+        }, {
+            "name" : "Replied to your post",
+            "id" : 402
+        }, {
+            "name" : "Liked your post",
+            "id" : 403
+        }, {
+            "name" : "Quoted your post",
+            "id" : 404
+        }, {
+            "name" : "User posted",
+            "id" : 501
+        }, {
+            "name" : "User posted a reply",
+            "id" : 502
+        },{
+            "name" : "other",
+            "id" : 1001
+        }, {
+            "name" : "unknown",
+            "id" : 1002
+        }
+    ],
+    "systems": [
+        {
+            "name" : "app",
+            "description" : "In-app notifications",
+            "id" : 1
+        }, {
+            "name" : "email",
+            "description" : "Email notifications",
+            "id" : 2
+        }, {
+            "name" : "iOS",
+            "description" : "iOS push notifications",
+            "id" : 3
+        }
+    ]
+}
