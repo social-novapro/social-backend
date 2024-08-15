@@ -13,7 +13,7 @@ const APIdata = require('./APIs/API');
 const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
-
+const {updateNotifTypesDB} = require('./utils/notificationCenter/manage_types');
 require('dotenv').config({ path: 'secret.env' })
 
 
@@ -157,6 +157,7 @@ function getTime() {
     return currentTime;
 };
 
+updateNotifTypesDB();
 // WEBSOCKET CODE
 const server = http.createServer(app);
  //const WebSocketRoute = require('./WS')

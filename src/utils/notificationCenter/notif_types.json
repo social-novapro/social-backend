@@ -1,7 +1,7 @@
 {
     "headerTypes" : [
         {
-            "name" : "User",
+            "name" : "Account",
             "id" : 100,
             "sectionId" : 8
         }, {
@@ -20,6 +20,10 @@
             "name" : "Subscription",
             "id" : 500,
             "sectionId" : 7
+        }, {
+            "name" : "Follow",
+            "id" : 600,
+            "sectionId" : 4
         }, {
             "name" : "Other",
             "id" : 1000,
@@ -120,14 +124,42 @@
             "id" : 403
         }, {
             "name" : "Quoted your post",
-            "id" : 404
+            "id" : 404,
+            "pushToSystem" : [
+                { 
+                    "id" : 3,
+                    "title" : "Interact Quote",
+                    "subtitle" : "[username] quoted your post!",
+                    "body" : "[post_content]"
+                }
+            ]
+
         }, {
             "name" : "User posted",
             "id" : 501
         }, {
             "name" : "User posted a reply",
             "id" : 502
-        },{
+        }, {
+            "name" : "Followed",
+            "description" : "User followed you",
+            "id" : 601,
+            "pushToSystem" : [
+                { 
+                    "id" : 1,
+                    "content" : "[username] followed you"
+                }, {
+                    "id" : 2,
+                    "subject" : "New Follower",
+                    "content" : "You have a new follower on Interact! [username] followed, click here to view! [user_url] "
+                }, {
+                    "id" : 3,
+                    "title" : "Interact Follow",
+                    "subtitle" : "[username] followed you!",
+                    "body" : null
+                }
+            ]
+        }, {
             "name" : "other",
             "id" : 1001
         }, {
