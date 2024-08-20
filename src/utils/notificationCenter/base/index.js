@@ -1,3 +1,4 @@
+const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const notif_types = require('../notif_types.json');
 /* 
 this is the base notification center
@@ -58,3 +59,106 @@ async function checkForNotif({ userID, type }) {
     if (!notif) return false;
     return true;
 }
+
+// push any related notifications to any users
+async function pushPostNotifs({ postID, userID, postData, userData, coposters, tags }) {
+    const subscribedList = await interactSubscribeNotification.findOne({_id: userID});
+
+    var sendQuoteNotif = false;
+    var sendReplyNotif = false;
+    var taggedNotifs = [];
+    // notificationID(s)
+
+    // quote - #3 - dont show if mentioned
+    if (postData.isQuote) {
+        if (postData.quoteData?.userID != userID) {
+            sendQuoteNotif = true
+        }
+    }
+
+    // reply - #4 - dont show if mentinoed, quoted
+    if (postData.isReply) {
+        if (!sendQuoteNotif && (postData.replyData?.userID != userID)) {
+            sendReplyNotif = true;
+        }
+    }
+
+   
+    // mentions - #1 - get 
+    if (tags.length > 0) {
+        for (const tag of tags) {
+            if ((tag.tagTextOriginal?.startsWith("@")) && tag.userIDTagged != userID) {
+                // send notif mentions
+                taggedNotifs.push(tag.userIDTagged);
+
+            }
+        }
+    }
+
+
+    // coposters - #2 (but also shows if mentioned, shows no matter what)
+    if (coposters.length > 0) {
+        for (const coposter of coposters) {
+            if (coposter != userID) {
+                // send notif coposter
+
+                // check for quote
+                if (sendQuoteNotif) {
+                    if (postData.quoteData?.userID == coposter) {
+                        // dont send quote
+                        sendQuoteNotif = false;
+                    }
+                }
+            
+                // check for reply
+                if (sendReplyNotif) {
+                    if (postData.replyData?.userID == coposter) {
+                        // dont send reply
+                        sendReplyNotif = false;
+                    }
+                }
+            }
+        }
+    }
+
+
+    // send notif for quote, and reply
+    if (sendQuoteNotif) {
+        // send quote notif
+    }
+
+    if (sendReplyNotif) {
+        // send reply notif
+    }
+
+    // subscriptions - #5 - dont show if mentioned, quoted, replied
+    if (subscribedList) {
+        for (const sub of subscribedList.subscribed) {
+            if (sub != userID) {
+                if (taggedNotifs.includes(sub)) continue; // dont send
+
+                if (sendQuoteNotif) {
+                    if (postData.quoteData?.userID == sub) continue; // dont send
+                }
+
+                if (sendReplyNotif) {
+                    if (postData.replyData?.userID == sub) continue; // dont send
+                }
+
+                // finally, send notif sub
+            }
+        }
+    }
+
+    // tags - not yet
+    // this will be good for follow notifications
+
+    return true;
+}
+
+// push notifications to all users who are subscribed to this user
+async function pushUserSubscriptions({ postID, userID, postData }) {
+    //  check for recent post from user
+}
+
+module.exports = { pushPostNotifs }

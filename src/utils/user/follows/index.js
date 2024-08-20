@@ -193,6 +193,7 @@ async function followUser({ userID, followedUserID}) {
         change: "add"
     });
 
+    // await notificationCenterFollowUser
     return createdFollow;
 }
 

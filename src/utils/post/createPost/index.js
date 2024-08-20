@@ -16,6 +16,7 @@ const { searchErrorV2 } = require('../../searchError');
 const { coposterRequestNotification } = require('../../pushNotifications/postActionNotifications');
 const { embedPost } = require('../../search/embed');
 const { pushPostTag, checkForTags } = require('../tags');
+const { pushPostNotifs } = require('../../notificationCenter/base');
 
 async function createNewPost({
     content,
@@ -51,8 +52,11 @@ async function createNewPost({
     const postData = await interactPostSchema.findOne({_id: postID});
     if (!postData) return searchErrorV2("D002", { userID });
 
-    await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
+    const foundTags = await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
+    // pushPostNotifs({ postID, userID, postData, userData, coposters, tags: foundTags });
+    
     pushNewPost(userID, postID)
+
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
 
     return postData
