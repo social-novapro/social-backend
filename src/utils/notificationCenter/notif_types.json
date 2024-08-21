@@ -38,45 +38,10 @@
             "required" : false
         }, {
             "sectionId" : 7,
-            "ids" : [1000, 1100],
+            "ids" : [1000, 1099],
             "name" : "Other",
             "description" : "Other notifications",
             "required" : false
-        }
-    ],
-    "notificationSections" : [
-        {
-            "name" : "like",
-            "description" : "New likes",
-            "id" : 1
-        }, {
-            "name" : "reply",
-            "description" : "New replies",
-            "id" : 2
-        }, {
-            "name" : "mention",
-            "description" : "New mentions",
-            "id" : 3
-        }, {
-            "name" : "follow",
-            "description" : "New followers",
-            "id" : 4
-        }, {
-            "name" : "subscription",
-            "description" : "New post notifications",
-            "id" : 5
-        }, {
-            "name" : "copost",
-            "description" : "New copost requests",
-            "id" : 6
-        }, {
-            "name" : "other",
-            "description" : "New notifications",
-            "id" : 7
-        }, {
-            "name" : "hidden",
-            "description" : "Notifications that do not show up in app.",
-            "id" : 8
         }
     ],
     "types" : [

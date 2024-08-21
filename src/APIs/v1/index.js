@@ -14,6 +14,7 @@ const emails = require('./emails');
 const users = require('./users');
 const posts = require('./posts');
 const notifications = require('./notifications');
+const notificationCenter = require('./notificationCenter');
 const feeds = require('./feeds');
 const search = require('./search');
 
@@ -31,6 +32,7 @@ router.use('/users', users);
 router.use('/posts', posts);
 router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
+router.use('/notificationCenter', notificationCenter);
 router.use('/feeds', feeds);
 router.use('/search', search);
 
