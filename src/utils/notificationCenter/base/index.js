@@ -1,5 +1,8 @@
+const interactNotifications = require('../../../schemas/notifications/interactNotifications');
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
+const { checktime } = require('../../checktime');
 const notif_types = require('../notif_types.json');
+const { v4: uuidv4 } = require('uuid');
 /* 
 this is the base notification center
 
@@ -132,7 +135,11 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
     }
 
     // subscriptions - #5 - dont show if mentioned, quoted, replied
-    if (subscribedList) {
+    if (subscribedList && subscribedList.subscribed.length > 0) {
+        // create general notif
+        const notifSubID = await createNotification({ postID, userID, type: 501 });
+        // if isreply, notifID should be 502
+
         for (const sub of subscribedList.subscribed) {
             if (sub != userID) {
                 if (taggedNotifs.includes(sub)) continue; // dont send
@@ -161,4 +168,20 @@ async function pushUserSubscriptions({ postID, userID, postData }) {
     //  check for recent post from user
 }
 
+
+
+// create a new notification - meant to send to multiple people
+// userID - user who created post
+async function createNotification({ postID, userID, type }) {
+    const UUID = uuidv4();
+    await interactNotifications.create({
+        _id: UUID,
+        timestamp: checktime(),
+        type,
+        userID,
+        postID,
+        version: 2
+    });
+    return UUID;
+}
 module.exports = { pushPostNotifs }

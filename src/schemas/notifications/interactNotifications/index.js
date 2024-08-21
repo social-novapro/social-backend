@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqString, nonreqString, reqNum } = require('../../types');
+const { reqString, nonreqString, reqNum, nonreqNum } = require('../../types');
 
 const interactNotifications = mongoose.Schema({
     /*
@@ -35,7 +35,8 @@ const interactNotifications = mongoose.Schema({
     timestamp: reqNum,
     type: reqNum,
     userID: reqString,
-    postID: nonreqString
+    postID: nonreqString,
+    version: nonreqNum
 });
 
 module.exports = mongoose.model('interact-notifications', interactNotifications);

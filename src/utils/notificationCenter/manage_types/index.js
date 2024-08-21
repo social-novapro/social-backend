@@ -3,14 +3,30 @@ const { checktime } = require('../../checktime');
 const notif_types = require('../notif_types.json');
 
 async function updateNotifTypesDB() {
-    for (const type of notif_types.types) {
-        // console.log(type)
+    if (!notif_types.types) return console.log("No types found in notif_types.json");
+    
+    // will make sure the ids are all there, figure out which ones to delete
+    const mongoTypes = await interactNotificationCenterTypeSchema.find();
+    for (const mongoType of mongoTypes) {
+        const foundType = notif_types.types.find(type => type.id === mongoType._id);
+        if (!foundType) {
+            console.log(`Deleted type ${mongoType._id}, not found in json`)
+            await interactNotificationCenterTypeSchema.findOneAndDelete({ _id: mongoType._id });
+        }
+    }
 
+    // checks json file for types
+    for (const type of notif_types.types) {
         const foundType = await findNotifTypeData({type: type.id});
         // console.log(foundType)
+        if (type.esstential === undefined) type.esstential = false;
 
         const isSameType = isSameJsonToMongoType(type, foundType);
 
+        // console.log(`Checking type ${type.id}`)
+        // console.log(`isSameType: ${isSameType}`)
+        // console.log(`foundType: ${foundType.essential}`)
+        // console.log(`jsonType: ${type.esstential ? type.esstential : false}`)
         // no update needed
         if (isSameType) {
             // console.log(`Type ${type.id} is the same`)
@@ -28,8 +44,7 @@ async function updateNotifTypesDB() {
             name: type.name,
             timestamp: checktime(),
             description: type.description,
-            // pushToSystem: type.pushToSystem
-            
+            esstential: type.esstential,
         });
 
         if (type.pushToSystem?.length > 0) {
@@ -53,14 +68,18 @@ async function updateNotifTypesDB() {
             console.log(`No system data for notification id type ${type.id}`)
         }
 
-        console.log(`Type ${type.id} updated`)
+        console.log(`Type ${type.id} ${foundType ? "updated" : "created"}`);
     }
 }
 
 function isSameJsonToMongoType(jsonType, mongoType) {
+    if (!jsonType) return false; // make sure it exists
+    if (!mongoType) return false; // make sure it exists
+    if (mongoType.esstential === null) return false; // legacy check
     if (jsonType.id !== mongoType._id) return false;
     if (jsonType.name !== mongoType.name) return false;
     if (jsonType.description !== mongoType.description) return false;
+    if (jsonType.esstential !== mongoType.esstential) return false;
 
     // probably overcomplicated
     // this makes sure that

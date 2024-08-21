@@ -1,33 +1,47 @@
 {
-    "headerTypes" : [
+    "sectionTypes" : [
         {
+            "id" : 1,
+            "ids" : [100, 199],
             "name" : "Account",
-            "id" : 100,
-            "sectionId" : 8
+            "description" : "Notifications related to your account",
+            "required" : true
         }, {
+            "id" : 2,
+            "ids" : [200, 299],
             "name" : "Post",
-            "id" : 200,
-            "sectionId" : 7
+            "description" : "Notifications related to posts.",
+            "required" : false
         }, {
+            "id" : 3,
+            "ids" : [300, 399],
             "name" : "Direct Message",
-            "id" : 300,
-            "sectionId" : 8
+            "description" : "Notifications related to direct messages",
+            "required" : false
         }, {
+            "sectionId" : 4,
+            "ids" : [400, 499],
             "name" : "Mention",
-            "id" : 400,
-            "sectionId" : 7
+            "description" : "Notifications related to mentions",
+            "required" : false
         }, {
+            "sectionId" : 5,
+            "ids" : [500, 599],
             "name" : "Subscription",
-            "id" : 500,
-            "sectionId" : 7
+            "description" : "Notifications related to your subscriptions",
+            "required" : false
         }, {
+            "sectionId" : 6,
             "name" : "Follow",
-            "id" : 600,
-            "sectionId" : 4
+            "description" : "Notifications for new follows.",
+            "ids" : [600, 699],
+            "required" : false
         }, {
+            "sectionId" : 7,
+            "ids" : [1000, 1100],
             "name" : "Other",
-            "id" : 1000,
-            "sectionId" : 7
+            "description" : "Other notifications",
+            "required" : false
         }
     ],
     "notificationSections" : [
@@ -67,64 +81,77 @@
     ],
     "types" : [
         {
+            "id" : 101,
             "name" : "email verification",
             "description" : "Verify your email",
-            "id" : 101
+            "required" : true
         }, {
+            "id" : 102,
             "name" : "welcome",
             "description" : "Welcome to your account",
-            "id" : 102
+            "required" : true
         }, {
+            "id" : 103,
             "name" : "password reset",
-            "id" : 103
+            "required" : true
         }, {
-            "name" : "New Post",
-            "id" : 201
+            "id" : 201,
+            "name" : "New Post"
         }, {
-            "name" : "Post edited",
-            "id" : 202
+            "id" : 202,
+            "name" : "Post edited"
         }, {
-            "name" : "Post deleted",
-            "id" : 203
+            "id" : 203,
+            "name" : "Post deleted"
         }, {
+            "id" : 204,
             "name" : "Copost request",
-            "id" : 204
+            "esstential" : true
         }, {
-            "name" : "Copost approved",
-            "id" : 205
+            "id" : 205,
+            "name" : "Copost approved"
         }, {
-            "name" : "Copost accepted",
-            "id" : 206
+            "id" : 206,
+            "name" : "Copost accepted"
         }, {
+            "id" : 301,
             "name" : "New message",
-            "id" : 301
+            "esstential" : true
         }, {
-            "name" : "New message request",
-            "id" : 302
+            "id" : 302,
+            "name" : "New message request"
         }, {
+            "id" : 303,
             "name" : "Message reacted",
-            "id" : 303
+            "esstential" : true
         }, {
+            "id" : 304,
             "name" : "Message replied",
-            "id" : 304
+            "esstential" : true
         }, {
+            "id" : 305,
             "name" : "Message unsent",
-            "id" : 305
+            "esstential" : true
         }, {
+            "id" : 306,
             "name" : "Message edited",
-            "id" : 306
+            "esstential" : true
         }, {
+            "id" : 401,
             "name" : "User mentioned",
-            "id" : 401
+            "esstential" : true
         }, {
+            "id" : 402,
             "name" : "Replied to your post",
-            "id" : 402
+            "esstential" : true
         }, {
+            "id" : 403,
             "name" : "Liked your post",
-            "id" : 403
+            "esstential" : true
         }, {
-            "name" : "Quoted your post",
             "id" : 404,
+            "name" : "Quoted your post",
+            "esstential" : true,
             "pushToSystem" : [
                 { 
                     "id" : 3,
@@ -133,17 +160,34 @@
                     "body" : "[post_content]"
                 }
             ]
-
         }, {
-            "name" : "User posted",
-            "id" : 501
+            "id" : 501,
+            "name" : "New Notification",
+            "description" : "Someone you are subscribed to posted.",
+            "esstential" : true,
+            "pushToSystem" : [
+                { 
+                    "id" : 1,
+                    "content" : "[username] posted"
+                }, {
+                    "id" : 2,
+                    "subject" : "New Notification",
+                    "content" : "[username] posted, click here to view! [post_url]"
+                }, {
+                    "id" : 3,
+                    "title" : "Interact Follow",
+                    "subtitle" : "New Post from [username]",
+                    "body" : "[post_content]"
+                }
+            ]
         }, {
-            "name" : "User posted a reply",
-            "id" : 502
+            "id" : 502,
+            "name" : "User posted a reply"
         }, {
+            "id" : 601,
             "name" : "Followed",
             "description" : "User followed you",
-            "id" : 601,
+            "esstential" : true,
             "pushToSystem" : [
                 { 
                     "id" : 1,

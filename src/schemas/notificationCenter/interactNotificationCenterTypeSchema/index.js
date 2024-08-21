@@ -16,6 +16,7 @@ const interactNotificationCenterTypeSchema = mongoose.Schema({
     timestamp: reqNum, // timestamp added type
     name: reqString, // name of type
     description: nonreqString, // description of type
+    esstential: reqBool, // if type is essential
     pushToSystem: [interactSystemData],
 });
 
