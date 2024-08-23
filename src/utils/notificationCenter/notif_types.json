@@ -114,7 +114,7 @@
                 { 
                     "id" : 3,
                     "title" : "Interact Reply",
-                    "subtitle" : "[username] replied to your post!",
+                    "subtitle" : "[user_tag] replied to your post!",
                     "body" : "[post_content]"
                 }
             ]
@@ -130,7 +130,7 @@
                 { 
                     "id" : 3,
                     "title" : "Interact Quote",
-                    "subtitle" : "[username] quoted your post!",
+                    "subtitle" : "[user_tag] quoted your post!",
                     "body" : "[post_content]"
                 }
             ]
@@ -142,16 +142,17 @@
             "pushToSystem" : [
                 { 
                     "id" : 1,
-                    "subject" : "[username] posted",
+                    "subject" : "[user_tag] posted",
                     "content" : "[post_content]"
                 }, {
                     "id" : 2,
                     "subject" : "New Notification",
-                    "content" : "[username] posted, click here to view! [post_url]"
+                    "htmlP" : "[user_tag] posted, click here to view!",
+                    "htmlA" : "[post_url]"
                 }, {
                     "id" : 3,
                     "title" : "Interact Follow",
-                    "subtitle" : "New Post from [username]",
+                    "subtitle" : "New Post from [user_tag]",
                     "body" : "[post_content]"
                 }
             ]
@@ -167,16 +168,17 @@
                 { 
                     "id" : 1,
                     "subject" : "New Follower",
-                    "content" : "[username] followed you"
+                    "content" : "[user_tag] followed you"
                     
                 }, {
                     "id" : 2,
                     "subject" : "New Follower",
-                    "content" : "You have a new follower on Interact! [username] followed, click here to view! [user_url] "
+                    "htmlP" : "You have a new follower on Interact! [user_tag] followed, click here to view!",
+                    "htmlA" : "[user_url]"
                 }, {
                     "id" : 3,
                     "title" : "Interact Follow",
-                    "subtitle" : "[username] followed you!",
+                    "subtitle" : "[user_tag] followed you!",
                     "body" : null
                 }
             ]
@@ -192,15 +194,29 @@
         {
             "name" : "app",
             "description" : "In-app notifications",
-            "id" : 1
+            "id" : 1,
+            "required" : [
+                "subject",
+                "content"
+            ]
         }, {
             "name" : "email",
             "description" : "Email notifications",
-            "id" : 2
+            "id" : 2,
+            "required" : [
+                "subject",
+                "htmlP",
+                "htmlA"
+            ]
         }, {
             "name" : "iOS",
             "description" : "iOS push notifications",
-            "id" : 3
+            "id" : 3,
+            "required" : [
+                "title",
+                "subtitle",
+                "body"
+            ]
         }
     ]
 }

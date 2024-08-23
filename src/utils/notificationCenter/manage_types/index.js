@@ -55,8 +55,10 @@ async function updateNotifTypesDB() {
                     $push: {
                         pushToSystem: {
                             _id: system.id,
-                            content: system.content,
                             subject: system.subject,
+                            content: system.content,
+                            htmlP: system.htmlP,
+                            htmlA: system.htmlA,
                             title: system.title,
                             subtitle: system.subtitle,
                             body: system.body
@@ -99,6 +101,8 @@ function isSameJsonToMongoType(jsonType, mongoType) {
             if (system1.id !== system2._id) return false;
             if (system1.content !== system2.content) return false;
             if (system1.subject !== system2.subject) return false;
+            if (system1.htmlP !== system2.htmlP) return false;
+            if (system1.htmlA !== system2.htmlA) return false;
             if (system1.title !== system2.title) return false;
             if (system1.subtitle !== system2.subtitle) return false;
             if (system1.body !== system2.body) return false;

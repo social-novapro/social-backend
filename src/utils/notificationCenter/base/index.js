@@ -184,7 +184,8 @@ async function createPostNotifLayouts({ userData, postData, type }) {
             layouts.push({
                 _id: system._id,
                 subject: updateStringLayout({ string: system.subject, userData, postData }),
-                content: updateStringLayout({ string: system.content, userData, postData }),
+                htmlP: updateStringLayout({ string: system.content, userData, postData }),
+                htmlA: updateStringLayout({ string: system.content, userData, postData }),
             })
         } else if (system._id == 3) {
             layouts.push({
@@ -205,9 +206,10 @@ function updateStringLayout({ string, userData, postData }) {
 
     const placeholders = {
         "[username]": userData.username,
-        "[usertag]": `@${userData.username}`,
+        "[user_tag]": `@${userData.username}`,
         "[post_content]": postData.content,
         "[user_url]": `https://interact.novapro.net/?username=${userData.username}`,
+        "[post_url]": `https://interact.novapro.net/?postID=${postData._id}`,
         // Add more placeholders as needed
     };
     
