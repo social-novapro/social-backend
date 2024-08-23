@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const { reqString, nonreqString, reqNum, reqBool } = require('../../types');
 
 const interactSystemData = mongoose.Schema({
-    _id: reqNum, //1, // id of system type,
+    _id: reqNum, //1,2,3 // id of system type,
+    subject: nonreqString, // 1, 2
     content: nonreqString, // 1, 2
-    subject: nonreqString, // 2
     title: nonreqString, // 3
     subtitle: nonreqString, // 3
     body: nonreqString, // 3

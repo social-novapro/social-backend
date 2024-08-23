@@ -39,7 +39,7 @@ async function createNewPost({
 
     const privacyCheck = validPrivacyOption(userID, privacyOverride, "post")
 
-    const postID = await newPostIndex(userID, {
+    const {postID, addedCoposters} = await newPostIndex(userID, {
         content, 
         quoteReplyPostID, 
         replyingPostID, 
@@ -55,8 +55,8 @@ async function createNewPost({
     const foundTags = await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
     // pushPostNotifs({ postID, userID, postData, userData, coposters, tags: foundTags });
     
-    pushNewPost(userID, postID)
-
+    // pushNewPost(userID, postID)
+    pushPostNotifs({ postID, userID, postData, userData: userIDCheck, coposters: addedCoposters, tags: foundTags });
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
 
     return postData
@@ -84,6 +84,8 @@ async function newPostIndex(userID, data) {
     } = data
     const postID = await newPostID();
     const currentTime = checktime();
+    var addedCoposters = [];
+
     // const newIndex = await newReplyIndex(postID);
 
     const spotifyIncludedContent = await getSpotifyEmbeds(content);
@@ -134,7 +136,6 @@ async function newPostIndex(userID, data) {
     if (coposters) {
         const userFound = await interactUserSchema.findOne({ _id: userID });
         if (!userFound) return searchErrorV2("E004", {userID});
-        var addedCoposters = [];
         for (const coposter of coposters) {
             if (addedCoposters.includes(coposter)) {
                 console.log("Coposter already added")
@@ -161,7 +162,7 @@ async function newPostIndex(userID, data) {
             }
         }
         
-        coposterRequestNotification({coposters: addedCoposters, userData: userFound, content})
+        // coposterRequestNotification({coposters: addedCoposters, userData: userFound, content})
     }
 
     await interactUserSchema.findOneAndUpdate({
@@ -172,7 +173,7 @@ async function newPostIndex(userID, data) {
         totalReplies: foundUser.totalReplies
     })
 
-    return postID;
+    return {postID, addedCoposters};
 };
 
 async function addQuoteToIndex(quotingPost, postID) {
@@ -231,7 +232,7 @@ async function quotingPostSetup(quotingPost, postID, userID) {
         upsert: true
     });
 
-    await pushQuotePost(userID, postID, quotingPost.userID);
+    // await pushQuotePost(userID, postID, quotingPost.userID);
 
     return postID;
 }

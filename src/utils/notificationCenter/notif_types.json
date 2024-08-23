@@ -103,12 +103,21 @@
             "esstential" : true
         }, {
             "id" : 401,
-            "name" : "User mentioned",
+            "name" : "Post Mention",
+            "description": "Someone mentioned you in a post.",
             "esstential" : true
         }, {
             "id" : 402,
             "name" : "Replied to your post",
-            "esstential" : true
+            "esstential" : true,
+            "pushToSystem" : [
+                { 
+                    "id" : 3,
+                    "title" : "Interact Reply",
+                    "subtitle" : "[username] replied to your post!",
+                    "body" : "[post_content]"
+                }
+            ]
         }, {
             "id" : 403,
             "name" : "Liked your post",
@@ -133,7 +142,8 @@
             "pushToSystem" : [
                 { 
                     "id" : 1,
-                    "content" : "[username] posted"
+                    "subject" : "[username] posted",
+                    "content" : "[post_content]"
                 }, {
                     "id" : 2,
                     "subject" : "New Notification",
@@ -156,7 +166,9 @@
             "pushToSystem" : [
                 { 
                     "id" : 1,
+                    "subject" : "New Follower",
                     "content" : "[username] followed you"
+                    
                 }, {
                     "id" : 2,
                     "subject" : "New Follower",

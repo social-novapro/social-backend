@@ -1,3 +1,4 @@
+const interactNotificationCenterTypeSchema = require('../../../schemas/notificationCenter/interactNotificationCenterTypeSchema');
 const interactNotifications = require('../../../schemas/notifications/interactNotifications');
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const { checktime } = require('../../checktime');
@@ -86,24 +87,24 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
         }
     }
 
-   
     // mentions - #1 - get 
     if (tags.length > 0) {
         for (const tag of tags) {
             if ((tag.tagTextOriginal?.startsWith("@")) && tag.userIDTagged != userID) {
-                // send notif mentions
                 taggedNotifs.push(tag.userIDTagged);
 
+                // send notif mentions
+                const notifSubID = await createNotification({ postID, userID, type: 401 });
             }
         }
     }
-
 
     // coposters - #2 (but also shows if mentioned, shows no matter what)
     if (coposters.length > 0) {
         for (const coposter of coposters) {
             if (coposter != userID) {
                 // send notif coposter
+                const notifSubID = await createNotification({ postID, userID, type: 204 });
 
                 // check for quote
                 if (sendQuoteNotif) {
@@ -128,10 +129,14 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
     // send notif for quote, and reply
     if (sendQuoteNotif) {
         // send quote notif
+        const notifSubID = await createNotification({ postID, userID, type: 404 });
+        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: 404 });
     }
 
     if (sendReplyNotif) {
         // send reply notif
+        const notifSubID = await createNotification({ postID, userID, type: 402 });
+        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: 402 });
     }
 
     // subscriptions - #5 - dont show if mentioned, quoted, replied
@@ -163,11 +168,62 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
     return true;
 }
 
+async function createPostNotifLayouts({ userData, postData, type }) {
+    const notifType = await interactNotificationCenterTypeSchema.findOne({ _id: type });
+    if (!notifType) return { }
+
+    const layouts = []
+    for (const system of notifType.pushToSystem) {
+        if (system._id == 1) {
+            layouts.push({
+                _id: system._id,
+                subject: updateStringLayout({ string: system.subject, userData, postData }),
+                content: updateStringLayout({ string: system.content, userData, postData })
+            })
+        } else if (system._id == 2) {
+            layouts.push({
+                _id: system._id,
+                subject: updateStringLayout({ string: system.subject, userData, postData }),
+                content: updateStringLayout({ string: system.content, userData, postData }),
+            })
+        } else if (system._id == 3) {
+            layouts.push({
+                _id: system._id,
+                title: updateStringLayout({ string: system.title, userData, postData }),
+                body: updateStringLayout({ string: system.body, userData, postData }),
+                subtitle: updateStringLayout({ string: system.subtitle, userData, postData }),
+            })
+        }
+    }
+
+    return layouts;
+}
+
+function updateStringLayout({ string, userData, postData }) {
+    if (!string) return string;
+    var newString = string;
+
+    const placeholders = {
+        "[username]": userData.username,
+        "[usertag]": `@${userData.username}`,
+        "[post_content]": postData.content,
+        "[user_url]": `https://interact.novapro.net/?username=${userData.username}`,
+        // Add more placeholders as needed
+    };
+    
+    for (const [placeholder, value] of Object.entries(placeholders)) {
+        if (newString.includes(placeholder)) {
+            newString = newString.replace(placeholder, value);
+        }
+    }
+
+    return newString;
+}
+
 // push notifications to all users who are subscribed to this user
 async function pushUserSubscriptions({ postID, userID, postData }) {
     //  check for recent post from user
 }
-
 
 
 // create a new notification - meant to send to multiple people
@@ -184,4 +240,5 @@ async function createNotification({ postID, userID, type }) {
     });
     return UUID;
 }
+
 module.exports = { pushPostNotifs }
