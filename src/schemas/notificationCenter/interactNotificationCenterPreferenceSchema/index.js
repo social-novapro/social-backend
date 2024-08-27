@@ -9,7 +9,6 @@ const interactNotificationCenterPreferenceSchema = mongoose.Schema({
     userID: reqString, // user id
     timestamp: reqNum, // timestamp created preference
     timestampUpdated: reqNum, // timestamp updated preference
-    deviceUUID: nonreqString, // device uuid for  token -- email will remain null (for now), inapp will be null
     deviceType: reqNum, // device type, 0=inapp, 1=email, 2=ios
 });
 

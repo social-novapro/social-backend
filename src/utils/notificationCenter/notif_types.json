@@ -192,26 +192,26 @@
     ],
     "systems": [
         {
+            "id" : 1,
             "name" : "app",
             "description" : "In-app notifications",
-            "id" : 1,
             "required" : [
                 "subject",
                 "content"
             ]
         }, {
+            "id" : 2,
             "name" : "email",
             "description" : "Email notifications",
-            "id" : 2,
             "required" : [
                 "subject",
                 "htmlP",
                 "htmlA"
             ]
         }, {
+            "id" : 3,
             "name" : "iOS",
             "description" : "iOS push notifications",
-            "id" : 3,
             "required" : [
                 "title",
                 "subtitle",

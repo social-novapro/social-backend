@@ -1,8 +1,6 @@
 const router = require('express').Router();
-const getSettings = require('./getSettings');
-const setSettings = require('./setSettings');
+const preferences = require('./preferences');
 
-router.use('/getSettings', getSettings);
-router.use('/setSettings', setSettings);
+router.use('/preferences', preferences);
 
 module.exports = router;

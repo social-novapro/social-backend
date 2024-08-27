@@ -827,6 +827,34 @@
                     "msg" : "There was no notification settings changed."
                 },
                 {
+                    "code" : "L020",
+                    "msg" : "There was no typeID provided for setting the notification preference."
+                },
+                {
+                    "code" : "L021",
+                    "msg" : "Notification Center type was not found, try a different typeID or try again later."
+                },
+                {
+                    "code" : "L022",
+                    "msg" : "Notification Center type was not set for user, set the notification type preference then try again."
+                },
+                {
+                    "code" : "L023",
+                    "msg" : "There was no userID provided."
+                },
+                {
+                    "code" : "L024",
+                    "msg" : "There was no changes for notification preferences to apply."
+                },
+                {
+                    "code" : "L025",
+                    "msg" : "Unexpected error, system device was not found or not equal while getting information."
+                },
+                {
+                    "code" : "L026",
+                    "msg" : "No change provided while updating preference."
+                },
+                {
                     "code" : "N001",
                     "msg" : "Could not find request for verification of email."
                 },
