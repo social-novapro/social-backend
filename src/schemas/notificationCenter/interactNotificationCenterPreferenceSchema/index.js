@@ -9,7 +9,7 @@ const interactNotificationCenterPreferenceSchema = mongoose.Schema({
     userID: reqString, // user id
     timestamp: reqNum, // timestamp created preference
     timestampUpdated: reqNum, // timestamp updated preference
-    deviceType: reqNum, // device type, 0=inapp, 1=email, 2=ios
+    systemType: reqNum, // device type, 1=inapp, 2=email, 3=ios
 });
 
 module.exports = mongoose.model('interact-notification-center-preference', interactNotificationCenterPreferenceSchema);

@@ -14,30 +14,30 @@ function reformatTypePref(ncPreference, ncType) {
         enabled: ncPreference.enabled,
         timestamp: ncPreference.timestamp,
         timestampUpdated: ncPreference.timestampUpdated,
-        deviceType: ncPreference.deviceType
+        systemType: ncPreference.systemType
     };
 }
 
-function reformatSystemTypes(deviceType) {
-    const verified = verifyDeviceTypeInput(deviceType);
+function reformatSystemTypes(systemType) {
+    const verified = verifySystemTypeInput(systemType);
     if (verified.error) return verified;
 
-    const systemDevice = notif_types.systems[deviceType-1]; // -1 because deviceType is 1-indexed
-    if (!systemDevice || (!systemDevice.id == deviceType)) searchErrorV2("L025", { deviceType });
+    const systemDevice = notif_types.systems[systemType-1]; // -1 because systemType is 1-indexed
+    if (!systemDevice || (!systemDevice.id == systemType)) searchErrorV2("L025", { systemType });
 
     return {
-        deviceType: systemDevice.id,
+        systemType: systemDevice.id,
         name: systemDevice.name,
         description: systemDevice.description,
     };
 }
 
-/* quickly make sure the deviceType is valid, shared between multiple functions */
-function verifyDeviceTypeInput(deviceType) {
-    if (deviceType === undefined) {
+/* quickly make sure the systemType is valid, shared between multiple functions */
+function verifySystemTypeInput(systemType) {
+    if (systemType === undefined) {
         return {error: 'No device type provided'};
     }
-    if (deviceType <= 0 || deviceType > deviceSystemCount) {
+    if (systemType <= 0 || systemType > deviceSystemCount) {
         return {error: 'Invalid device type'};
     }
     return true;
@@ -53,39 +53,39 @@ async function getNotifTypes() {
     return types;
 }
 
-async function getPreferences({ userID, deviceType }) {
+async function getPreferences({ userID, systemType }) {
     const preferences = await interactNotificationCenterPreferenceSchema.find({ 
         userID,
-        deviceType: deviceType
+        systemType: systemType
     });
     
     return preferences;
 }
 
-async function getPreference({ userID, typeID, deviceType }) {
+async function getPreference({ userID, typeID, systemType }) {
     if (!userID) searchErrorV2("L023", { userID: 'unknown' });
     if (!typeID) searchErrorV2("L020", { userID });
-    const deviceTypeCheck = verifyDeviceTypeInput(deviceType);
-    if (deviceTypeCheck.error) return deviceTypeCheck;
+    const systemTypeCheck = verifySystemTypeInput(systemType);
+    if (systemTypeCheck.error) return systemTypeCheck;
  
     const preferences = await interactNotificationCenterPreferenceSchema.findOne({ 
         userID,
         type: typeID,
-        deviceType
+        systemType
     });
     
     return preferences;
 }
 
-async function setPreference({ userID, deviceType, enabled, typeID }) {
+async function setPreference({ userID, systemType, enabled, typeID }) {
     if (!userID) searchErrorV2("L023", { userID: 'unknown' });
     if (!typeID) searchErrorV2("L020", { userID });
     if (enabled === undefined) searchErrorV2("L026", { userID });
     
-    const deviceTypeCheck = verifyDeviceTypeInput(deviceType);
-    if (deviceTypeCheck.error) return deviceTypeCheck;
+    const systemTypeCheck = verifySystemTypeInput(systemType);
+    if (systemTypeCheck.error) return systemTypeCheck;
 
-    const foundPref = await getPreference({ typeID, userID, deviceType });
+    const foundPref = await getPreference({ typeID, userID, systemType });
     if (foundPref) {
         foundPref.enabled = enabled;
         foundPref.timestampUpdated = checktime();
@@ -100,28 +100,26 @@ async function setPreference({ userID, deviceType, enabled, typeID }) {
             userID,
             timestamp: checktime(),
             timestampUpdated: checktime(),
-            deviceType,
+            systemType,
         });
 
         return newPreference;
     }
 }
 
-async function getNotifDataType({ userID, typeID, deviceType }) {
+async function getNotifDataType({ userID, typeID, systemType }) {
     if (!userID) searchErrorV2("L023", { userID: 'unknown' });
     if (!typeID) searchErrorV2("L020", { userID });
 
-    const deviceTypeCheck = verifyDeviceTypeInput(deviceType);
-    if (deviceTypeCheck.error) return deviceTypeCheck;
+    const systemTypeCheck = verifySystemTypeInput(systemType);
+    if (systemTypeCheck.error) return systemTypeCheck;
 
-    const ncPref = await getPreference({ userID, typeID, deviceType });
+    const ncPref = await getPreference({ userID, typeID, systemType });
     const ncType = await getNotifType({ typeID });
 
     if (!ncType) searchErrorV2("L021", { userID });
     if (!ncPref) searchErrorV2("L022", { userID });
 
-    console.log(ncPref)
-    console.log(ncType)
     return reformatTypePref(ncPref, ncType);
 }
 
@@ -130,21 +128,21 @@ async function getAllNotifPreferences({ userID }) {
 
     const notificationSystemPreferences = [];
     for (let i = 0; i < deviceSystemCount; i++) {
-        const preferences = await getPreferences({ userID, deviceType: i+1 });
+        const preferences = await getPreferences({ userID, systemType: i+1 });
         notificationSystemPreferences.push({preferences, system: reformatSystemTypes(i+1)});
     }
 
     return notificationSystemPreferences;
 }
 
-async function getNotifData({ userID, deviceType }) {
+async function getNotifData({ userID, systemType }) {
     if (!userID) searchErrorV2("L023", { userID: 'unknown' });
 
-    const deviceTypeCheck = verifyDeviceTypeInput(deviceType);
-    if (deviceTypeCheck.error) return deviceTypeCheck;
+    const systemTypeCheck = verifySystemTypeInput(systemType);
+    if (systemTypeCheck.error) return systemTypeCheck;
 
     const types = await getNotifTypes();
-    const setPreferences = await getPreferences({ userID, deviceType });
+    const setPreferences = await getPreferences({ userID, systemType });
 
     const userPreferences = [];
     for (let i = 0; i < types.length; i++) {
@@ -154,7 +152,7 @@ async function getNotifData({ userID, deviceType }) {
         if (foundPref) {
             userPreferences.push(reformatTypePref(foundPref, setType));
         } else {
-            const newPref = await setPreference({ userID, deviceType, enabled: 0, typeID: setType._id });
+            const newPref = await setPreference({ userID, systemType, enabled: 0, typeID: setType._id });
             userPreferences.push(reformatTypePref(newPref, setType));
         }
     }
@@ -165,30 +163,29 @@ async function getNotifData({ userID, deviceType }) {
     }; 
 }
 
-async function setNotifPreferences({ userID, deviceType, changes }) {
+async function setNotifPreferences({ userID, systemType, changes }) {
     if (!userID) searchErrorV2("L023", { userID: 'unknown' });
     if (!changes || changes.length === 0) return searchErrorV2("L024", { userID });
 
-    const deviceTypeCheck = verifyDeviceTypeInput(deviceType);
-    if (deviceTypeCheck.error) return deviceTypeCheck;
+    const systemTypeCheck = verifySystemTypeInput(systemType);
+    if (systemTypeCheck.error) return systemTypeCheck;
 
     const updates = [];
-    // console.log(changes)
 
     for (const change of changes) {
         const update = await setPreference({
             userID,
-            deviceType,
+            systemType,
             enabled: change.enabled,
             typeID: change.typeID
         });
         updates.push(update);
     }
-    // console.log(updates)
-    return getNotifData({ userID, deviceType });
+
+    return getNotifData({ userID, systemType });
 }
 
-async function setNotifPreference({ userID, deviceType, typeID, enabled }) {
+async function setNotifPreference({ userID, systemType, typeID, enabled }) {
 
     
 }

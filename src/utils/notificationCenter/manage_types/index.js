@@ -18,18 +18,12 @@ async function updateNotifTypesDB() {
     // checks json file for types
     for (const type of notif_types.types) {
         const foundType = await findNotifTypeData({type: type.id});
-        // console.log(foundType)
         if (type.esstential === undefined) type.esstential = false;
 
         const isSameType = isSameJsonToMongoType(type, foundType);
 
-        // console.log(`Checking type ${type.id}`)
-        // console.log(`isSameType: ${isSameType}`)
-        // console.log(`foundType: ${foundType.essential}`)
-        // console.log(`jsonType: ${type.esstential ? type.esstential : false}`)
         // no update needed
         if (isSameType) {
-            // console.log(`Type ${type.id} is the same`)
             continue;
         }
 

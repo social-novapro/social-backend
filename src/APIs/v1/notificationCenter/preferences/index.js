@@ -14,6 +14,21 @@ router.get('/', async (req, res) => {
 })
 
 /**
+ * description: get a single notification preference for a specific system type
+ * 
+ * query:  
+ *  deviceID - which device to get
+ *  typeID - which setting to get
+ */
+router.get('/:deviceID/:typeID', async (req, res) => {
+    const foundPrefs = await getNotifDataType({
+        userID: req.headers.userid,
+        typeID: req.params.typeID
+    });
+    return res.status(200).send(foundPrefs);
+})
+
+/**
  * description: get a single notification preference
  * 
  * query:  typeID - which setting to get
@@ -33,14 +48,14 @@ router.get('/:typeID', async (req, res) => {
  * query:  none
  * 
  * body : {
- *    deviceType: num (default 1=inapp)
+ *    systemType: num (default 1=inapp)
  *    changes: [ { typeID: num, enabled: bool }]
  * }
  */
 router.post('/', async (req, res) => {
     const foundPrefs = await setNotifPreferences({ 
         userID: req.headers.userid,
-        deviceType: req.body.deviceType,
+        systemType: req.body.systemType,
         changes: req.body.changes
     });
     return res.status(200).send(foundPrefs);
@@ -52,7 +67,7 @@ router.post('/', async (req, res) => {
  * query:  typeID - which setting to change
  * 
  * body : {
- *    deviceType: num (default 1=inapp)
+ *    systemType: num (default 1=inapp)
  *    typeID: num
  *    enabled: bool
  * }
