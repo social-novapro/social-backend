@@ -49,16 +49,22 @@
             "id" : 101,
             "name" : "email verification",
             "description" : "Verify your email",
-            "required" : true
+            "required" : true,
+            "esstential" : true,
+            "systemTypes" : [2]
         }, {
             "id" : 102,
             "name" : "welcome",
             "description" : "Welcome to your account",
-            "required" : true
+            "required" : true,
+            "esstential" : true,
+            "systemTypes" : [2]
         }, {
             "id" : 103,
             "name" : "password reset",
-            "required" : true
+            "required" : true,
+            "esstential" : true,
+            "systemTypes" : [2]
         }, {
             "id" : 201,
             "name" : "New Post"

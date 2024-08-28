@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const { searchErrorV2 } = require('../../searchError');
 const deviceSystemCount = notif_types.systems.length;
 
+/* reformat the preference for easier use, and suplly for frontend */
 function reformatTypePref(ncPreference, ncType) {
     return {
         type: ncPreference.type,
@@ -18,12 +19,13 @@ function reformatTypePref(ncPreference, ncType) {
     };
 }
 
+/* reformat system types for easier use, and supply for frontend */
 function reformatSystemTypes(systemType) {
     const verified = verifySystemTypeInput(systemType);
     if (verified.error) return verified;
 
     const systemDevice = notif_types.systems[systemType-1]; // -1 because systemType is 1-indexed
-    if (!systemDevice || (!systemDevice.id == systemType)) searchErrorV2("L025", { systemType });
+    if (!systemDevice || (!systemDevice.id == systemType)) return searchErrorV2("L025", { systemType });
 
     return {
         systemType: systemDevice.id,
@@ -43,28 +45,42 @@ function verifySystemTypeInput(systemType) {
     return true;
 }
 
+/* make sure the notifType is allowed for the systemType */
+function verifyNotifTypeWithSystemType(notifType, systemType) {
+    if (!notifType) return { error: true };
+    if (!notifType.systemTypes || notifType.systemTypes.length === 0) return true;
+    if (notifType.systemTypes.includes(systemType)) return true;
+
+    return {error: 'Type not available for this system type'};
+}
+
+/* gets a single type of notification */
 async function getNotifType({ typeID }) {
     const found = await interactNotificationCenterTypeSchema.findOne({ _id: typeID });
     return found;
 }
 
+/* gets all types of notifications */
 async function getNotifTypes() {
     const types = await interactNotificationCenterTypeSchema.find();
+    types.sort((a, b) => a._id - b._id);
     return types;
 }
 
+/* gets all preferences for a user, of a system Type */
 async function getPreferences({ userID, systemType }) {
     const preferences = await interactNotificationCenterPreferenceSchema.find({ 
         userID,
         systemType: systemType
     });
-    
+    preferences.sort((a, b) => a.type - b.type);
     return preferences;
 }
 
+/* gets a single preference for a user */
 async function getPreference({ userID, typeID, systemType }) {
-    if (!userID) searchErrorV2("L023", { userID: 'unknown' });
-    if (!typeID) searchErrorV2("L020", { userID });
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
+    if (!typeID) return searchErrorV2("L020", { userID });
     const systemTypeCheck = verifySystemTypeInput(systemType);
     if (systemTypeCheck.error) return systemTypeCheck;
  
@@ -77,14 +93,42 @@ async function getPreference({ userID, typeID, systemType }) {
     return preferences;
 }
 
-async function setPreference({ userID, systemType, enabled, typeID }) {
-    if (!userID) searchErrorV2("L023", { userID: 'unknown' });
-    if (!typeID) searchErrorV2("L020", { userID });
-    if (enabled === undefined) searchErrorV2("L026", { userID });
+/* initalizes all preferences for a user */
+async function initalizePreferences({ userID }) {
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
+    const preferences = [];
+
+    for (let i = 0; i < deviceSystemCount; i++) {
+        const systemPreferences = await getNotifData({ userID, systemType: i+1 });
+        preferences.push(systemPreferences);
+    }
+
+    return preferences;
+}
+
+/* sets a single preference, makes sure its allowed */
+async function setPreference({ userID, systemType, enabled, typeID, setDefault }) {
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
+    if (!typeID) return searchErrorV2("L020", { userID });
+    if (enabled === undefined && !setDefault) return searchErrorV2("L026", { userID });
     
+    if (enabled==true) enabled = 1;
+    if (enabled==false) enabled = 0;
+    if (enabled !== 0 && enabled !== 1) return searchErrorV2("L027", { userID });
+    
+    // make sure systemType is valid
     const systemTypeCheck = verifySystemTypeInput(systemType);
     if (systemTypeCheck.error) return systemTypeCheck;
 
+    // make sure typeID is part of systemType
+    const notifType = await getNotifType({ typeID });
+    const verified = verifyNotifTypeWithSystemType(notifType, systemType);
+    if (verified.error) return verified;
+
+    // make sure it can change
+    if (notifType.required) return searchErrorV2("L028", { userID });
+
+    // get previous preference
     const foundPref = await getPreference({ typeID, userID, systemType });
     if (foundPref) {
         foundPref.enabled = enabled;
@@ -92,62 +136,72 @@ async function setPreference({ userID, systemType, enabled, typeID }) {
         await foundPref.save();
         return foundPref;
     }
-    else {
-        const newPreference = await interactNotificationCenterPreferenceSchema.create({
-            _id: uuidv4(),
-            type: typeID,
-            enabled,
-            userID,
-            timestamp: checktime(),
-            timestampUpdated: checktime(),
-            systemType,
-        });
+    
+    // set default value if not set or provided
+    if (enabled === undefined && setDefault == true) notifType.esstential ? enabled = notifType.esstential : enabled = 0; // TODO: maybe look for default
 
-        return newPreference;
-    }
+    // create new preference
+    const newPreference = await interactNotificationCenterPreferenceSchema.create({
+        _id: uuidv4(),
+        type: typeID,
+        enabled,
+        userID,
+        timestamp: checktime(),
+        timestampUpdated: checktime(),
+        systemType,
+    });
+
+    return newPreference;
 }
 
+/* gets a single preference of given systemType */
 async function getNotifDataType({ userID, typeID, systemType }) {
-    if (!userID) searchErrorV2("L023", { userID: 'unknown' });
-    if (!typeID) searchErrorV2("L020", { userID });
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
+    if (!typeID) return searchErrorV2("L020", { userID });
 
     const systemTypeCheck = verifySystemTypeInput(systemType);
     if (systemTypeCheck.error) return systemTypeCheck;
 
     const ncPref = await getPreference({ userID, typeID, systemType });
+
     const ncType = await getNotifType({ typeID });
 
-    if (!ncType) searchErrorV2("L021", { userID });
-    if (!ncPref) searchErrorV2("L022", { userID });
+    if (!ncType) return searchErrorV2("L021", { userID });
+    if (!ncPref) return searchErrorV2("L022", { userID });
 
     return reformatTypePref(ncPref, ncType);
 }
 
 async function getAllNotifPreferences({ userID }) {
-    if (!userID) searchErrorV2("L023", { userID: 'unknown' });
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
 
     const notificationSystemPreferences = [];
     for (let i = 0; i < deviceSystemCount; i++) {
-        const preferences = await getPreferences({ userID, systemType: i+1 });
+        const preferences = await getNotifData({ userID, systemType: i+1 });
         notificationSystemPreferences.push({preferences, system: reformatSystemTypes(i+1)});
     }
 
     return notificationSystemPreferences;
 }
 
+/* gets all notif preferences of a given type, and creates a new one if not set*/
 async function getNotifData({ userID, systemType }) {
-    if (!userID) searchErrorV2("L023", { userID: 'unknown' });
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
 
     const systemTypeCheck = verifySystemTypeInput(systemType);
     if (systemTypeCheck.error) return systemTypeCheck;
 
     const types = await getNotifTypes();
-    const setPreferences = await getPreferences({ userID, systemType });
+    const foundPreferences = await getPreferences({ userID, systemType });
 
     const userPreferences = [];
     for (let i = 0; i < types.length; i++) {
+        // make sure typeID is part of systemType
+        const verified = verifyNotifTypeWithSystemType(types[i], systemType);
+        if (verified.error) continue; // will skip if not part of it
+        
         const setType = {...types[i]._doc};
-        const foundPref = setPreferences.find(preference => preference.type === setType._id);
+        const foundPref = foundPreferences.find(preference => preference.type === setType._id);
 
         if (foundPref) {
             userPreferences.push(reformatTypePref(foundPref, setType));
@@ -163,8 +217,9 @@ async function getNotifData({ userID, systemType }) {
     }; 
 }
 
+/* changes multiple preferences at once */
 async function setNotifPreferences({ userID, systemType, changes }) {
-    if (!userID) searchErrorV2("L023", { userID: 'unknown' });
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
     if (!changes || changes.length === 0) return searchErrorV2("L024", { userID });
 
     const systemTypeCheck = verifySystemTypeInput(systemType);
@@ -185,9 +240,23 @@ async function setNotifPreferences({ userID, systemType, changes }) {
     return getNotifData({ userID, systemType });
 }
 
+/* st a single preference, from the api route */
 async function setNotifPreference({ userID, systemType, typeID, enabled }) {
+    if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
+    if (!typeID) return searchErrorV2("L020", { userID });
+    if (enabled === undefined) return searchErrorV2("L026", { userID });
 
+    const systemTypeCheck = verifySystemTypeInput(systemType);
+    if (systemTypeCheck.error) return systemTypeCheck;
+
+    const update = await setPreference({
+        userID,
+        systemType,
+        enabled,
+        typeID
+    });
     
+    return update;
 }
 
 async function setNotifData({ userID }) {
@@ -201,4 +270,5 @@ module.exports = {
     getNotifDataType,
     setNotifPreferences,
     setNotifPreference,
+    initalizePreferences
 };

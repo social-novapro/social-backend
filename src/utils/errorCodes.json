@@ -848,11 +848,19 @@
                 },
                 {
                     "code" : "L025",
-                    "msg" : "Unexpected error, system device was not found or not equal while getting information."
+                    "msg" : "Unexpected error, system type was not found or not equal while getting information."
                 },
                 {
                     "code" : "L026",
                     "msg" : "No change provided while updating preference."
+                },
+                {
+                    "code" : "L027",
+                    "msg" : "Unexpected preference change, must be 0/1 or false/true."
+                },
+                {
+                    "code" : "L028",
+                    "msg" : "Can not change notification type, required to be enabled."
                 },
                 {
                     "code" : "N001",

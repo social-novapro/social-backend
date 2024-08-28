@@ -18,8 +18,10 @@ const interactNotificationCenterTypeSchema = mongoose.Schema({
     timestamp: reqNum, // timestamp added type
     name: reqString, // name of type
     description: nonreqString, // description of type
+    required: reqBool, // if type is required
     esstential: reqBool, // if type is essential
     pushToSystem: [interactSystemData],
+    systemTypes: [reqNum], // system types that use this type
 });
 
 module.exports = mongoose.model('interact-notification-center-type', interactNotificationCenterTypeSchema);

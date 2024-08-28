@@ -38,7 +38,9 @@ async function updateNotifTypesDB() {
             name: type.name,
             timestamp: checktime(),
             description: type.description,
-            esstential: type.esstential,
+            esstential: type.esstential ? type.esstential : false,
+            required: type.required ? type.required : false,
+            systemTypes: type.systemTypes
         });
 
         if (type.pushToSystem?.length > 0) {
@@ -76,6 +78,7 @@ function isSameJsonToMongoType(jsonType, mongoType) {
     if (jsonType.name !== mongoType.name) return false;
     if (jsonType.description !== mongoType.description) return false;
     if (jsonType.esstential !== mongoType.esstential) return false;
+    if (jsonType.required !== mongoType.required) return false;
 
     // probably overcomplicated
     // this makes sure that
@@ -85,7 +88,14 @@ function isSameJsonToMongoType(jsonType, mongoType) {
         ((jsonType.pushToSystem) && jsonType.pushToSystem.length !== mongoType.pushToSystem?.length)
     ) return false;
 
-    if (jsonType.pushToSystem?.length > 0 || mongoType.pushToSystem?.length > 0) {
+    if ((!jsonType.systemTypes && mongoType.systemTypes.length != 0) ||
+        ((jsonType.systemTypes) && jsonType.systemTypes.length !== mongoType.systemTypes.length)
+    ) return false;
+
+    const usingPushToSystem = (jsonType.pushToSystem && jsonType.pushToSystem?.length > 0) || mongoType.pushToSystem?.length > 0;
+    const usingSystemTypes = (jsonType.systemTypes && jsonType.systemTypes.length > 0) || mongoType.systemTypes?.length > 0;
+    
+    if (usingPushToSystem && (jsonType.pushToSystem?.length > 0 || mongoType.pushToSystem?.length > 0)) {
         const lengthUse = jsonType.pushToSystem.length > mongoType.pushToSystem.length ? jsonType.pushToSystem.length : mongoType.pushToSystem.length;
         for (let i = 0; i < lengthUse; i++) {
             if (!jsonType.pushToSystem[i] || !mongoType.pushToSystem[i]) return false;
@@ -102,6 +112,13 @@ function isSameJsonToMongoType(jsonType, mongoType) {
             if (system1.body !== system2.body) return false;
         }
     }
+
+    if (usingSystemTypes && (jsonType.systemTypes?.length > 0 || mongoType.systemTypes?.length > 0)) {
+        const lengthUse = jsonType.systemTypes.length > mongoType.systemTypes.length ? jsonType.systemTypes.length : mongoType.systemTypes.length;
+        for (let i = 0; i < lengthUse; i++) {
+            if (jsonType.systemTypes[i] !== mongoType.systemTypes[i]) return false
+        }
+    } 
 
     return true;
 }
