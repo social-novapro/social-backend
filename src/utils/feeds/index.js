@@ -1,9 +1,10 @@
 const interactPostSchema = require("../../schemas/interactPostSchema");
 const { getSubscriptions } = require("../notifications/subscriptions");
-const { getPostsFromUser } = require("../post/main");
 const { getPostWithData } = require("../post/getPost");
 const { searchErrorV2 } = require("../searchError");
 const interactUserSchema = require("../../schemas/interactUserSchema");
+const { getUserPosts } = require("../post/user");
+const { getCurrentIndex, getPostIndexData } = require("../post/postIndexManagement");
 
 async function allPostsFeed({ userID }) {
     const AllPosts = await interactPostSchema.find();
@@ -19,31 +20,79 @@ async function allPostsFeed({ userID }) {
         }
     }
     
-    sendPosts.sort((a, b) => a.postData.timePosted - b.postData.timePosted);
+    sendPosts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
 
     return sendPosts;
+}
+
+async function allPostsFeedV2({ userID, indexID }) {
+    var currentIndex 
+    if (indexID) currentIndex = await getPostIndexData({ indexID });
+    else currentIndex = await getPostIndexData({indexID: null});
+    if (!currentIndex || !currentIndex.postIDs) return searchErrorV2("D000", { userID });
+
+    const ownUser = await interactUserSchema.findOne({_id: userID});
+
+    var sendingData = {
+        nextIndexID: currentIndex.nextIndexID,
+        prevIndexID: currentIndex.prevIndexID,
+        amount: currentIndex.amount,
+        feedVersion: 2,
+        posts: [ ]
+    }
+    
+    for (const postID of currentIndex.postIDs) {
+        const data = await getPostWithData({ userID, postID: postID._id, ownUser })
+        if (data && !data.error) {
+            sendingData.posts.push(data)
+        }
+    }
+
+    if (currentIndex.amount < 10) {
+        const prevIndex = await getPostIndexData({ indexID: currentIndex.prevIndexID });
+        if (prevIndex && prevIndex.postIDs) {
+            sendingData.prevIndexID = prevIndex.prevIndexID;
+            sendingData.amount += prevIndex.amount;
+            for (const postID of prevIndex.postIDs) {
+                const data = await getPostWithData({ userID, postID: postID._id, ownUser })
+                if (data && !data.error) {
+                    sendingData.posts.push(data)
+                }
+            }
+        };
+    }
+  
+    sendingData.posts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
+    return sendingData;
+}
+
+async function subscriptionFeedV2({ userID }) {
+    const foundPosts = await subscriptionFeed({ userID });
+    const sendingData = {
+        amount: foundPosts.length,
+        feedVersion: 2,
+        posts: foundPosts
+    }
+    return sendingData;
 }
 
 async function subscriptionFeed({ userID }) {
     const sendPosts = [];
     const subscriptions = await getSubscriptions({ userID });
-    const ownUser = await interactUserSchema.findOne({_id: userID});
 
     if (subscriptions.error) return subscriptions;
     
     for (const sub of subscriptions) {
-        const foundPosts = await getPostsFromUser({ userID: sub._id});
-        for (const post of foundPosts) {
-            const data = await getPostWithData({ userID, postID: post._id, post, ownUser })
-            if (data && !data.error) sendPosts.push(data)
-        }
+        const foundPosts = await getUserPosts({ userID: sub._id, requesterID: userID, coposts: true});
+        if ((foundPosts && !foundPosts.error) || (foundPosts.length > 0 && !foundPosts.error) ) sendPosts.push(...foundPosts);
     }
 
-    sendPosts.sort((a, b) => a.postData.timePosted - b.postData.timePosted);
+    sendPosts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
     
     return sendPosts;
 }
 
-
-
-module.exports = { allPostsFeed, subscriptionFeed }
+module.exports = { 
+    allPostsFeed, allPostsFeedV2, 
+    subscriptionFeed, subscriptionFeedV2
+}

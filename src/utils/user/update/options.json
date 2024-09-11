@@ -1,0 +1,65 @@
+{
+    "creationSetup" : [
+        {
+            "title" : "Password",
+            "description" : "Set your password",
+            "secondarySchema" : true,
+            "required" : true,
+            "type" : "String"
+        }, {
+            "title" : "Email",
+            "description" : "Set your email",
+            "secondarySchema" : true,
+            "required" : true,
+            "type" : "String"
+        }
+    ],
+    "options" : [
+        {
+            "title" : "Username",
+            "description" : "Change your username",
+            "dbName" : "username",
+            "required" : true,
+            "type" : "String"
+        }, {
+            "title" : "Display Name",
+            "description" : "Change your display name",
+            "dbName" : "displayName",
+            "required" : true,
+            "type" : "String"
+        }, {
+            "title" : "Description",
+            "description" : "Change your description",
+            "dbName" : "description",
+            "required" : false,
+            "showAtCreation" : true,
+            "type" : "String"
+        }, {
+            "title" : "Birthdate",
+            "description" : "Set your birthdate",
+            "dbName" : "userAge",
+            "required" : true,
+            "showAtCreation" : true,
+            "type" : "Date"
+        }, {
+            "title" : "Pronouns",
+            "description" : "Change your username",
+            "dbName" : "pronouns",
+            "required" : false,
+            "showAtCreation" : true,
+            "type" : "String"
+        }, {
+            "title" : "Activty Status",
+            "description" : "Change your activty status",
+            "dbName" : "statusTitle",
+            "required" : true,
+            "type" : "String"
+        }, {
+            "title" : "Profile Image",
+            "description" : "Change your profile image",
+            "dbName" : "profileURL",
+            "required" : true,
+            "type" : "String"
+        }
+    ]
+}

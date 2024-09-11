@@ -1,0 +1,82 @@
+{
+    "modified": "June 17, 2024",
+    "options" : [
+        {
+            "name": "notifications",
+            "displayName" : "Notifications",
+            "description" : "Enable or disable all notifications",
+            "type" : "boolean",
+            "defaultValue" : true
+        }, 
+        {
+            "name": "subscription",
+            "displayName" : "Subscriptions",
+            "description" : "Enable or disable subscription notifications",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name": "newsLetter",
+            "displayName" : "News Letter",
+            "description" : "Enable or disable news letter notifications.",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name": "alerts",
+            "displayName" : "Alerts",
+            "description" : "Enable or disable alert notifications.",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name": "replies",
+            "displayName" : "Replies",
+            "description" : "Enable or disable notifications when someone replies to your post.",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name": "likes",
+            "displayName" : "Likes",
+            "description" : "Enable or disable notifications when someone likes your post.",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name": "quotes",
+            "displayName" : "Quotes",
+            "description" : "Enable or disable quotes",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name": "coposts",
+            "displayName" : "Coposts",
+            "description" : "Enable or disable notifications when someone requests to copost with you.",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name" : "mentions",
+            "displayName" : "Mentions",
+            "description" : "Enable or disable notifications when someone mentions you in a post.",
+            "type" : "boolean",
+            "defaultValue" : true
+        },
+        {
+            "name": "allPosts",
+            "displayName" : "All Posts",
+            "description" : "Enable or disable notifications for any new posts.",
+            "type" : "boolean",
+            "defaultValue" : false
+        },
+        {
+            "name": "allMessages",
+            "displayName" : "Messages",
+            "description" : "Enable or disable notifications for any new messages",
+            "type" : "boolean",
+            "defaultValue" : false
+        }
+    ]
+}

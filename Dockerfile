@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:20
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -9,6 +9,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY config.json ./
 COPY secret.env ./
+COPY env/ ./env/
 
 RUN npm install
 # If you are building your code for production
@@ -19,4 +20,4 @@ COPY . .
 
 WORKDIR /usr/src/app
 EXPOSE 3001
-CMD [ "npm", "start." ]
+CMD [ "npm", "run", "prod" ]

@@ -1,10 +1,14 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { findPoll, findUserVote } = require("../../polls");
+const { getPrivacySetting } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");
 const { checkIfPinned } = require("../../user/edit/checkIfPinned");
+const { findFollow } = require("../../user/follows");
+const { getUserRelation, canView } = require("../../user/relations");
 const { getBookmarkSave } = require("../bookmarks");
 const { postIsLiked } = require("../likeUtil");
+const { getPostTags } = require("../tags/getPostTags");
 
 async function getPostWithData({ userID, postID, post, ownUser }) {
     if (!postID && !post) return searchErrorV2("Q003", { userID })
@@ -17,15 +21,40 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         quotePost: null,
         quoteUser: null
     };
+    var replyData = {
+        replyPost: null,
+        replyUser: null
+    };
+    var coposterData = null;
+    var tagData = null;
     var extraData = {
         liked: false,
         pinned: false,
-        saved: false
+        saved: false,
+        followed: false
     };
     
     if (!post) postData = await interactPostSchema.findOne({_id: postID });
-    if (!postData || postData.deleted) return searchErrorV2("Q003", { userID });
+    if (!postData) return searchErrorV2("Q003", { userID });
+    if (postData.deleted) return searchErrorV2("D026", { userID });
     
+    // privacy settings check
+    const userPrivacy = await getPrivacySetting({ userID: postData.userID, privacy: "post" });
+    if (userPrivacy == 4 && userID != postData.userID) return searchErrorV2("T013", { userID });
+
+    // check if user is following poster
+    const userFollowing = await findFollow({ userID, followedUserID: postData.userID });
+    if (userFollowing.found) extraData.followed = true;
+
+    // can user view post
+    const canViewPost = await canView({ 
+        userID,
+        otherUserID: postData.userID, 
+        privacyNum: postData.privacyOverride ? postData.privacyOverride : userPrivacy,
+        userIDFollowOther: userFollowing.found
+    });
+    if (!canViewPost || canViewPost.error) return searchErrorV2("T013", { userID });
+
     if (postData.content) {
         /* if post is liked, add liked: true */
         const foundLike = await postIsLiked({ postID: postData._id, userID });
@@ -70,6 +99,23 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        if (postData.replyingPostID || (postData.isReply && (postData.replyData && postData.replyData.postID && postData.replyData.userID))) {
+            const replyID = postData.replyingPostID || postData.replyData.postID;
+            const foundReply = await interactPostSchema.findOne({_id: replyID});
+            
+            if (foundReply) {
+                replyData.replyPost = foundReply;
+                type["reply"] = "included";
+
+                if (foundReply.userID) {
+                    const foundReplyUser = await interactUserSchema.findOne({_id: foundReply.userID});
+                    if (foundReplyUser) {
+                        replyData.replyUser = foundReplyUser;
+                    }
+                }
+            }  
+        }
+
         // has linked quote
         if (postData.quoteReplyPostID || (postData.quoteData && postData.quoteData.postID)) {
             const quoteID = postData.quoteReplyPostID || postData.quoteData.postID;
@@ -88,6 +134,30 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             }
         }
 
+        // has coposters
+        if (postData.coposters && postData.coposters.length > 0) {
+            const foundCoposters = [];
+            for (var i = 0; i < postData.coposters.length; i++) {
+                const foundCoposter = await interactUserSchema.findOne({_id: postData.coposters[i]});
+                if (foundCoposter) foundCoposters.push(foundCoposter);
+            }
+
+            if (foundCoposters.length > 0) {
+                coposterData = foundCoposters;
+                type["copost"] = "included";
+            }
+        }
+
+        // has tags
+        if (postData.hasTags) {
+            const foundTags = await getPostTags({ postID: postData._id });
+
+            if (foundTags && foundTags.length > 0) {
+                tagData = foundTags;
+                type["tag"] = "included";
+            }
+        }
+
         var dataSend = { 
             type, 
             postData,
@@ -95,13 +165,16 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
             pollData, 
             voteData,
             quoteData,
+            replyData,
+            coposterData,
+            tagData,
             extraData
         };
 
         return dataSend;
     }
 
-    return searchErrorV2("Z001", { userID });
+    return searchErrorV2("D025", { userID });
 }
 
 async function getPostBaiscData({ postID, postData }) {

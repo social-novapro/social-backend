@@ -12,10 +12,10 @@ const messageSchema = mongoose.Schema({
     user: reqString,
     currentUsers: reqString,
     content: reqString,
-    timeStamp: reqString,
+    timeStamp: reqNum,
     replyTo: reqString, // messageID
     edited: reqBool,
-    editedTimeStamp: reqString
+    editedTimeStamp: reqNum
 });
 
 // type 06
@@ -24,7 +24,7 @@ const userJoinSchema = mongoose.Schema({
     user: reqString,
     currentUsers: reqString,
     content: reqString,
-    timeStamp: reqString
+    timeStamp: reqNum
 });
 
 // type 07
@@ -33,7 +33,7 @@ const userLeaveSchema = mongoose.Schema({
     user: reqString,
     currentUsers: reqString,
     content: reqString,
-    timeStamp: reqString
+    timeStamp: reqNum
 });
 
 // user

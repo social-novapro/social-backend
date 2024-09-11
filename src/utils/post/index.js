@@ -5,6 +5,8 @@ const interactQuotesSchema = require("../../schemas/postSchemas/interactQuotesSc
 const { checkPostContent } = require("../checks");
 const { checktime } = require("../checktime");
 const { searchErrorV2 } = require("../searchError");
+const { embedEditedPost } = require("../search/embed");
+const { editTags } = require("./tags");
 
 async function getPostReplies({ postID, userID }) {
     const postData = await interactPostSchema.findOne({_id: postID});
@@ -93,14 +95,19 @@ async function editPost({ postID, userID, content}) {
         { upsert: true }
     )
 
+    // re-embeds post
+    embedEditedPost({ postID, userID, timestamp: postCheck.timestamp, content });
+    // re-tags post
+    editTags({ userID, postID, newContent: content, postedTimestamp: postCheck.timestamp });
+
     const postData = await interactPostSchema.findOne({_id: postID});
     if (!postData) return searchErrorV2("D002", { userID });
-    return { "before": postCheck, "new": postData}
+    return { "before": postCheck, "new": postData }
 }
 
 module.exports = { 
     getPostReplies,
     getPostQuotes,
     getPostEdits,
-    editPost 
+    editPost,
 };

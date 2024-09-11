@@ -8,6 +8,7 @@ const { checktime } = require('../../checktime');
 const { emailSender } = require('../send');
 const { checkPassword } = require('../../userAuth');
 const { current } = require("../../../../config.json");
+const { revokeUserBadge } = require('../../user/badges');
 
 // set email verification request
 async function setEmail({ email, userID, password }) {
@@ -332,6 +333,8 @@ async function confirmRemove({ removeEmailVerID, password }) {
 
     const removed = await removeEmail({ email, userID });
     if (!removed || removed.error) return removed;
+
+    await revokeUserBadge({ userID, badgeID: "email_verified" });
 
     return true;
 }

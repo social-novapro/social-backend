@@ -3,6 +3,7 @@ const developerToken = require('../../../../schemas/developer/developerToken');
 const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema/');
 const { SCHEMA_VERSIONS } = require('../../../../../config.json');
 const { checktime } = require('../../../checktime');
+const { awardUserBadge } = require('../../../user/badges');
 
 async function newDevToken() {
     const newID = uuidv4();
@@ -35,6 +36,8 @@ async function newDeveloperToken(userID) {
     await interactUserPrivSchema.findOneAndUpdate({
         _id: userID
     }, { devToken }, {upsert: true});
+
+    await awardUserBadge({ userID, badgeID: "developer_account" });
     
     return devToken;
 };

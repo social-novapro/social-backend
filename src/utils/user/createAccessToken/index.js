@@ -2,6 +2,8 @@ const interactUserAccessSchema = require('../../../schemas/interactUserAccessSch
 const { SCHEMA_VERSIONS } = require('../../../../config.json');
 const {v4 : uuidv4} = require('uuid');
 const { checktime } = require('../../checktime');
+const { awardUserBadge } = require('../badges');
+const { getiOSAppToken } = require('../../getiOSBetaToken');
 
 async function createAccessToken(userID, userToken, appToken) {
     const foundAppAccess = await interactUserAccessSchema.findOne({ appToken, userID, userToken });
@@ -23,6 +25,8 @@ async function createAccessToken(userID, userToken, appToken) {
         });
         
         const checkingToken = await interactUserAccessSchema.findOne({_id: accessToken});
+        
+        if (getiOSAppToken() == appToken) await awardUserBadge({ userID, badgeID: "ios_beta_user" });
         
         return checkingToken;
     };

@@ -72,8 +72,36 @@ async function removeAllPinnedPosts({ userID }) {
     return { "success": true };
 }
 
+async function getUserPins({ ownUser, userData }) {
+    var pins = [];
+    if (userData.pins && userData.pins.length > 0) {
+        for (const pin of userData.pins) {
+            const pinData = await getPostWithData({ 
+                userID: ownUser._id, 
+                postID: pin,
+                ownUser
+            });
+
+            if (pinData.error) {
+                await interactUserSchema.findOneAndUpdate({
+                    _id: userData._id,
+                }, {
+                    $pull: {
+                        pins: { _id: pin },
+                    },
+                })
+            }
+            
+            if (!pinData.error) pins.push(pinData);
+        }
+    }
+
+    return pins;
+}
+
 module.exports = { 
     addPinnedPost,
     removePinnedPost,
-    removeAllPinnedPosts
+    removeAllPinnedPosts,
+    getUserPins
 }

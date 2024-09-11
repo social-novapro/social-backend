@@ -76,6 +76,14 @@
                     "msg" : "Error with themes"
                 },
                 {
+                    "code" : "T",
+                    "msg" : "Error with user settings"
+                },
+                {
+                    "code" : "U",
+                    "msg" : "Error with searching"
+                },
+                {
                     "code" : "Z",
                     "msg" : "Unknown errors."
                 }
@@ -272,6 +280,90 @@
                     "msg" : "Post was not pinned to profile."
                 },
                 {
+                    "code" : "C020",
+                    "msg" : "Client does not exist"
+                },
+                {
+                    "code" : "C021",
+                    "msg" : "No search term was provided when looking for user."
+                },
+                {
+                    "code" : "C022",
+                    "msg" : "Client already following user."
+                },
+                {
+                    "code" : "C023",
+                    "msg" : "No type provided searching for follow index."
+                },
+                {
+                    "code" : "C024",
+                    "msg" : "CreateNew must be false or true while searching for follow index."
+                },
+                {
+                    "code" : "C025",
+                    "msg" : "No userID provided while searching for follow index."
+                },
+                {
+                    "code" : "C026",
+                    "msg" : "Client was not previously following user."
+                },
+                {
+                    "code" : "C027",
+                    "msg" : "Client requested to follow a user that does not exist."
+                },
+                {
+                    "code" : "C028",
+                    "msg" : "User can not follow themself."
+                },
+                {
+                    "code" : "C029",
+                    "msg" : "User can not unfollow themself."
+                },
+                {
+                    "code" : "C030",
+                    "msg" : "Can not follow user due to privacy settings."
+                },
+                {
+                    "code" : "C031",
+                    "msg" : "Could not update %f, because %r",
+                    "options" : [
+                        {
+                            "name" : "field",
+                            "replacement" : "%f",
+                            "default" : "field"
+                        },
+                        {
+                            "name" : "reason",
+                            "replacement" : "%r",
+                            "default" : "unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "C032",
+                    "msg" : "Could not find user to get data for updates."
+                },
+                {
+                    "code" : "C033",
+                    "msg" : "Please wait %t before editing %f.",
+                    "options" : [
+                        {
+                            "name" : "time",
+                            "replacement" : "%t",
+                            "default" : "30m"
+                        },
+                        {
+                            "name" : "field",
+                            "replacement" : "%f",
+                            "default" : "(field)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "C034",
+                    "msg" : "No userAge provided."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },
@@ -338,6 +430,45 @@
                 {
                     "code" : "D017",
                     "msg" : "Post has no quotes inside index."
+                },
+                {
+                    "code" : "D018",
+                    "msg" : "User has no outstanding coposts to approve.",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "D019",
+                    "msg" : "User has no coposts."
+                },
+                {
+                    "code" : "D020",
+                    "msg" : "Copost request was not found."
+                },
+                {
+                    "code" : "D021",
+                    "msg" : "Copost request does not belong to user."
+                },
+                {
+                    "code" : "D022",
+                    "msg" : "Copost request was already approved."
+                },
+                {
+                    "code" : "D023",
+                    "msg" : "Copost request was already denied."
+                },
+                {
+                    "code" : "D024",
+                    "msg" : "Post connected to copost request was not found."
+                },
+                {
+                    "code" : "D025",
+                    "msg" : "No post content was found.",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "D026",
+                    "msg" : "The post was deleted.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "E001",
@@ -489,7 +620,55 @@
                 },
                 {
                     "code" : "I019",
-                    "msg" : "Please use /v1/posts/edit instead of /v1/put/editPost/"
+                    "msg" : "Please use /v1/posts/edit/ instead of /v1/put/editPost/"
+                },
+                {
+                    "code" : "I020",
+                    "msg" : "Please use /v1/search/ instead of /v1/get/search/"
+                },
+                {
+                    "code" : "I021",
+                    "msg" : "Please use /v1/search/userTag/ instead of /v1/get/taguserSearch/"
+                },
+                {
+                    "code" : "I022",
+                    "msg" : "Please use /v1/users/get/:userID instead of /v1/get/user/:userID"
+                },
+                {
+                    "code" : "I023",
+                    "msg" : "Please use /v1/users/get/basic/:userID instead of /v1/get/userByID/:userID"
+                },
+                {
+                    "code" : "I024",
+                    "msg" : "Please use /v1/users/get/basic/:username instead of /v1/get/username/:username"
+                },
+                {
+                    "code" : "I025",
+                    "msg" : "Please use /v1/users/following/:userID instead of /v1/get/following/:userID"
+                },
+                {
+                    "code" : "I026",
+                    "msg" : "Please use /v1/users/followers/:userID instead of /v1/get/followers/:userID"
+                },
+                {
+                    "code" : "I027",
+                    "msg" : "Please use /v1/users/follow/:followUserID instead of /v1/post/followUser/:followUserID"
+                },
+                {
+                    "code" : "I028",
+                    "msg" : "Please use /v1/users/unfollow/:unfollowUserID instead of /v1/delete/unfollowUser/:unfollowUserID"
+                },
+                {
+                    "code" : "I029",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/userEdit"
+                },
+                {
+                    "code" : "I030",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/editUsername"
+                },
+                {
+                    "code" : "I031",
+                    "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/editDisplayname"
                 },
                 {
                     "code" : "J001",
@@ -512,6 +691,37 @@
                     "msg" : "User is already an admin."
                 },
                 {
+                    "code" : "J006",
+                    "msg" : "Badge was not previously awarded to user."
+                },
+                {
+                    "code" : "J007",
+                    "msg" : "Badge to be awarded was not a valid badge."
+                },
+                {
+                    "code" : "J008",
+                    "msg" : "Badge to be awarded was already awarded ,and does not support multiple counts."
+                },
+                {
+                    "code" : "J009",
+                    "msg" : "Could not send badge data, for unknown reason."
+                },
+                {
+                    "code" : "J010",
+                    "msg" : "User has no badges."
+                },
+                {
+                    "code" : "J011",
+                    "msg" : "Full badge data for '%badge%' was not found.",
+                    "options" : [
+                        {
+                            "name" : "badge",
+                            "replacement" : "%badge%",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
                     "code" : "K001",
                     "msg" : "postID is required"
                 },
@@ -529,7 +739,8 @@
                 },
                 {
                     "code" : "K005",
-                    "msg" : "There was no bookmark data found for this post."
+                    "msg" : "There was no bookmark data found for this post.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "K006",
@@ -586,6 +797,34 @@
                 {
                     "code" : "L012",
                     "msg" : "There was no subscriptions found for user."
+                },
+                {
+                    "code" : "L013",
+                    "msg" : "There was no devices found to push notifications to for user."
+                },
+                {
+                    "code" : "L014",
+                    "msg" : "Apple push notification failed to send."
+                },
+                {
+                    "code" : "L015",
+                    "msg" : "There was no userID, deviceToken, or deviceType provided."
+                },
+                {
+                    "code" : "L016",
+                    "msg" : "This device was already registered with this userID."
+                },
+                {
+                    "code" : "L017",
+                    "msg" : "There was no userID, or deviceToken provided."
+                },
+                {
+                    "code" : "L018",
+                    "msg" : "Requested device notifications was not found."
+                },
+                {
+                    "code" : "L019",
+                    "msg" : "There was no notification settings changed."
                 },
                 {
                     "code" : "N001",
@@ -829,7 +1068,8 @@
                 },
                 {
                     "code" : "O019",
-                    "msg" : "The poll was not found."
+                    "msg" : "The poll was not found.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "O020",
@@ -849,7 +1089,8 @@
                 },
                 {
                     "code" : "O024",
-                    "msg" : "The user has not voted."
+                    "msg" : "The user has not voted.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "O025",
@@ -1016,11 +1257,106 @@
                 },
                 {
                     "code" : "S013",
-                    "msg" : "Can not unset theme, user did not have any themes set."
+                    "msg" : "Can not unset theme, user did not have any themes set.",
+                    "ignoreError" : true
                 },
                 {
                     "code" : "S014",
                     "msg" : "No themes in index found"
+                },
+                {
+                    "code" : "T001",
+                    "msg" : "No userID provided"
+                },
+                {
+                    "code" : "T002",
+                    "msg" : "There were no new privacy settings provided."
+                },
+                {
+                    "code" : "T003",
+                    "msg" : "User has no privacy settings found."
+                },
+                {
+                    "code" : "T004",
+                    "msg" : "Invalid privacy setting value provided."
+                },
+                {
+                    "code" : "T005",
+                    "msg" : "No privacy settings were changed."
+                },
+                {
+                    "code" : "T006",
+                    "msg" : "Invalid privacy option"
+                },
+                {
+                    "code" : "T007",
+                    "msg" : "Invalid privacy type."
+                },
+                {
+                    "code" : "T008",
+                    "msg" : "Invalid privacy option inside type.",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "T009",
+                    "msg" : "No privacy option found for setting."
+                },
+                {
+                    "code" : "T010",
+                    "msg" : "No privacy option found related."
+                },
+                {
+                    "code" : "T011",
+                    "msg" : "Privacy option not found for user."
+                },
+                {
+                    "code" : "T012",
+                    "msg" : "No settings found for getting privacy settings."
+                },
+                {
+                    "code" : "T013",
+                    "msg" : "Post is private.",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "U001",
+                    "msg" : "No lookup key was provided."
+                },
+                {
+                    "code" : "U002",
+                    "msg" : "No userID was provided while searching."
+                },
+                {
+                    "code" : "U003",
+                    "msg" : "Incorrect search version found for user."
+                },
+                {
+                    "code" : "U004",
+                    "msg" : "Version requested for new default was not found."
+                },
+                {
+                    "code" : "U005",
+                    "msg" : "Could not find any matching tags."
+                },
+                {
+                    "code" : "U006",
+                    "msg" : "No lookup key was provided for tags."
+                },
+                {
+                    "code" : "U007",
+                    "msg" : "No results found for tags."
+                },
+                {
+                    "code" : "X001",
+                    "msg" : "No content provided while searching for tags."
+                },
+                {
+                    "code" : "X002",
+                    "msg" : "tagText nor indexID was given to look for index."
+                },
+                {
+                    "code" : "X003",
+                    "msg" : "Tagged user does not exist."
                 },
                 {
                     "code" : "Z001",

@@ -6,12 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./src/app.js",
-    "trace": "node --trace-warnings ./src/app.js"
+    "trace": "node --trace-warnings ./src/app.js",
+    "dev": "node ./runMode/verifyEnv.js && node --trace-warnings ./runMode/dev.js && node ./src/app.js",
+    "prod": "node ./runMode/verifyEnv.js && node ./runMode/prod.js && node ./src/app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@dothq/id": "^1.0.1",
+    "apn": "^2.2.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.3",

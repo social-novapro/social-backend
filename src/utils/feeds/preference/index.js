@@ -1,4 +1,4 @@
-const { subscriptionFeed, allPostsFeed } = require("../");
+const { subscriptionFeed, allPostsFeed, allPostsFeedV2, subscriptionFeedV2 } = require("../");
 const interactUserFeedSchema = require("../../../schemas/user/interactUserFeedSchema")
 const {checktime} = require('../../checktime');
 const { searchError, searchErrorV2 } = require("../../searchError");
@@ -14,7 +14,21 @@ async function getFeed({ userID }) {
         const feed = await allPostsFeed({ userID });
         return feed;
     } else if (prefData == "subscriptionFeed") {
-        const feed = await subscriptionFeed({ userID });
+        const feed = await subscriptionFeed({ userID  });
+        return feed;
+    }
+}
+
+async function getFeedV2({ userID, indexID }) {
+    if (!userID) return searchError("B009")
+
+    const pref = await getPreference({ userID });
+    const prefData = pref.preferredFeed;
+    if (prefData == "allPosts"){
+        const feed = await allPostsFeedV2({ userID, indexID });
+        return feed;
+    } else if (prefData == "subscriptionFeed") {
+        const feed = await subscriptionFeedV2({ userID });
         return feed;
     }
 }
@@ -114,6 +128,7 @@ async function deleteFeedPreference({ userID }) {
 
 module.exports = {
     getFeed,
+    getFeedV2,
     getPossiblePreferences,
     getPreference,
     setPreference,
