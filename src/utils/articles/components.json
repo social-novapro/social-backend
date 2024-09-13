@@ -26,57 +26,74 @@
             "id" : 0,
             "order" : 0,
             "name" : "Header",
-            "description" : "Add a header to your article."
+            "description" : "Add a header to your article.",
+            "placeholder" : "New Header..."
         }, {
             "id" : 1,
             "order" : 1,
             "name" : "Sub header",
-            "description" : "Add a sub header to your article."
+            "description" : "Add a sub header to your article.",
+            "placeholder" : "New Subheader..."
         }, {
             "id" : 2,
             "order" : 2,
             "name" : "Paragraph",
-            "description" : "Add a compontent of text like a paragraph to your article."
+            "description" : "Add a compontent of text like a paragraph to your article.",
+            "placeholder" : "New Paragraph..."
         }, {
             "id" : 3,
             "order" : 3,
             "name" : "Button Link",
-            "description" : "Add a button link to your article, adds a hyperlink and opens in new tab when clicked."
+            "description" : "Add a button link to your article, adds a hyperlink and opens in new tab when clicked.",
+            "placeholder" : "Link URL..."
         }, {
             "id" : 4,
             "order" : 4,
-            "name" : "Interact Poll",
-            "description" : "Add a poll to to your article.",
-            "subtractOptions" : [ 0, 1, 2 ]
+            "name" : "New Interact Poll",
+            "description" : "Add a poll to your article.",
+            "subtractOptions" : [ 0, 1, 2 ],
+            "placeholder" : "New Poll..."
         }, {
             "id" : 5,
             "order" : 5,
-            "name" : "Interact Post",
-            "description" : "Add a link to an Interact post.",
-            "subtractOptions" : [ 0, 1, 2 ]
+            "name" : "Link Interact Poll",
+            "description" : "Link a poll to your article.",
+            "subtractOptions" : [ 0, 1, 2 ],
+            "placeholder" : "Link Poll..."
         }, {
             "id" : 6,
             "order" : 6,
-            "name" : "Image",
-            "description" : "Add a link to a image to your article. JPG, PNG, etc.",
-            "supports" : ["JPG", "PNG", "GIF"]
+            "name" : "Interact Post",
+            "description" : "Add a link to an Interact post.",
+            "subtractOptions" : [ 0, 1, 2 ],
+            "placeholder" : "Link Post..."
         }, {
             "id" : 7,
             "order" : 7,
-            "name" : "Video",
-            "description" : "Add a link to a video to your article. MP4, MPEG, Youtube, etc",
-            "supports": ["MP4", "MPEG", "YouTube"]
+            "name" : "Image",
+            "description" : "Add a link to a image to your article. JPG, PNG, etc.",
+            "supports" : ["JPG", "PNG", "GIF"],
+            "placeholder" : "Link Image..."
         }, {
             "id" : 8,
             "order" : 8,
-            "name" : "Music",
-            "description" : "Add a link to a song or album to your article.",
-            "supports": ["Spotify"]
-        },  {
+            "name" : "Video",
+            "description" : "Add a link to a video to your article. MP4, MPEG, Youtube, etc",
+            "supports": ["MP4", "MPEG", "YouTube"],
+            "placeholder" : "Link Video..."
+        }, {
             "id" : 9,
             "order" : 9,
+            "name" : "Music",
+            "description" : "Add a link to a song or album to your article.",
+            "supports": ["Spotify"],
+            "placeholder" : "Link Music..."
+        },  {
+            "id" : 10,
+            "order" : 10,
             "name" : "Source / Resource",
-            "description" : "Add a resource to your article."
+            "description" : "Add a resource to your article.",
+            "placeholder" : "New Source..."
         }
     ]
 }
