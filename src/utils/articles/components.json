@@ -1,0 +1,82 @@
+{
+    "componentOptions" : [
+        {
+            "order" : 0,
+            "name" : "Font Size",
+            "dbName" : "font-size",
+            "input" : "int",
+            "default" : 12
+        }, {
+            "order" : 1,
+            "name" : "Alignment",
+            "dbName" : "alignment",
+            "options": [ "center", "right", "left" ],
+            "input" : "list",
+            "default" : "center"
+        }, {
+            "order" : 2,
+            "name" : "Source or Credit",
+            "dbName" : "source",
+            "input" : "text",
+            "default" : null
+        }
+    ],
+    "componentTypes" : [
+        {
+            "id" : 0,
+            "order" : 0,
+            "name" : "Header",
+            "description" : "Add a header to your article."
+        }, {
+            "id" : 1,
+            "order" : 1,
+            "name" : "Sub header",
+            "description" : "Add a sub header to your article."
+        }, {
+            "id" : 2,
+            "order" : 2,
+            "name" : "Paragraph",
+            "description" : "Add a compontent of text like a paragraph to your article."
+        }, {
+            "id" : 3,
+            "order" : 3,
+            "name" : "Button Link",
+            "description" : "Add a button link to your article, adds a hyperlink and opens in new tab when clicked."
+        }, {
+            "id" : 4,
+            "order" : 4,
+            "name" : "Interact Poll",
+            "description" : "Add a poll to to your article.",
+            "subtractOptions" : [ 0, 1, 2 ]
+        }, {
+            "id" : 5,
+            "order" : 5,
+            "name" : "Interact Post",
+            "description" : "Add a link to an Interact post.",
+            "subtractOptions" : [ 0, 1, 2 ]
+        }, {
+            "id" : 6,
+            "order" : 6,
+            "name" : "Image",
+            "description" : "Add a link to a image to your article. JPG, PNG, etc.",
+            "supports" : ["JPG", "PNG", "GIF"]
+        }, {
+            "id" : 7,
+            "order" : 7,
+            "name" : "Video",
+            "description" : "Add a link to a video to your article. MP4, MPEG, Youtube, etc",
+            "supports": ["MP4", "MPEG", "YouTube"]
+        }, {
+            "id" : 8,
+            "order" : 8,
+            "name" : "Music",
+            "description" : "Add a link to a song or album to your article.",
+            "supports": ["Spotify"]
+        },  {
+            "id" : 9,
+            "order" : 9,
+            "name" : "Source / Resource",
+            "description" : "Add a resource to your article."
+        }
+    ]
+}
