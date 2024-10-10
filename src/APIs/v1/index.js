@@ -16,6 +16,7 @@ const posts = require('./posts');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
 const search = require('./search');
+const articles = require('./articles');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -33,6 +34,7 @@ router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
 router.use('/search', search);
+router.use('/articles', articles);
 
 // Legacy Routes
 // GET
