@@ -11,7 +11,7 @@ function organizeComponentOptions() {
     const componentOptions = components.componentOptions;
 
     for (const type of componentTypes) {
-        const options = {...componentOptions};
+        const options = [...componentOptions];
         if (type.subtractOptions) {
             for (const subtractOption of type.subtractOptions) {
                 delete options[subtractOption];
@@ -33,6 +33,13 @@ function organizeComponentOptions() {
 async function getComponents() {
     const components = organizeComponentOptions();
     return components;
+}
+
+async function publishArticle(userID, article) {
+    // check article hubID and blogID
+    // check for valid article components
+
+    // if any articles unvalid, save to draft and return error
 }
 
 

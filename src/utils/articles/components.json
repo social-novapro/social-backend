@@ -1,24 +1,47 @@
 {
     "componentOptions" : [
         {
-            "order" : 0,
+            "id" : 0,
             "name" : "Font Size",
             "dbName" : "font-size",
-            "input" : "int",
-            "default" : 12
+            "input" : "number",
+            "default" : 12,
+            "placehoder" : "Enter a font size."
         }, {
-            "order" : 1,
+            "id" : 1,
             "name" : "Alignment",
             "dbName" : "alignment",
-            "options": [ "center", "right", "left" ],
+            "options": [{
+                "name" : "Left Alignment",
+                "value" : "left"
+            }, {
+                "name" : "Center Alignment",
+                "value" : "center"
+            }, {
+                "name" : "Right Alignment",
+                "value" : "right"
+            }],
             "input" : "list",
-            "default" : "center"
+            "default" : "left"
         }, {
-            "order" : 2,
+            "id" : 2,
             "name" : "Source or Credit",
             "dbName" : "source",
             "input" : "text",
-            "default" : null
+            "default" : null,
+            "placeholder" : "Enter a source"
+        }, {
+            "id" : 3,
+            "name" : "Bottom padding",
+            "dbName" : "padding-bottom",
+            "input" : "number",
+            "default" : 4
+        }, {
+            "id" : 4,
+            "name" : "Indent",
+            "dbName" : "indent",
+            "input" : "number",
+            "default" : 4
         }
     ],
     "componentTypes" : [
