@@ -3,7 +3,7 @@
         {
             "id" : 0,
             "name" : "Font Size",
-            "dbName" : "font-size",
+            "dbName" : "font_size",
             "input" : "number",
             "default" : 12,
             "placehoder" : "Enter a font size."
@@ -33,7 +33,7 @@
         }, {
             "id" : 3,
             "name" : "Bottom padding",
-            "dbName" : "padding-bottom",
+            "dbName" : "padding_bottom",
             "input" : "number",
             "default" : 4
         }, {

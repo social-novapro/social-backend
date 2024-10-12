@@ -1,14 +1,15 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString } = require('../../types');
+const { reqNum, reqString, nonreqNum } = require('../../types');
 
 const interactArticleSchema = mongoose.Schema({
     _id: reqString, // articleID
     hubID: reqString, // which articleHub
-    sectionID: reqString, // which hubsection
+    topicID: reqString, // which hub topic
     userID: reqString, // who posted
     indexID: reqString,
     timestamp: reqNum,
-    timestampEdited: reqNum
+    timestampEdited: nonreqNum,
+    title: reqString
 });
 
 module.exports = mongoose.model('interact-article', interactArticleSchema);

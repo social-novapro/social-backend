@@ -8,9 +8,12 @@ const interactArticleComponentSchema = mongoose.Schema({
     timestamp: reqNum, // time created 
     timestampEdited: nonreqNum, // time edited
     componentID: reqNum, 
-    font_size: reqNum,
-    alignment: reqString, // center, left, right
-    credit: nonreqString // for quotes and images mainly
+    // options
+    font_size: nonreqNum,
+    alignment: nonreqString, // center, left, right
+    source: nonreqString, // for quotes and images mainly
+    padding_bottom: nonreqNum,
+    indent: nonreqNum,
 });
 
 module.exports = mongoose.model('interact-article-component', interactArticleComponentSchema);
