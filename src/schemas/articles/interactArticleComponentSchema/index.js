@@ -7,7 +7,8 @@ const interactArticleComponentSchema = mongoose.Schema({
     order: reqNum, // order in article
     timestamp: reqNum, // time created 
     timestampEdited: nonreqNum, // time edited
-    componentID: reqNum, 
+    typeID: reqNum, 
+    value: reqString,
     // options
     font_size: nonreqNum,
     alignment: nonreqString, // center, left, right

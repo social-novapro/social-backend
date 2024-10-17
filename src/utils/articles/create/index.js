@@ -56,7 +56,7 @@ async function uploadArticle(userID, article, method="draft") {
     const hubID = null;
     
     for (const component of components) {
-        console.log(component)
+        console.log("component", component)
         const compType = organizeComponentOptions().find(comp => comp.type.id == component.type.id);
         if (!compType) {
             invalidComponents.push({error: "not found", component})
@@ -65,17 +65,12 @@ async function uploadArticle(userID, article, method="draft") {
         console.log("compType", compType)
         var foundInvalidType = false;
         const optionsSet = {};
-        for (const option in component.options) {
-            // if (options.)
-            const compOption = compType.options.find(optionA => optionA.dbName == component.options[option].dbName);
-            if (!compOption) {
-                console.log("inv", component.options[option].dbName)
-                foundInvalidType = true;
-                continue;
-            }
+        for (const option of compType.options) {
             console.log("option", option)
-            optionsSet[option] = component.options[option].value
+            if (component[option.dbName]) optionsSet[option.dbName] = component[option.dbName]
+            else optionsSet[option.dbName] = option.default ?? "";
         }
+
         if (foundInvalidType) {
             invalidComponents.push({error: "type", component})
             continue
@@ -86,8 +81,9 @@ async function uploadArticle(userID, article, method="draft") {
             _id: uuidv4(),
             articleID: articleID,
             order: currentComponent,
-            componentID: compType.type.id,
+            typeID: compType.type.id,
             timestamp: checktime(),
+            value: component.value,
             ...optionsSet
             // font_size: component.options["font_size"].value
         }
