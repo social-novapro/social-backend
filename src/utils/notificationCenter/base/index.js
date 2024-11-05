@@ -1,7 +1,9 @@
+const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactNotificationCenterTypeSchema = require('../../../schemas/notificationCenter/interactNotificationCenterTypeSchema');
 const interactNotifications = require('../../../schemas/notifications/interactNotifications');
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const { checktime } = require('../../checktime');
+const { getPostWithData } = require('../../post/getPost');
 const notif_types = require('../notif_types.json');
 const { v4: uuidv4 } = require('uuid');
 /* 
@@ -89,23 +91,29 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
 
     // mentions - #1 - get 
     if (tags.length > 0) {
+        const notifType = 401;
         for (const tag of tags) {
             if ((tag.tagTextOriginal?.startsWith("@")) && tag.userIDTagged != userID) {
                 taggedNotifs.push(tag.userIDTagged);
 
                 // send notif mentions
-                const notifSubID = await createNotification({ postID, userID, type: 401 });
+                const notifID = await createNotification({ postID, userID: userIDTagged, type: notifType });
+                const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+                allNotifs.push({notifID: notifID, notifs: notificationLayouts});
             }
         }
     }
 
     // coposters - #2 (but also shows if mentioned, shows no matter what)
     if (coposters.length > 0) {
+        const notifType = 204;
         for (const coposter of coposters) {
             if (coposter != userID) {
                 // send notif coposter
-                const notifSubID = await createNotification({ postID, userID, type: 204 });
-
+                const notifID = await createNotification({ postID, userID: coposter, type: notifType });
+                const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+                allNotifs.push({notifID: notifID, notifs: notificationLayouts});
+        
                 // check for quote
                 if (sendQuoteNotif) {
                     if (postData.quoteData?.userID == coposter) {
@@ -125,30 +133,37 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
         }
     }
 
+    const allNotifs = [];
 
     // send notif for quote, and reply
     if (sendQuoteNotif) {
+        const notifType = 404;
         // send quote notif
-        const notifSubID = await createNotification({ postID, userID, type: 404 });
-        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: 404 });
+        const notifID = await createNotification({ postID, userID: postData.quoteData?.userID, type: notifType });
+        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+        allNotifs.push({notifID: notifID, notifs: notificationLayouts});
     }
 
     if (sendReplyNotif) {
+        const notifType = 402;
         // send reply notif
-        const notifSubID = await createNotification({ postID, userID, type: 402 });
-        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: 402 });
+        // const sendUserID = postData.replyData?.userID;
+        const notifID = await createNotification({ postID, userID: postData.replyData?.userID, type: notifType });
+        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+        allNotifs.push({notifID: notifID, notifs: notificationLayouts});
     }
 
     // subscriptions - #5 - dont show if mentioned, quoted, replied
     if (subscribedList && subscribedList.subscribed.length > 0) {
+        const notifType = 501;
         // create general notif
-        const notifSubID = await createNotification({ postID, userID, type: 501 });
-        // if isreply, notifID should be 502
-
+        // const notifID = await createNotification({ postID, userID: subscribedList, type: 501 });
+        // // if isreply, notifID should be 502
+        
         for (const sub of subscribedList.subscribed) {
             if (sub != userID) {
                 if (taggedNotifs.includes(sub)) continue; // dont send
-
+                
                 if (sendQuoteNotif) {
                     if (postData.quoteData?.userID == sub) continue; // dont send
                 }
@@ -158,8 +173,17 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
                 }
 
                 // finally, send notif sub
+                const notifID = await createNotification({ postID, userID: sub, type: notifType });
+                const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+                allNotifs.push({notifID: notifID, notifs: notificationLayouts});
             }
         }
+    }
+
+    // push send all notifs
+    for (const notif of allNotifs) {
+        // push notif
+        console.log(notif);
     }
 
     // tags - not yet
@@ -170,30 +194,38 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
 
 async function createPostNotifLayouts({ userData, postData, type }) {
     const notifType = await interactNotificationCenterTypeSchema.findOne({ _id: type });
-    if (!notifType) return { }
+    if (!notifType) return { } // return error
 
     const layouts = []
     for (const system of notifType.pushToSystem) {
         if (system._id == 1) {
             layouts.push({
                 _id: system._id,
+                type: type,
+                userID: userData._id,
                 subject: updateStringLayout({ string: system.subject, userData, postData }),
                 content: updateStringLayout({ string: system.content, userData, postData })
             })
         } else if (system._id == 2) {
             layouts.push({
                 _id: system._id,
+                type: type,
+                userID: userData._id,
                 subject: updateStringLayout({ string: system.subject, userData, postData }),
-                htmlP: updateStringLayout({ string: system.content, userData, postData }),
-                htmlA: updateStringLayout({ string: system.content, userData, postData }),
+                htmlP: updateStringLayout({ string: system.htmlP, userData, postData }),
+                htmlA: updateStringLayout({ string: system.htmlA, userData, postData }),
             })
         } else if (system._id == 3) {
             layouts.push({
                 _id: system._id,
+                type: type,
+                userID: userData._id,
                 title: updateStringLayout({ string: system.title, userData, postData }),
                 body: updateStringLayout({ string: system.body, userData, postData }),
                 subtitle: updateStringLayout({ string: system.subtitle, userData, postData }),
             })
+        } else {
+            // unknown system, error
         }
     }
 
@@ -232,7 +264,7 @@ async function pushUserSubscriptions({ postID, userID, postData }) {
 // userID - user who created post
 async function createNotification({ postID, userID, type }) {
     const UUID = uuidv4();
-    await interactNotifications.create({
+    const notifData = await interactNotifications.create({
         _id: UUID,
         timestamp: checktime(),
         type,
@@ -240,7 +272,32 @@ async function createNotification({ postID, userID, type }) {
         postID,
         version: 2
     });
-    return UUID;
+    return notifData;
 }
 
-module.exports = { pushPostNotifs }
+// get all notifications for a user
+async function userNotifications({ userID }) {
+    const notifs = await interactNotifications.find({ userID, version: 2 });
+    const finalNotifs = [];
+
+    for (const notif of notifs) {
+        // const foundUser 
+        const foundPost = await getPostWithData({ userID, postID: notif.postID });
+        const notifHeaders = await interactNotificationCenterTypeSchema.findOne({ _id: notif.type });
+        for (const system of notifHeaders.pushToSystem) {
+            if (system._id != 1) continue;
+
+            finalNotifs.push({
+                _id: system._id,
+                type: notif.type,
+                userID: userID,
+                subject: updateStringLayout({ string: system.subject, userData: foundPost.userData, postData: foundPost.postData }),
+                content: updateStringLayout({ string: system.content, userData: foundPost.userData, postData: foundPost.postData })
+            })
+        }
+    }
+
+    return finalNotifs;
+}
+
+module.exports = { pushPostNotifs, userNotifications }

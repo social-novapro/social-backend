@@ -77,7 +77,24 @@
         }, {
             "id" : 204,
             "name" : "Copost request",
-            "esstential" : true
+            "esstential" : true,
+            "pushToSystem" : [
+                { 
+                    "id" : 1,
+                    "subject" : "[user_tag] wants to copost",
+                    "content" : "[post_content]"
+                }, {
+                    "id" : 2,
+                    "subject" : "New Copost Request",
+                    "htmlP" : "[user_tag] wants to copost with you, click here to view!",
+                    "htmlA" : "[post_url]"
+                }, {
+                    "id" : 3,
+                    "title" : "Interact Copost",
+                    "subtitle" : "[user_tag] wants to copost with you",
+                    "body" : "[post_content]"
+                }
+            ]
         }, {
             "id" : 205,
             "name" : "Copost approved"
@@ -111,13 +128,39 @@
             "id" : 401,
             "name" : "Post Mention",
             "description": "Someone mentioned you in a post.",
-            "esstential" : true
+            "esstential" : true,
+            "pushToSystem" : [
+                { 
+                    "id" : 1,
+                    "subject" : "[user_tag] mentioned you",
+                    "content" : "[post_content]"
+                }, {
+                    "id" : 2,
+                    "subject" : "New Mention",
+                    "htmlP" : "[user_tag] mentioned you in their post, click here to view!",
+                    "htmlA" : "[post_url]"
+                }, { 
+                    "id" : 3,
+                    "title" : "Interact Mention",
+                    "subtitle" : "[user_tag] mentioned you!",
+                    "body" : "[post_content]"
+                }
+            ]
         }, {
             "id" : 402,
             "name" : "Replied to your post",
             "esstential" : true,
             "pushToSystem" : [
                 { 
+                    "id" : 1,
+                    "subject" : "[user_tag] replied",
+                    "content" : "[post_content]"
+                }, {
+                    "id" : 2,
+                    "subject" : "New Reply",
+                    "htmlP" : "[user_tag] replied to your post, click here to view!",
+                    "htmlA" : "[post_url]"
+                }, { 
                     "id" : 3,
                     "title" : "Interact Reply",
                     "subtitle" : "[user_tag] replied to your post!",
@@ -134,6 +177,15 @@
             "esstential" : true,
             "pushToSystem" : [
                 { 
+                    "id" : 1,
+                    "subject" : "[user_tag] quoted",
+                    "content" : "[post_content]"
+                }, {
+                    "id" : 2,
+                    "subject" : "New Quote",
+                    "htmlP" : "[user_tag] quoted you, click here to view!",
+                    "htmlA" : "[post_url]"
+                },  { 
                     "id" : 3,
                     "title" : "Interact Quote",
                     "subtitle" : "[user_tag] quoted your post!",
@@ -157,7 +209,7 @@
                     "htmlA" : "[post_url]"
                 }, {
                     "id" : 3,
-                    "title" : "Interact Follow",
+                    "title" : "Interact Post",
                     "subtitle" : "New Post from [user_tag]",
                     "body" : "[post_content]"
                 }
