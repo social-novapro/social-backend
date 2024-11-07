@@ -278,7 +278,7 @@ async function createNotification({ postID, userID, type }) {
 // get all notifications for a user
 async function userNotifications({ userID }) {
     const notifs = await interactNotifications.find({ userID, version: 2 });
-    const finalNotifs = [];
+    const finalNotifs = {sectionTypes: notif_types.sectionTypes, notifs: []};
 
     for (const notif of notifs) {
         // const foundUser 
@@ -287,12 +287,13 @@ async function userNotifications({ userID }) {
         for (const system of notifHeaders.pushToSystem) {
             if (system._id != 1) continue;
 
-            finalNotifs.push({
+            finalNotifs.notifs.push({
                 _id: system._id,
                 type: notif.type,
                 userID: userID,
                 subject: updateStringLayout({ string: system.subject, userData: foundPost.userData, postData: foundPost.postData }),
-                content: updateStringLayout({ string: system.content, userData: foundPost.userData, postData: foundPost.postData })
+                content: updateStringLayout({ string: system.content, userData: foundPost.userData, postData: foundPost.postData }),
+                postData: foundPost
             })
         }
     }

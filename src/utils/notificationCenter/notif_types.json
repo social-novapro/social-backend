@@ -1,6 +1,12 @@
 {
     "sectionTypes" : [
         {
+            "id" : 0,
+            "ids" : [0, 99],
+            "name" : "Legacy",
+            "description" : "Notifications created before v1.7 notifications",
+            "required" : true
+        }, {
             "id" : 1,
             "ids" : [100, 199],
             "name" : "Account",
