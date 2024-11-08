@@ -1256,7 +1256,7 @@
                     "msg" : "Could not find any themes with assiocated userID"
                 },
                 {
-                    "coode" : "S004",
+                    "code" : "S004",
                     "msg" : "User does not have any default theme"
                 },
                 {

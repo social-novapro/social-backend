@@ -45,22 +45,52 @@ const notificationTimeLimit = 1000*60*60; // 1 hour
 
 // entry point for follow notifications
 
-async function notificationCenterFollowUser({ userID, followedUserID }) {
+async function pushFollowUserNotif({ userID, followedUserID, followID }) {
     // check if recently got notif for this 
     // type 601
+    const notifType = 601;
 
-    const prevRelated = await checkForNotif({ userID, type: 601 });
+    const prevRelated = await checkForNotif({ userID, type: notifType });
+    if (prevRelated) return { error: "Already sent notif about this event recently" };
 
+    const newNotif = await createNotification({ userID, type: notifType, forUserID: followedUserID, followID });
+    const userData = await interactUserSchema.findOne({ _id: userID });
+    const notificationLayouts = await createPostNotifLayouts({ userData, type: notifType });
+
+    pushNotifToSystems({forUserID: followedUserID, notifData: newNotif, notifsLayouts: notificationLayouts});
 }
 
-async function checkForNotif({ userID, type }) {
+// {forUserID: userIDTagged, notifData: notifID, notifsLayouts: notificationLayouts}
+/* notif: {forUserID, notifData, notifsLayouts} */
+async function pushNotifToSystems(notif) {
+    console.log("pushing notif to systems");
+    if (!notif) return { error: "No notif data" };
+    if (!notif.forUserID) return { error: "No forUserID" };
+    if (!notif.notifData) return { error: "No notifData" };
+    if (!notif.notifsLayouts) return { error: "No notifsLayouts" };
+
+    const forUserData = await interactUserSchema.findOne({ _id: notif.forUserID });
+    // console.log(notif.notifData, notif.notifsLayouts);
+    // console.log(forUserData);
+    // push system 1 - inapp
+    pushInAppNotif(notif, forUserData);
+    // push system 2 - email
+    // push system 3 - ios    
+}
+
+// TODO: make it work
+async function checkForNotif({ userID, postID, forUserID, type }) {
     const notif = await interactNotifications.findOne({
         userID,
         type,
+        postID: postID ? postID : null,
+        forUserID: forUserID ? forUserID : null,
         timestamp: {
-            $gt: Date.now() - notificationTimeLimit
+            // less than current-(1hr) 1900-0100 = 1800 lt
+            $gt: checktime() - notificationTimeLimit
         }
     })
+
 
     if (!notif) return false;
     return true;
@@ -186,14 +216,7 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
 
     // push send all notifs
     for (const notif of allNotifs) {
-        // push notif
-        const forUserData = await interactUserSchema.findOne({ _id: notif.forUserID });
-
-        console.log(notif);
-        // push system 1 - inapp
-        pushInAppNotif(notif, forUserData);
-        // push system 2 - email
-        // push system 3 - ios
+       pushNotifToSystems(notif);
     }
 
     // tags - not yet
@@ -205,38 +228,33 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
 async function createPostNotifLayouts({ userData, postData, type }) {
     const notifType = await interactNotificationCenterTypeSchema.findOne({ _id: type });
     if (!notifType) return { } // return error
+    userData = userData ? userData : { };
+    postData = postData ? postData : { };
 
     const layouts = []
     for (const system of notifType.pushToSystem) {
+        var layoutBase = {
+            _id: system._id,
+            type: type,
+            userID: userData._id
+        }
+
         if (system._id == 1) {
-            layouts.push({
-                _id: system._id,
-                type: type,
-                userID: userData._id,
-                subject: updateStringLayout({ string: system.subject, userData, postData }),
-                content: updateStringLayout({ string: system.content, userData, postData })
-            })
+            layoutBase["subject"] = updateStringLayout({ string: system.subject, userData, postData });
+            layoutBase["content"] = updateStringLayout({ string: system.content, userData, postData });
         } else if (system._id == 2) {
-            layouts.push({
-                _id: system._id,
-                type: type,
-                userID: userData._id,
-                subject: updateStringLayout({ string: system.subject, userData, postData }),
-                htmlP: updateStringLayout({ string: system.htmlP, userData, postData }),
-                htmlA: updateStringLayout({ string: system.htmlA, userData, postData }),
-            })
+            layoutBase["subject"] = updateStringLayout({ string: system.subject, userData, postData });
+            layoutBase["htmlP"] = updateStringLayout({ string: system.htmlP, userData, postData });
+            layoutBase["htmlA"] = updateStringLayout({ string: system.htmlA, userData, postData });
         } else if (system._id == 3) {
-            layouts.push({
-                _id: system._id,
-                type: type,
-                userID: userData._id,
-                title: updateStringLayout({ string: system.title, userData, postData }),
-                body: updateStringLayout({ string: system.body, userData, postData }),
-                subtitle: updateStringLayout({ string: system.subtitle, userData, postData }),
-            })
+            layoutBase["title"] = updateStringLayout({ string: system.title, userData, postData });
+            layoutBase["body"] = updateStringLayout({ string: system.body, userData, postData });
+            layoutBase["subtitle"] = updateStringLayout({ string: system.subtitle, userData, postData });
         } else {
             // unknown system, error
         }
+
+        layouts.push(layoutBase);
     }
 
     return layouts;
@@ -247,20 +265,25 @@ async function pushUserSubscriptions({ postID, userID, postData }) {
     //  check for recent post from user
 }
 
-
 // create a new notification - meant to send to multiple people
 // userID - user who created post
-async function createNotification({ postID, userID, type }) {
+async function createNotification({ userID, type, postID, followID, forUserID }) {
+    // assumes type is real type
     const UUID = uuidv4();
     const notifData = await interactNotifications.create({
         _id: UUID,
         timestamp: checktime(),
         type,
         userID,
-        postID,
+        postID: postID ? postID : null,
+        followID: followID ? followID : null,
+        forUserID: forUserID ? forUserID : null,
         version: 2
     });
     return notifData;
 }
 
-module.exports = { pushPostNotifs };
+module.exports = { 
+    pushFollowUserNotif,
+    pushPostNotifs
+};

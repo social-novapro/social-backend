@@ -4,7 +4,7 @@ const { getUserPosts } = require("../../post/user");
 const { searchErrorV2 } = require("../../searchError");
 const { getUserBadges } = require("../badges");
 const { getUserPins } = require("../edit");
-const { findFollow } = require("../follows");
+const { findFollow } = require("../follows/findFollow");
 
 async function getUser({userID, searchTerm}) {
     const foundViaUsername = await interactUserSchema.findOne({usernameLc: searchTerm.toLowerCase()});

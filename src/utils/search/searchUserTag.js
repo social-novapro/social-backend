@@ -1,7 +1,7 @@
 const interactUserSchema = require("../../schemas/interactUserSchema");
 const { getPrivacySetting } = require("../privacy");
 const { searchErrorV2 } = require("../searchError");
-const { findFollow } = require("../user/follows");
+const { findFollow } = require("../user/follows/findFollow");
 const { getUserRelation } = require("../user/relations");
 
 async function searchUserTag({ username, userID }) {

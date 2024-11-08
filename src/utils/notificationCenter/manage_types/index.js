@@ -35,6 +35,7 @@ async function updateNotifTypesDB() {
 
         await interactNotificationCenterTypeSchema.create({
             _id: type.id,
+            notifSubType: type.notifSubType,
             name: type.name,
             timestamp: checktime(),
             description: type.description,
@@ -75,6 +76,7 @@ function isSameJsonToMongoType(jsonType, mongoType) {
     if (!mongoType) return { same: false, change: "no mongo type" }; // make sure it exists
     if (mongoType.esstential === null) return { same: false, change: "no esstential details" }; // legacy check
     if (jsonType.id !== mongoType._id) return { same: false, change: "id has been updated" };
+    if ((jsonType.notifSubType !== mongoType.notifSubType) && (jsonType.notifSubType != null && mongoType.notifSubType !=0 )) return { same: false, change: "notifsubtype has been updated" };
     if (jsonType.name !== mongoType.name) return { same: false, change: "name has been updated" };
     if (jsonType.description !== mongoType.description) return { same: false, change: "description has been updated" };
     if (jsonType.esstential !== mongoType.esstential) return { same: false, change: "esstential has been updated" };

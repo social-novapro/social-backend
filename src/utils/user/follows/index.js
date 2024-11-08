@@ -5,6 +5,9 @@ const { checktime } = require("../../checktime");
 const { getPrivacySetting } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");
 const { v4: uuidv4 } = require('uuid');
+const { findFollow } = require("./findFollow");
+const { pushFollowUserNotif } = require("../../notificationCenter/base");
+
 const INDEX_LIMIT = 20;
 
 /* TODO
@@ -193,7 +196,7 @@ async function followUser({ userID, followedUserID}) {
         change: "add"
     });
 
-    // await notificationCenterFollowUser
+    pushFollowUserNotif({ userID, followedUserID, followID: followUUID });
     return createdFollow;
 }
 
@@ -242,21 +245,6 @@ async function getMutualFollowers() {
 // GET /mutual/following
 async function getMutualFollowing() {
 
-}
-
-// find if user is following another user
-async function findFollow({ userID, followedUserID }) {
-    const foundFollowing = await interactFollowSchema.findOne({
-        current: true,
-        userID,
-        followedUserID
-    });
-
-    if (!foundFollowing) return { found: false };
-    return {
-        found: true,
-        followData: foundFollowing
-    };
 }
 
 // type: 0 = following, 1 = followed
@@ -432,6 +420,5 @@ module.exports = {
     followUser,
     unfollowUser,
     getMutualFollowers,
-    getMutualFollowing,
-    findFollow
+    getMutualFollowing
 }

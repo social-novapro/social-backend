@@ -36,6 +36,8 @@ const interactNotifications = mongoose.Schema({
     type: reqNum,
     userID: reqString,
     postID: nonreqString,
+    followID: nonreqString,
+    forUserID: nonreqString,
     version: nonreqNum
 });
 

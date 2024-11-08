@@ -19,6 +19,7 @@ function searchErrorV2(errorCode, data) {
         };
     };
     
+    console.log("error not found, using default error code Z001 - ", errorCode);
     return searchErrorV2("Z001",{ userID, usedAPIversion: apiVersionLookup, lookup });
 }
 
@@ -37,6 +38,7 @@ function searchError(errorCode, options, usedAPIversion) {
         };
     };
     
+    console.log("error not found, using default error code Z001 - ", errorCode);
     return searchError("Z001", [], apiVersionLookup);
 };
 

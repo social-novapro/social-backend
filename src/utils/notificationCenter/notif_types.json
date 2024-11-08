@@ -139,6 +139,7 @@
         }, {
             "id" : 204,
             "name" : "Copost request",
+            "notifSubType" : 1,
             "esstential" : true,
             "required" : false,
             "pushToSystem" : [
@@ -194,6 +195,7 @@
             "required" : false
         }, {
             "id" : 401,
+            "notifSubType" : 1,
             "name" : "Post Mention",
             "description": "Someone mentioned you in a post.",
             "esstential" : true,
@@ -217,6 +219,7 @@
             ]
         }, {
             "id" : 402,
+            "notifSubType" : 1,
             "name" : "Replied to your post",
             "esstential" : true,
             "required" : false,
@@ -244,6 +247,7 @@
             "required" : false
         }, {
             "id" : 404,
+            "notifSubType" : 1,
             "name" : "Quoted your post",
             "esstential" : true,
             "required" : false,
@@ -266,6 +270,7 @@
             ]
         }, {
             "id" : 501,
+            "notifSubType" : 1,
             "name" : "New Notification",
             "description" : "Someone you are subscribed to posted.",
             "esstential" : true,
@@ -292,14 +297,15 @@
             "name" : "User posted a reply"
         }, {
             "id" : 601,
-            "name" : "Followed",
+            "notifSubType" : 2,
+            "name" : "New Follower",
             "description" : "User followed you",
             "esstential" : true,
             "required" : false,
             "pushToSystem" : [
                 { 
                     "id" : 1,
-                    "subject" : "New Follower",
+                    "subject" : "[user_tag] Followed",
                     "content" : "[user_tag] followed you"
                     
                 }, {
@@ -348,6 +354,28 @@
                 "title",
                 "subtitle",
                 "body"
+            ]
+        }
+    ],
+    "notifSubTypes" : [
+        {
+            "id" : 1,
+            "requires" : [
+                "postID",
+                "userID"
+            ],
+            "returns" : [
+                "postData:full"
+            ]
+        }, {
+            "id" : 2,
+            "requires" : [
+                "userID",
+                "forUserID"
+            ],
+            "returns" : [
+                "userData:Basic",
+                "followData"
             ]
         }
     ]

@@ -4,9 +4,11 @@ const notif_types = require('../notif_types.json');
 const interactUserNotifications = require("../../../schemas/notifications/interactUserNotifications");
 const { getNotifPreference } = require("../updatePreferences");
 const interactNotifications = require('../../../schemas/notifications/interactNotifications');
-const { getPostWithData } = require('../../post/getPost');
 const interactNotificationCenterTypeSchema = require('../../../schemas/notificationCenter/interactNotificationCenterTypeSchema');
 const { updateStringLayout } = require('../manage_types/utils');
+const { getPostWithData } = require('../../post/getPost');
+const { findFollow } = require('../../user/follows/findFollow');
+const { getBasicUserData } = require('../../user/getUser');
 
 async function pushInAppNotif(incomingNotifData, forUserData) {
     const { forUserID, notifData, notifsLayouts } = incomingNotifData;
@@ -109,7 +111,6 @@ async function getUserNotifications({ userID, indexID }) {
         const notifData = await interactNotifications.findOne({ _id: userNotif });
         if (!notifData) continue; // will move on
         // console.log(notifData)
-        const foundPost = await getPostWithData({ userID, postID: notifData.postID });
         const notifHeaders = await interactNotificationCenterTypeSchema.findOne({ _id: notifData.type });
         
         var system = notifHeaders.pushToSystem[0];
@@ -126,19 +127,44 @@ async function getUserNotifications({ userID, indexID }) {
             else console.log("found inapp system")
         }
 
-        finalNotifs.notifs.push({
+        var layoutNotif = {
             _id: system._id,
             type: notifData.type,
+            notifSubType: notifHeaders.notifSubType,
             notifType: {
                 _id: notifData.type,
                 name: notifHeaders.name,
                 description: notifHeaders.description
             },
             userID: userID,
-            subject: updateStringLayout({ string: system.subject, userData: foundPost.userData, postData: foundPost.postData }),
-            content: updateStringLayout({ string: system.content, userData: foundPost.userData, postData: foundPost.postData }),
-            postData: foundPost
-        })
+            timestamp: notifData.timestamp,
+            subject: "Default Subject",
+            content: "Default Content",
+            userData: null,
+            postData: null,
+            followData: null
+        }
+
+        if (notifHeaders.notifSubType == 1) {
+            const foundPost = await getPostWithData({ userID, postID: notifData.postID });
+            layoutNotif.postData = foundPost;
+            layoutNotif.subject = updateStringLayout({ string: system.subject, userData: foundPost.userData, postData: foundPost.postData });
+            layoutNotif.content = updateStringLayout({ string: system.content, userData: foundPost.userData, postData: foundPost.postData });
+        } else if (notifHeaders.notifSubType == 2) {
+            const foundUser = await getBasicUserData({ userID, searchTerm: notifData.userID });
+            // const foundUser = await interactUserSchema.findOne({ _id: notifData.userID });
+            if (notifData.followID) {
+                const foundFollow = await findFollow({ userID, followedUserID: notifData.userID, followID: notifData.followID });
+                console.log(foundFollow)
+                if (foundFollow && !foundFollow.error) layoutNotif.followData = foundFollow.followData;
+            }
+            layoutNotif.userData = foundUser;
+            layoutNotif.subject = updateStringLayout({ string: system.subject, userData: foundUser });
+            layoutNotif.content = updateStringLayout({ string: system.content, userData: foundUser });
+        }
+
+        console.log("type", layoutNotif.type, "subType", layoutNotif.notifSubType)
+        finalNotifs.notifs.push(layoutNotif);
     }
 
     return finalNotifs;
