@@ -68,7 +68,7 @@ async function getNotifTypes() {
 }
 
 /* gets all preferences for a user, of a system Type */
-async function getPreferences({ userID, systemType }) {
+async function getNotifPreferences({ userID, systemType }) {
     const preferences = await interactNotificationCenterPreferenceSchema.find({ 
         userID,
         systemType: systemType
@@ -78,19 +78,20 @@ async function getPreferences({ userID, systemType }) {
 }
 
 /* gets a single preference for a user */
-async function getPreference({ userID, typeID, systemType }) {
+async function getNotifPreference({ userID, typeID, systemType }) {
     if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
     if (!typeID) return searchErrorV2("L020", { userID });
+
     const systemTypeCheck = verifySystemTypeInput(systemType);
-    if (systemTypeCheck.error) return systemTypeCheck;
+    if (!systemTypeCheck || systemTypeCheck.error) return systemTypeCheck;
  
-    const preferences = await interactNotificationCenterPreferenceSchema.findOne({ 
+    const preference = await interactNotificationCenterPreferenceSchema.findOne({ 
         userID,
         type: typeID,
         systemType
     });
     
-    return preferences;
+    return preference;
 }
 
 /* initalizes all preferences for a user */
@@ -129,7 +130,7 @@ async function setPreference({ userID, systemType, enabled, typeID, setDefault }
     if (notifType.required) return searchErrorV2("L028", { userID });
 
     // get previous preference
-    const foundPref = await getPreference({ typeID, userID, systemType });
+    const foundPref = await getNotifPreference({ typeID, userID, systemType });
     if (foundPref) {
         foundPref.enabled = enabled;
         foundPref.timestampUpdated = checktime();
@@ -162,7 +163,7 @@ async function getNotifDataType({ userID, typeID, systemType }) {
     const systemTypeCheck = verifySystemTypeInput(systemType);
     if (systemTypeCheck.error) return systemTypeCheck;
 
-    const ncPref = await getPreference({ userID, typeID, systemType });
+    const ncPref = await getNotifPreference({ userID, typeID, systemType });
 
     const ncType = await getNotifType({ typeID });
 
@@ -192,7 +193,7 @@ async function getNotifData({ userID, systemType }) {
     if (systemTypeCheck.error) return systemTypeCheck;
 
     const types = await getNotifTypes();
-    const foundPreferences = await getPreferences({ userID, systemType });
+    const foundPreferences = await getNotifPreferences({ userID, systemType });
 
     const userPreferences = [];
     for (let i = 0; i < types.length; i++) {
@@ -268,6 +269,7 @@ module.exports = {
     getAllNotifPreferences,
     getNotifData,
     getNotifDataType,
+    getNotifPreference,
     setNotifPreferences,
     setNotifPreference,
     initalizePreferences

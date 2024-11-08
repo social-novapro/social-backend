@@ -1,14 +1,13 @@
 const router = require('express').Router();
-const { userNotifications } = require('../../../../utils/notificationCenter/base');
+const { getUserNotifications } = require('../../../../utils/notificationCenter/notif_app');
 
 router.get('/', async (req, res) => {
-    const foundNotifs = await userNotifications({ userID: req.headers.userid });
+    const foundNotifs = await getUserNotifications({ userID: req.headers.userid });
     return res.status(200).send(foundNotifs);
 });
 
-router.get('/:userID', async (req, res) => {
-    return false; // this is a test route
-    const foundNotifs = await userNotifications({ userID: req.params.userID });
+router.get('/:indexid', async (req, res) => {
+    const foundNotifs = await getUserNotifications({ userID: req.params.userID, indexID: req.params.indexid });
     return res.status(200).send(foundNotifs);
 });
 

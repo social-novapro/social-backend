@@ -23,13 +23,13 @@ async function updateNotifTypesDB() {
         const isSameType = isSameJsonToMongoType(type, foundType);
 
         // no update needed
-        if (isSameType) {
+        if (isSameType.same) {
             continue;
         }
 
         // update needed on type
-        if (foundType && !isSameType) {
-            console.log(`Deleted type ${type.id}, will update`)
+        if (foundType && !isSameType.same) {
+            console.log(`Deleted type ${type.id}, will update, due to ${isSameType.change ?? "no details"}`);
             await interactNotificationCenterTypeSchema.findOneAndDelete({ _id: type.id });
         }
 
@@ -71,14 +71,16 @@ async function updateNotifTypesDB() {
 }
 
 function isSameJsonToMongoType(jsonType, mongoType) {
-    if (!jsonType) return false; // make sure it exists
-    if (!mongoType) return false; // make sure it exists
-    if (mongoType.esstential === null) return false; // legacy check
-    if (jsonType.id !== mongoType._id) return false;
-    if (jsonType.name !== mongoType.name) return false;
-    if (jsonType.description !== mongoType.description) return false;
-    if (jsonType.esstential !== mongoType.esstential) return false;
-    if (jsonType.required !== mongoType.required) return false;
+    if (!jsonType) return { same: false, change: "no json type" }; // make sure it exists
+    if (!mongoType) return { same: false, change: "no mongo type" }; // make sure it exists
+    if (mongoType.esstential === null) return { same: false, change: "no esstential details" }; // legacy check
+    if (jsonType.id !== mongoType._id) return { same: false, change: "id has been updated" };
+    if (jsonType.name !== mongoType.name) return { same: false, change: "name has been updated" };
+    if (jsonType.description !== mongoType.description) return { same: false, change: "description has been updated" };
+    if (jsonType.esstential !== mongoType.esstential) return { same: false, change: "esstential has been updated" };
+    // console.log(jsonType.required, mongoType.required, jsonType.required !== mongoType.required)
+    // this causes issues, so need to keep required: true|false all the time
+    if (jsonType.required != mongoType.required) return { same: false, change: "requirement has been updated" };
 
     // probably overcomplicated
     // this makes sure that
@@ -98,29 +100,29 @@ function isSameJsonToMongoType(jsonType, mongoType) {
     if (usingPushToSystem && (jsonType.pushToSystem?.length > 0 || mongoType.pushToSystem?.length > 0)) {
         const lengthUse = jsonType.pushToSystem.length > mongoType.pushToSystem.length ? jsonType.pushToSystem.length : mongoType.pushToSystem.length;
         for (let i = 0; i < lengthUse; i++) {
-            if (!jsonType.pushToSystem[i] || !mongoType.pushToSystem[i]) return false;
+            if (!jsonType.pushToSystem[i] || !mongoType.pushToSystem[i]) return { same: false, change: `System misalignment for ${i}` };
             const system1 = jsonType.pushToSystem[i];
             const system2 = mongoType.pushToSystem[i];
     
-            if (system1.id !== system2._id) return false;
-            if (system1.content !== system2.content) return false;
-            if (system1.subject !== system2.subject) return false;
-            if (system1.htmlP !== system2.htmlP) return false;
-            if (system1.htmlA !== system2.htmlA) return false;
-            if (system1.title !== system2.title) return false;
-            if (system1.subtitle !== system2.subtitle) return false;
-            if (system1.body !== system2.body) return false;
+            if (system1.id !== system2._id) return { same: false, change: "system type id has been updated" };
+            if (system1.content !== system2.content) return { same: false, change: "system type content has been updated" };
+            if (system1.subject !== system2.subject) return { same: false, change: "system type subject has been updated" };
+            if (system1.htmlP !== system2.htmlP) return { same: false, change: "system type htmlP has been updated" };
+            if (system1.htmlA !== system2.htmlA) return { same: false, change: "system type htmlA has been updated" };
+            if (system1.title !== system2.title) return { same: false, change: "system type title has been updated" };
+            if (system1.subtitle !== system2.subtitle) return { same: false, change: "system type subtitle has been updated" };
+            if (system1.body !== system2.body) return { same: false, change: "system type body has been updated" };
         }
     }
 
     if (usingSystemTypes && (jsonType.systemTypes?.length > 0 || mongoType.systemTypes?.length > 0)) {
         const lengthUse = jsonType.systemTypes.length > mongoType.systemTypes.length ? jsonType.systemTypes.length : mongoType.systemTypes.length;
         for (let i = 0; i < lengthUse; i++) {
-            if (jsonType.systemTypes[i] !== mongoType.systemTypes[i]) return false
+            if (jsonType.systemTypes[i] !== mongoType.systemTypes[i]) return { same: false, change: `System misalignment for ${i}` };
         }
     } 
 
-    return true;
+    return { same: true, change: "no change"};
 }
 
 async function findNotifTypeData({type}) {

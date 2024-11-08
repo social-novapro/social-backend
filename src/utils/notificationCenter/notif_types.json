@@ -52,6 +52,62 @@
     ],
     "types" : [
         {
+            "id" : 1,
+            "name" : "Someone Followed",
+            "description" : "Legacy",
+            "esstential" : false,
+            "required" : false,
+            "legacy" : true
+        },
+        {
+            "id" : 2,
+            "name" : "Someone Unfollowed",
+            "description" : "Legacy",
+            "esstential" : false,
+            "required" : false,
+            "legacy" : true
+        },
+        {
+            "id" : 3,
+            "name" : "Someone Liked post",
+            "description" : "Legacy",
+            "esstential" : false,
+            "required" : false,
+            "legacy" : true
+        },
+        {
+            "id" : 4,
+            "name" : "Someone unliked post",
+            "description" : "Legacy",
+            "esstential" : false,
+            "required" : false,
+            "legacy" : true
+        },
+        {
+            "id" : 5,
+            "name" : "Someone posted",
+            "description" : "Legacy",
+            "esstential" : false,
+            "required" : false,
+            "legacy" : true
+        },
+        {
+            "id" : 6,
+            "name" : "Someone mentioned you",
+            "description" : "Legacy",
+            "esstential" : false,
+            "required" : false,
+            "legacy" : true
+        },
+        {
+            "id" : 7,
+            "name" : "Someone quoted your post",
+            "description" : "Legacy",
+            "esstential" : false,
+            "required" : false,
+            "legacy" : true
+        },
+        {
             "id" : 101,
             "name" : "email verification",
             "description" : "Verify your email",
@@ -84,6 +140,7 @@
             "id" : 204,
             "name" : "Copost request",
             "esstential" : true,
+            "required" : false,
             "pushToSystem" : [
                 { 
                     "id" : 1,
@@ -110,31 +167,37 @@
         }, {
             "id" : 301,
             "name" : "New message",
-            "esstential" : true
+            "esstential" : true,
+            "required" : false
         }, {
             "id" : 302,
             "name" : "New message request"
         }, {
             "id" : 303,
             "name" : "Message reacted",
-            "esstential" : true
+            "esstential" : true,
+            "required" : false
         }, {
             "id" : 304,
             "name" : "Message replied",
-            "esstential" : true
+            "esstential" : true,
+            "required" : false
         }, {
             "id" : 305,
             "name" : "Message unsent",
-            "esstential" : true
+            "esstential" : true,
+            "required" : false
         }, {
             "id" : 306,
             "name" : "Message edited",
-            "esstential" : true
+            "esstential" : true,
+            "required" : false
         }, {
             "id" : 401,
             "name" : "Post Mention",
             "description": "Someone mentioned you in a post.",
             "esstential" : true,
+            "required" : false,
             "pushToSystem" : [
                 { 
                     "id" : 1,
@@ -156,6 +219,7 @@
             "id" : 402,
             "name" : "Replied to your post",
             "esstential" : true,
+            "required" : false,
             "pushToSystem" : [
                 { 
                     "id" : 1,
@@ -176,11 +240,13 @@
         }, {
             "id" : 403,
             "name" : "Liked your post",
-            "esstential" : true
+            "esstential" : true,
+            "required" : false
         }, {
             "id" : 404,
             "name" : "Quoted your post",
             "esstential" : true,
+            "required" : false,
             "pushToSystem" : [
                 { 
                     "id" : 1,
@@ -203,6 +269,7 @@
             "name" : "New Notification",
             "description" : "Someone you are subscribed to posted.",
             "esstential" : true,
+            "required" : false,
             "pushToSystem" : [
                 { 
                     "id" : 1,
@@ -228,6 +295,7 @@
             "name" : "Followed",
             "description" : "User followed you",
             "esstential" : true,
+            "required" : false,
             "pushToSystem" : [
                 { 
                     "id" : 1,

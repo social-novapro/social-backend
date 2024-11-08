@@ -3,8 +3,8 @@ const interactNotificationCenterTypeSchema = require('../../../schemas/notificat
 const interactNotifications = require('../../../schemas/notifications/interactNotifications');
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const { checktime } = require('../../checktime');
-const { getPostWithData } = require('../../post/getPost');
-const notif_types = require('../notif_types.json');
+const { updateStringLayout } = require('../manage_types/utils');
+const { pushInAppNotif } = require('../notif_app');
 const { v4: uuidv4 } = require('uuid');
 /* 
 this is the base notification center
@@ -97,9 +97,10 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
                 taggedNotifs.push(tag.userIDTagged);
 
                 // send notif mentions
-                const notifID = await createNotification({ postID, userID: userIDTagged, type: notifType });
+                const notifID = await createNotification({ postID, userID, type: notifType });
+                // const notifID = await createNotification({ postID, userID: userIDTagged, type: notifType });
                 const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
-                allNotifs.push({notifID: notifID, notifs: notificationLayouts});
+                allNotifs.push({forUserID: userIDTagged, notifData: notifID, notifsLayouts: notificationLayouts});
             }
         }
     }
@@ -110,9 +111,10 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
         for (const coposter of coposters) {
             if (coposter != userID) {
                 // send notif coposter
-                const notifID = await createNotification({ postID, userID: coposter, type: notifType });
+                const notifID = await createNotification({ postID, userID, type: notifType });
+                // const notifID = await createNotification({ postID, userID: coposter, type: notifType });
                 const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
-                allNotifs.push({notifID: notifID, notifs: notificationLayouts});
+                allNotifs.push({forUserID: coposter, notifData: notifID, notifsLayouts: notificationLayouts});
         
                 // check for quote
                 if (sendQuoteNotif) {
@@ -139,18 +141,20 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
     if (sendQuoteNotif) {
         const notifType = 404;
         // send quote notif
-        const notifID = await createNotification({ postID, userID: postData.quoteData?.userID, type: notifType });
+        const notifID = await createNotification({ postID, userID, type: notifType });
+        // const notifID = await createNotification({ postID, userID: postData.quoteData?.userID, type: notifType });
         const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
-        allNotifs.push({notifID: notifID, notifs: notificationLayouts});
+        allNotifs.push({forUserID: postData.quoteData?.userID, notifData: notifID, notifsLayouts: notificationLayouts});
     }
 
     if (sendReplyNotif) {
         const notifType = 402;
         // send reply notif
         // const sendUserID = postData.replyData?.userID;
-        const notifID = await createNotification({ postID, userID: postData.replyData?.userID, type: notifType });
+        const notifID = await createNotification({ postID, userID, type: notifType });
+        // const notifID = await createNotification({ postID, userID: postData.replyData?.userID, type: notifType });
         const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
-        allNotifs.push({notifID: notifID, notifs: notificationLayouts});
+        allNotifs.push({forUserID: postData.replyData?.userID, notifData: notifID, notifsLayouts: notificationLayouts});
     }
 
     // subscriptions - #5 - dont show if mentioned, quoted, replied
@@ -159,7 +163,9 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
         // create general notif
         // const notifID = await createNotification({ postID, userID: subscribedList, type: 501 });
         // // if isreply, notifID should be 502
-        
+        const notifID = await createNotification({ postID, userID, type: notifType });
+        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+
         for (const sub of subscribedList.subscribed) {
             if (sub != userID) {
                 if (taggedNotifs.includes(sub)) continue; // dont send
@@ -173,9 +179,7 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
                 }
 
                 // finally, send notif sub
-                const notifID = await createNotification({ postID, userID: sub, type: notifType });
-                const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
-                allNotifs.push({notifID: notifID, notifs: notificationLayouts});
+                allNotifs.push({forUserID: sub._id, notifData: notifID, notifsLayouts: notificationLayouts});
             }
         }
     }
@@ -183,7 +187,13 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
     // push send all notifs
     for (const notif of allNotifs) {
         // push notif
+        const forUserData = await interactUserSchema.findOne({ _id: notif.forUserID });
+
         console.log(notif);
+        // push system 1 - inapp
+        pushInAppNotif(notif, forUserData);
+        // push system 2 - email
+        // push system 3 - ios
     }
 
     // tags - not yet
@@ -232,28 +242,6 @@ async function createPostNotifLayouts({ userData, postData, type }) {
     return layouts;
 }
 
-function updateStringLayout({ string, userData, postData }) {
-    if (!string) return string;
-    var newString = string;
-
-    const placeholders = {
-        "[username]": userData.username,
-        "[user_tag]": `@${userData.username}`,
-        "[post_content]": postData.content,
-        "[user_url]": `https://interact.novapro.net/?username=${userData.username}`,
-        "[post_url]": `https://interact.novapro.net/?postID=${postData._id}`,
-        // Add more placeholders as needed
-    };
-    
-    for (const [placeholder, value] of Object.entries(placeholders)) {
-        if (newString.includes(placeholder)) {
-            newString = newString.replace(placeholder, value);
-        }
-    }
-
-    return newString;
-}
-
 // push notifications to all users who are subscribed to this user
 async function pushUserSubscriptions({ postID, userID, postData }) {
     //  check for recent post from user
@@ -275,30 +263,4 @@ async function createNotification({ postID, userID, type }) {
     return notifData;
 }
 
-// get all notifications for a user
-async function userNotifications({ userID }) {
-    const notifs = await interactNotifications.find({ userID, version: 2 });
-    const finalNotifs = {sectionTypes: notif_types.sectionTypes, notifs: []};
-
-    for (const notif of notifs) {
-        // const foundUser 
-        const foundPost = await getPostWithData({ userID, postID: notif.postID });
-        const notifHeaders = await interactNotificationCenterTypeSchema.findOne({ _id: notif.type });
-        for (const system of notifHeaders.pushToSystem) {
-            if (system._id != 1) continue;
-
-            finalNotifs.notifs.push({
-                _id: system._id,
-                type: notif.type,
-                userID: userID,
-                subject: updateStringLayout({ string: system.subject, userData: foundPost.userData, postData: foundPost.postData }),
-                content: updateStringLayout({ string: system.content, userData: foundPost.userData, postData: foundPost.postData }),
-                postData: foundPost
-            })
-        }
-    }
-
-    return finalNotifs;
-}
-
-module.exports = { pushPostNotifs, userNotifications }
+module.exports = { pushPostNotifs };
