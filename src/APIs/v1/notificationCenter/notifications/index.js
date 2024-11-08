@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:indexid', async (req, res) => {
-    const foundNotifs = await getUserNotifications({ userID: req.params.userID, indexID: req.params.indexid });
+    const foundNotifs = await getUserNotifications({ userID: req.headers.userid, indexID: req.params.indexid });
     return res.status(200).send(foundNotifs);
 });
 

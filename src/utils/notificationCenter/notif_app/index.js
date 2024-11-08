@@ -92,7 +92,7 @@ async function getUserNotifications({ userID, indexID }) {
     var userNotifs;
     if (!userID) return { error: 'No userID' };
     if (indexID) {
-        userNotifs = await interactUserNotifications.findOne({ _id: indexID, userID, current: true, version: 2 });
+        userNotifs = await interactUserNotifications.findOne({ _id: indexID, userID, version: 2 });
         if (!userNotifs) return { error: 'No user notifs found with ID' }; // explict error
     } else {
         userNotifs = await interactUserNotifications.findOne({ userID, current: true, version: 2 });
