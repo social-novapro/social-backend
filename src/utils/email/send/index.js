@@ -5,7 +5,7 @@ const interactEmailSchema = require('../../../schemas/emails/interactEmailSchema
 const interactUserSchema = require('../../../schemas/interactUserSchema');
 require('dotenv').config({ path: 'secret.env' })
 
-const { email_user, email_pass } = process.env;
+const { email_user, email_pass, email_address } = process.env;
 
 const auth = {
     user: email_user,
@@ -13,14 +13,14 @@ const auth = {
 }
 
 const transporter = nodemailer.createTransport({
-    host: 'mail.gandi.net',
-    port: 465,
-    secure: true,
+    host: 'smtp.mail.me.com',
+    port: 587,
+    secure: false,
     auth: auth,
     tls: {
-        ciphers: 'SSLv3',
         minVersion: 'TLSv1.2'
-    }
+    },
+    debug: true
 });
 
 // users is an array of objects with userID and email or just userID
@@ -80,7 +80,7 @@ async function emailSender({ users, type, subject, content, htmlElement }) {
     `;
 
     const mailOptions = {
-        from: email_user,
+        from: email_address,
         to: [],
         bcc: [],
         subject,
@@ -216,12 +216,13 @@ async function testing() {
             a: "https://interact.novapro.net/"
         }
     })
+    // console.log(emailSend)
 
     return ;
 }
 
 async function sendTest() {
-    // await testing()
+    await testing()
     //console.log(auth)
 }
 
