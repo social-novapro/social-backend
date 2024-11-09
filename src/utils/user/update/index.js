@@ -6,6 +6,7 @@ const { searchErrorV2 } = require('../../../utils/searchError');
 const { checkUsername, checkUserage } = require('../../checks');
 const { checktime } = require('../../checktime');
 const { checkSafeURL } = require('../../checkSafeURL');
+const { logData } = require('../../logging');
 
 async function validField({ userID, field }) {
     for (const option of options.options) {
@@ -140,7 +141,7 @@ async function validateNewUpdate({ userID, update }) {
     } else if (update.field == "pronouns") {
     } else if (update.field == "profileURL") {
         if (update.value.startsWith('dataurl://')) {
-            console.log('dataurl');
+            logData('dataurl');
         } else {
             const checkedProfile = await checkSafeURL(update.value);
             if (checkedProfile.safe==false) return {field: update.field, ...searchErrorV2("C031", { userID, options: [{ name: "field", data: "profileURL" }, { name: "reason", data: `profileURL was not safe.`}] })};

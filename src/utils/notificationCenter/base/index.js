@@ -3,6 +3,7 @@ const interactNotificationCenterTypeSchema = require('../../../schemas/notificat
 const interactNotifications = require('../../../schemas/notifications/interactNotifications');
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const { checktime } = require('../../checktime');
+const { logData } = require('../../logging');
 const { updateStringLayout } = require('../manage_types/utils');
 const { pushInAppNotif } = require('../notif_app');
 const { v4: uuidv4 } = require('uuid');
@@ -63,9 +64,9 @@ async function pushLikeNotif({ userData, postData }) {
     }
 
     for (const notifPush of pushNotifs) {
-        console.log(notifPush)
+        logData(notifPush)
         const res = await pushNotifToSystems(notifPush);
-        console.log(res)
+        logData(res)
     }
 }
 
@@ -88,14 +89,14 @@ async function pushFollowUserNotif({ userID, followedUserID, followID }) {
 // {forUserID: userIDTagged, notifData: notifID, notifsLayouts: notificationLayouts}
 /* notif: {forUserID, notifData, notifsLayouts} */
 async function pushNotifToSystems(notif) {
-    console.log("pushing notif to systems");
+    logData("pushing notif to systems");
     if (!notif) return { error: "No notif data" };
     if (!notif.forUserID) return { error: "No forUserID" };
     if (!notif.notifData) return { error: "No notifData" };
     if (!notif.notifsLayouts) return { error: "No notifsLayouts" };
 
     const forUserData = await interactUserSchema.findOne({ _id: notif.forUserID });
-    // console.log(notif.notifData, notif.notifsLayouts);
+    logData(notif.notifData, notif.notifsLayouts);
     // console.log(forUserData);
     // push system 1 - inapp
     const pushToApp = await pushInAppNotif(notif, forUserData);

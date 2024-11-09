@@ -7,6 +7,7 @@ const { emailSender } = require('../send');
 const { checktime } = require('../../checktime');
 const { checkPassword } = require('../../userAuth');
 const { awardUserBadge } = require('../../user/badges');
+const { logData } = require('../../logging');
 
 async function verifyEmail({ emailVerID, password }) {
     const emailReqFound = await interactEmailVerificationSchema.findOne({ verificationID: emailVerID });
@@ -84,7 +85,7 @@ async function removeOthers({ userID, email }) {
 
 // set up Email Setting Schema
 async function setEmailSetting({ userID, email }) {
-    if (!email) return console.log("no email? " + email)
+    if (!email) return logData("no email? " + email)
     const foundEmailSettings = await interactEmailSettingSchema.findOne({ _id: userID });
     if (foundEmailSettings) {
         await interactEmailSettingSchema.findOneAndUpdate({
