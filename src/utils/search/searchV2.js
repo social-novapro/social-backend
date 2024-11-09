@@ -4,6 +4,7 @@ const interactEmbedSentencePostSchema = require('../../schemas/embeddings/intera
 const interactPostSchema = require('../../schemas/interactPostSchema');
 const interactUserSchema = require('../../schemas/interactUserSchema');
 const { checktime } = require('../checktime');
+const { logData } = require('../logging');
 const { getPostWithData } = require('../post/getPost');
 const { embedSearch } = require('./embed');
 const { searchPostTags, searchHashTags } = require('./searchPostTags');
@@ -27,13 +28,13 @@ async function searchV2({ lookUpKey, userID }) {
 
     for (const postID of postIDs) {
         if (postsAdded[postID]) {
-            console.log("ALREADY ADDED")
+            logData("ALREADY ADDED")
             continue
         };
         const post = await interactPostSchema.findOne({ _id: postID });
         if (post) {
             const fullPost = await getPostWithData({ userID: userID, post, ownUser });
-            console.log(fullPost)
+            logData(fullPost)
             if (fullPost && !fullPost.error) PostData.push(fullPost);
             postsAdded[postID] = true;
         }

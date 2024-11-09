@@ -9,19 +9,20 @@ const { updateStringLayout } = require('../manage_types/utils');
 const { getPostWithData } = require('../../post/getPost');
 const { findFollow } = require('../../user/follows/findFollow');
 const { getBasicUserData } = require('../../user/getUser');
+const { logData } = require('../../logging');
 
 async function pushInAppNotif(incomingNotifData, forUserData) {
     const { forUserID, notifData, notifsLayouts } = incomingNotifData;
     const notifSetting = await getNotifPreference({userID: forUserID, typeID: notifData.type, systemType: 1});
 
     if (!notifSetting || notifSetting.enabled==0 || notifSetting.error){
-        console.log("Notif setting problem", notifSetting, forUserID, notifData.type);
+        logData("Notif setting problem", notifSetting, forUserID, notifData.type);
         return { error: 'No notif type setting found' };
     }
 
     const pushDbNotif = await pushNotifToDb({ userID: forUserID, notifID: notifData._id });
     if (!pushDbNotif || pushDbNotif.error) {
-        console.log("Error pushing to db", pushDbNotif.error);
+        logData("Error pushing to db", pushDbNotif.error);
         return pushDbNotif;
     };
 
@@ -59,7 +60,7 @@ async function getOrCreateCurrentIndex({ userID }) {
 
 async function createNewIndex({ userID, replaceIndex }) {
     if (!userID) return { error: 'No userID' };
-    console.log("making new index")
+    logData("making new index")
     
     const newIndexID = uuidv4();
     await interactUserNotifications.create({
@@ -110,21 +111,21 @@ async function getUserNotifications({ userID, indexID }) {
         // const foundUser 
         const notifData = await interactNotifications.findOne({ _id: userNotif });
         if (!notifData) continue; // will move on
-        // console.log(notifData)
+        logData(notifData)
         const notifHeaders = await interactNotificationCenterTypeSchema.findOne({ _id: notifData.type });
         
         var system = notifHeaders.pushToSystem[0];
         
         if (system._id != 1) { // must be inapp
             for (const systemLook of notifHeaders.pushToSystem) {
-                console.log("not found, will look for inapp system")
+                logData("not found, will look for inapp system")
                 if (systemLook._id == 1) {
                     system = systemLook;
                     break;
                 }
             }
             if (system._id != 1) continue; // no inapp system found
-            else console.log("found inapp system")
+            else logData("found inapp system")
         }
 
         var layoutNotif = {
@@ -155,7 +156,7 @@ async function getUserNotifications({ userID, indexID }) {
             // const foundUser = await interactUserSchema.findOne({ _id: notifData.userID });
             if (notifData.followID) {
                 const foundFollow = await findFollow({ userID, followedUserID: notifData.userID, followID: notifData.followID });
-                console.log(foundFollow)
+                logData(foundFollow)
                 if (foundFollow && !foundFollow.error) layoutNotif.followData = foundFollow.followData;
             }
             layoutNotif.userData = foundUser;
@@ -163,7 +164,7 @@ async function getUserNotifications({ userID, indexID }) {
             layoutNotif.content = updateStringLayout({ string: system.content, userData: foundUser });
         }
 
-        console.log("type", layoutNotif.type, "subType", layoutNotif.notifSubType)
+        logData("type", layoutNotif.type, "subType", layoutNotif.notifSubType)
         finalNotifs.notifs.push(layoutNotif);
     }
 
