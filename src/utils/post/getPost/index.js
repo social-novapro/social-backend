@@ -7,7 +7,7 @@ const { checkIfPinned } = require("../../user/edit/checkIfPinned");
 const { findFollow } = require("../../user/follows/findFollow");
 const { getUserRelation, canView } = require("../../user/relations");
 const { getBookmarkSave } = require("../bookmarks");
-const { postIsLiked } = require("../likeUtil");
+const { postIsLiked } = require("../likeUtil/isPostLiked");
 const { getPostTags } = require("../tags/getPostTags");
 
 async function getPostWithData({ userID, postID, post, ownUser }) {

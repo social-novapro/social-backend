@@ -2,18 +2,9 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactPostLikeSchema = require("../../../schemas/postSchemas/interactPostLikeSchema");
 const { checktime } = require("../../checktime");
-const { pushLikeNotifications } = require("../../pushNotifications/postActionNotifications");
+const { pushLikeNotif } = require("../../notificationCenter/base");
 const { searchErrorV2 } = require("../../searchError");
-
-async function postIsLiked({ postID, userID }) {
-    const postLiked = await interactPostLikeSchema.findOne({ 
-        _id: postID, 
-        "peopleLiked._id": userID 
-    });
-
-    if (postLiked != null) return true;
-    else return false;
-}
+const { postIsLiked } = require("./isPostLiked");
 
 async function unlikePost({postID, userID}) {
     const postFound = await interactPostSchema.findOne({ _id: postID});
@@ -85,7 +76,8 @@ async function likePost({ postID, userID }) {
     const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount + 1 : 1;
     await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
 
-    pushLikeNotifications({username: foundUser.username, postData: postFoundNew});
+    pushLikeNotif({userData: foundUser, postData: postFoundNew});
+    // pushLikeNotifications({username: foundUser.username, postData: postFoundNew});
 
     if (postFound.coposters && postFound.coposters.length > 0) {
         for (const coposter of postFound.coposters) {
@@ -124,7 +116,6 @@ async function getLikes({ postID }) {
 
 module.exports = {
     unlikePost,
-    postIsLiked,
     likePost,
     getLikes
 };

@@ -244,7 +244,24 @@
             "id" : 403,
             "name" : "Liked your post",
             "esstential" : true,
-            "required" : false
+            "required" : false,
+            "pushToSystem" : [
+                { 
+                    "id" : 1,
+                    "subject" : "[user_tag] liked your post.",
+                    "content" : "[post_content]"
+                }, {
+                    "id" : 2,
+                    "subject" : "New Like",
+                    "htmlP" : "[user_tag] liked your post, click here to view!",
+                    "htmlA" : "[post_url]"
+                },  { 
+                    "id" : 3,
+                    "title" : "Interact Like",
+                    "subtitle" : "[user_tag] liked your post!",
+                    "body" : "[post_content]"
+                }
+            ]
         }, {
             "id" : 404,
             "notifSubType" : 1,

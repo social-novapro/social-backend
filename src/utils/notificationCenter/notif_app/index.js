@@ -16,7 +16,7 @@ async function pushInAppNotif(incomingNotifData, forUserData) {
 
     if (!notifSetting || notifSetting.enabled==0 || notifSetting.error){
         console.log("Notif setting problem", notifSetting, forUserID, notifData.type);
-        return { error: 'No notif type found' };
+        return { error: 'No notif type setting found' };
     }
 
     const pushDbNotif = await pushNotifToDb({ userID: forUserID, notifID: notifData._id });

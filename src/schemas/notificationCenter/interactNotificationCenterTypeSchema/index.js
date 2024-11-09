@@ -15,7 +15,7 @@ const interactSystemData = mongoose.Schema({
 
 const interactNotificationCenterTypeSchema = mongoose.Schema({
     _id: reqNum, // id of type
-    notifSubType: reqNum, // sub type of type
+    notifSubType: reqNum, // sub type of type, default 1
     timestamp: reqNum, // timestamp added type
     name: reqString, // name of type
     description: nonreqString, // description of type

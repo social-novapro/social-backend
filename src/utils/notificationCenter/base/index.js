@@ -41,10 +41,35 @@ const notificationTimeLimit = 1000*60*60; // 1 hour
 // function for each main notification type
 // async function notificationCenterLikePost()
 
-// entry point for all notifications
+// entry point for like notifications
+async function pushLikeNotif({ userData, postData }) {
+    // .userID
+    // .coposters
+
+    const notifType = 403;
+    const prevRelated = await checkForNotif({ userID: postData.userID, postID: postData._id, type: notifType });
+    if (prevRelated) return { error: "Already sent notif about this event recently" };
+
+    const pushNotifs = [];
+    // main user
+    const newNotif = await createNotification({ userID: userData._id, type: notifType, postID: postData._id });
+    const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+    pushNotifs.push({forUserID: postData.userID, notifData: newNotif, notifsLayouts: notificationLayouts});
+
+    for (const coposter of postData.coposters) {
+        const newNotif = await createNotification({ userID: userData._id, type: notifType, postID: postData._id });
+        const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
+        pushNotifs.push({forUserID: coposter, notifData: newNotif, notifsLayouts: notificationLayouts});
+    }
+
+    for (const notifPush of pushNotifs) {
+        console.log(notifPush)
+        const res = await pushNotifToSystems(notifPush);
+        console.log(res)
+    }
+}
 
 // entry point for follow notifications
-
 async function pushFollowUserNotif({ userID, followedUserID, followID }) {
     // check if recently got notif for this 
     // type 601
@@ -73,9 +98,10 @@ async function pushNotifToSystems(notif) {
     // console.log(notif.notifData, notif.notifsLayouts);
     // console.log(forUserData);
     // push system 1 - inapp
-    pushInAppNotif(notif, forUserData);
+    const pushToApp = await pushInAppNotif(notif, forUserData);
     // push system 2 - email
-    // push system 3 - ios    
+    // push system 3 - ios   
+    return { pushToApp }; 
 }
 
 // TODO: make it work
@@ -285,5 +311,6 @@ async function createNotification({ userID, type, postID, followID, forUserID })
 
 module.exports = { 
     pushFollowUserNotif,
-    pushPostNotifs
+    pushPostNotifs,
+    pushLikeNotif
 };
