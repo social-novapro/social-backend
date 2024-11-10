@@ -687,6 +687,26 @@
                     "msg" : "Route was not found, change method, or find correct route."
                 },
                 {
+                    "code" : "I036",
+                    "msg" : "Please use GET /v1/notificationCenter/subscriptions instead of GET /v1/notifications/subscriptions"
+                },
+                {
+                    "code" : "I037",
+                    "msg" : "Please use GET /v1/notificationCenter/subscriptions/subData/:subUserID instead of GET /v1/notifications/isSubbed/:subUserID"
+                },
+                {
+                    "code" : "I038",
+                    "msg" : "Please use POST /v1/notificationCenter/subscriptions/sub/:subUserID instead of POST /v1/notifications/sub/:subUserID"
+                },
+                {
+                    "code" : "I039",
+                    "msg" : "Please use DELETE /v1/notificationCenter/subscriptions/unsub/:subUserID instead of DELETE /v1/notifications/unsub/:subUserID"
+                },
+                {
+                    "code" : "I040",
+                    "msg" : "Please use DELETE /v1/notificationCenter/subscriptions/unsubAll instead of DELETE /v1/unsubAll/unsubAlls"
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },
@@ -909,6 +929,49 @@
                 {
                     "code" : "L036",
                     "msg" : "Client notification was not found with the notificationID provided."
+                },
+                {
+                    "code" : "L037",
+                    "msg" : "No provided userID, could not subscribe to user."
+                },
+                {
+                    "code" : "L038",
+                    "msg" : "No provided userID, could not unsubscribe to user."
+                },
+                {
+                    "code" : "L039",
+                    "msg" : "No provided userID, could not find if user was subscribed."
+                },
+                {
+                    "code" : "L040",
+                    "msg" : "No user notifs found with ID."
+                },
+                {
+                    "code" : "L041",
+                    "msg" : "No userID provided, could not get user notifications."
+                },
+                {
+                    "code" : "L042",
+                    "msg" : "No userID provided, could not get or create notification index for user."
+                },
+                {
+                    "code" : "L043",
+                    "msg" : "No userID provided, push notification to database."
+                },
+                {
+                    "code" : "L044",
+                    "msg" : "No current index, and did not return a new on."
+                },
+                {
+                    "code" : "L045",
+                    "msg" : "No notif type setting found, for %tn.",
+                    "options" : [
+                        {
+                            "name" : "typeName",
+                            "replacement" : "%tn",
+                            "default" : -1
+                        }
+                    ]
                 },
                 {
                     "code" : "N001",

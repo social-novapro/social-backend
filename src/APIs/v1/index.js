@@ -146,5 +146,21 @@ router.delete('/notifications/dismissAll/:notifID', async (req, res) => {
 router.get('/notifications/getList', async (req, res) => {
     return res.status(400).send(searchErrorV2("I034", { userID: req.headers.userid }));
 })
+// I035 is error 404 of all extra routes
+router.get('/notifications/subscriptions', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I036", { userID: req.headers.userid }));
+})
+router.get('/notifications/isSubbed/:subUserID', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I037", { userID: req.headers.userid }));
+})
+router.post('/notifications/sub/:subUserID', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I038", { userID: req.headers.userid }));
+})
+router.delete('/notifications/unsub/:subUserID', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I039", { userID: req.headers.userid }));
+})
+router.delete('/notifications/unsubAll', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I040", { userID: req.headers.userid }));
+})
 
 module.exports = router;

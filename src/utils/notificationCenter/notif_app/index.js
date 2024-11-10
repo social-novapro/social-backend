@@ -10,6 +10,9 @@ const { getPostWithData } = require('../../post/getPost');
 const { findFollow } = require('../../user/follows/findFollow');
 const { getBasicUserData } = require('../../user/getUser');
 const { logData } = require('../../logging');
+const { searchErrorV2 } = require('../../searchError');
+
+const MAX_NOTIFICATIONS = 25;
 
 async function pushInAppNotif(incomingNotifData, forUserData) {
     const { forUserID, notifData, notifsLayouts } = incomingNotifData;
@@ -17,7 +20,7 @@ async function pushInAppNotif(incomingNotifData, forUserData) {
 
     if (!notifSetting || notifSetting.enabled==0 || notifSetting.error){
         logData("Notif setting problem", notifSetting, forUserID, notifData.type);
-        return { error: 'No notif type setting found' };
+        return searchErrorV2("L045", {userID: forUserID, options: [{name: "type", data: notifData.type}]});
     }
 
     const pushDbNotif = await pushNotifToDb({ userID: forUserID, notifID: notifData._id });
@@ -30,10 +33,10 @@ async function pushInAppNotif(incomingNotifData, forUserData) {
 }
 
 async function pushNotifToDb({ userID, notifID }) {
-    if (!userID) return { error: 'No userID' };
+    if (!userID) return searchErrorV2("L043", { userID: "Unknown" });
 
     const currentIndex = await getOrCreateCurrentIndex({ userID });
-    if (!currentIndex || currentIndex.error) return { error: 'No current index, and did not return a new one' };
+    if (!currentIndex || currentIndex.error) return searchErrorV2("L044", { userID });
 
     await interactUserNotifications.findOneAndUpdate({
         _id: currentIndex
@@ -50,16 +53,16 @@ async function pushNotifToDb({ userID, notifID }) {
 }
 
 async function getOrCreateCurrentIndex({ userID }) {
-    if (!userID) return { error: 'No userID' };
+    if (!userID) return searchErrorV2("L042", { userID: "Unknown" });
     const foundIndex = await interactUserNotifications.findOne({ userID, current: true, version: 2 });
-    if (foundIndex && foundIndex.count<50) return foundIndex._id;
+    if (foundIndex && foundIndex.count<MAX_NOTIFICATIONS) return foundIndex._id;
     
     const newIndexID = await createNewIndex({ userID, replaceIndex: foundIndex ? foundIndex._id : null });
     return newIndexID;
 }
 
 async function createNewIndex({ userID, replaceIndex }) {
-    if (!userID) return { error: 'No userID' };
+    if (!userID) return searchErrorV2("L042", { userID: "Unknown" });
     logData("making new index")
     
     const newIndexID = uuidv4();
@@ -93,10 +96,10 @@ async function getUserNotifications({ userID, indexID }) {
 
     // look for index
     var userNotifs;
-    if (!userID) return { error: 'No userID' };
+    if (!userID) return searchErrorV2("L041", { userID: "Unknown" });
     if (indexID) {
         userNotifs = await interactUserNotifications.findOne({ _id: indexID, userID, version: 2 });
-        if (!userNotifs) return { error: 'No user notifs found with ID' }; // explict error
+        if (!userNotifs) return searchErrorV2("L040", { userID }); // explict error
     } else {
         userNotifs = await interactUserNotifications.findOne({ userID, current: true, version: 2 });
         if (!userNotifs) return finalNotifs;

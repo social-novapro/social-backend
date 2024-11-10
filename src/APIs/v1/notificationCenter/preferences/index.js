@@ -49,6 +49,7 @@ router.get('/:systemType/:typeID', async (req, res) => {
  * 
  * query:  typeID - which setting to get
  */
+// TODO: dont believe this is possible to get to
 router.get('/:typeID', async (req, res) => {
     const foundPrefs = await getNotifDataType({
         userID: req.headers.userid,
