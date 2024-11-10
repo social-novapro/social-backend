@@ -4,6 +4,7 @@ const interactNotifications = require('../../../schemas/notifications/interactNo
 const interactSubscribeNotification = require('../../../schemas/notifications/interactSubscribeNotification');
 const { checktime } = require('../../checktime');
 const { logData } = require('../../logging');
+const { searchErrorV2 } = require('../../searchError');
 const { updateStringLayout } = require('../manage_types/utils');
 const { pushInAppNotif } = require('../notif_app');
 const { v4: uuidv4 } = require('uuid');
@@ -49,7 +50,7 @@ async function pushLikeNotif({ userData, postData }) {
 
     const notifType = 403;
     const prevRelated = await checkForNotif({ userID: postData.userID, postID: postData._id, type: notifType });
-    if (prevRelated) return { error: "Already sent notif about this event recently" };
+    if (prevRelated) return searchErrorV2("L029", { userID: postData.userID });
 
     const pushNotifs = [];
     // main user
@@ -64,7 +65,6 @@ async function pushLikeNotif({ userData, postData }) {
     }
 
     for (const notifPush of pushNotifs) {
-        logData(notifPush)
         const res = await pushNotifToSystems(notifPush);
         logData(res)
     }
@@ -77,7 +77,7 @@ async function pushFollowUserNotif({ userID, followedUserID, followID }) {
     const notifType = 601;
 
     const prevRelated = await checkForNotif({ userID, type: notifType });
-    if (prevRelated) return { error: "Already sent notif about this event recently" };
+    if (prevRelated) return searchErrorV2("L029", { userID: postData.userID });
 
     const newNotif = await createNotification({ userID, type: notifType, forUserID: followedUserID, followID });
     const userData = await interactUserSchema.findOne({ _id: userID });
@@ -90,10 +90,10 @@ async function pushFollowUserNotif({ userID, followedUserID, followID }) {
 /* notif: {forUserID, notifData, notifsLayouts} */
 async function pushNotifToSystems(notif) {
     logData("pushing notif to systems");
-    if (!notif) return { error: "No notif data" };
-    if (!notif.forUserID) return { error: "No forUserID" };
-    if (!notif.notifData) return { error: "No notifData" };
-    if (!notif.notifsLayouts) return { error: "No notifsLayouts" };
+    if (!notif) return searchErrorV2("L030", { userID: "unknown" });
+    if (!notif.forUserID) return searchErrorV2("L031", { userID: "unknown" });
+    if (!notif.notifData) return searchErrorV2("L032", { userID: notif.forUserID });
+    if (!notif.notifsLayouts) return searchErrorV2("L033", { userID: notif.forUserID });
 
     const forUserData = await interactUserSchema.findOne({ _id: notif.forUserID });
     logData(notif.notifData, notif.notifsLayouts);

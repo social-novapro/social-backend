@@ -863,6 +863,34 @@
                     "msg" : "Can not change notification type, required to be enabled."
                 },
                 {
+                    "code" : "L029",
+                    "msg" : "Already sent notif about this event recently"
+                },
+                {
+                    "code" : "L030",
+                    "msg" : "No notification data to be pushed to system."
+                },
+                {
+                    "code" : "L031",
+                    "msg" : "No forUserID provided to push to systems."
+                },
+                {
+                    "code" : "L032",
+                    "msg" : "No notifData provided to push to systems."
+                },
+                {
+                    "code" : "L033",
+                    "msg" : "No notifsLayout provided to push to systems."
+                },
+                {
+                    "code" : "L034",
+                    "msg" : "Type not available for this system type"
+                },
+                {
+                    "code" : "L035",
+                    "msg" : "No provided notifType, could not verify type with system type."
+                },
+                {
                     "code" : "N001",
                     "msg" : "Could not find request for verification of email."
                 },

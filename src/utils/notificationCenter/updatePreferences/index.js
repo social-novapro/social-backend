@@ -47,11 +47,11 @@ function verifySystemTypeInput(systemType) {
 
 /* make sure the notifType is allowed for the systemType */
 function verifyNotifTypeWithSystemType(notifType, systemType) {
-    if (!notifType) return { error: true };
+    if (!notifType) return searchErrorV2("L035", { userID: "Unrelated" });
     if (!notifType.systemTypes || notifType.systemTypes.length === 0) return true;
     if (notifType.systemTypes.includes(systemType)) return true;
 
-    return {error: 'Type not available for this system type'};
+    return searchErrorV2("L034", { userID: "Unrelated" })
 }
 
 /* gets a single type of notification */
