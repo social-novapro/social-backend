@@ -129,7 +129,8 @@ async function getUserNotifications({ userID, indexID }) {
         }
 
         var layoutNotif = {
-            _id: system._id,
+            _id: notifData._id,
+            systemID: system._id,
             type: notifData.type,
             notifSubType: notifHeaders.notifSubType,
             notifType: {

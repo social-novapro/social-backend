@@ -136,6 +136,15 @@ router.put('/put/editUsername/', async (req, res) => {
 router.put('/put/editDisplayname/', async (req, res) => {
     return res.status(400).send(searchErrorV2("I031", { userID: req.headers.userid }));
 })
-
+// OTHER ROUTES
+router.delete('/notifications/dismissAll', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I032", { userID: req.headers.userid }));
+})
+router.delete('/notifications/dismissAll/:notifID', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I033", { userID: req.headers.userid }));
+})
+router.get('/notifications/getList', async (req, res) => {
+    return res.status(400).send(searchErrorV2("I034", { userID: req.headers.userid }));
+})
 
 module.exports = router;

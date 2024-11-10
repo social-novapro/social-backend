@@ -57,7 +57,6 @@ router.get('/:typeID', async (req, res) => {
     return res.status(200).send(foundPrefs);
 })
 
-
 /**
  * description: set multiple notification preferences
  * 

@@ -118,7 +118,6 @@ async function checkForNotif({ userID, postID, forUserID, type }) {
         }
     })
 
-
     if (!notif) return false;
     return true;
 }

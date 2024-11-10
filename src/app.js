@@ -12,7 +12,7 @@ const PrivAPIv1 = require('./APIs/v1Priv');
 const APIdata = require('./APIs/API');
 const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
-const {searchError} = require('./utils/searchError');
+const {searchError, searchErrorV2} = require('./utils/searchError');
 const {updateNotifTypesDB} = require('./utils/notificationCenter/manage_types');
 require('dotenv').config({ path: 'secret.env' })
 
@@ -131,6 +131,10 @@ app.get('/apiDocsJS', (req, res) => {
 app.use('/API', APIdata)
 app.use('/v1', APIv1);
 app.use('/v1Priv', PrivAPIv1);
+app.use('/*', (req, res) => {
+    return res.status(404).send(searchErrorV2("I035", { userID: req.headers.userid ?? "unknown" }));
+})
+
 // app.use('/v2', APIv2);
 
 // app._router.stack.forEach(function (layer) {

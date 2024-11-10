@@ -671,6 +671,22 @@
                     "msg" : "Please use POST /v1/users/update/ instead of PUT /v1/put/editDisplayname"
                 },
                 {
+                    "code" : "I032",
+                    "msg" : "Please use DELETE /v1/notificationCenter/notifications/dismissAll instead of DELETE /v1/notifications/dismissAll"
+                },
+                {
+                    "code" : "I033",
+                    "msg" : "Please use DELETE /v1/notificationCenter/notifications/dismiss/:notifID instead of DELETE /v1/notifications/dismiss/:notifID"
+                },
+                {
+                    "code" : "I034",
+                    "msg" : "Please use GET /v1/notificationCenter/notifications instead of GET /v1/notifications/getList"
+                },
+                {
+                    "code" : "I035",
+                    "msg" : "Route was not found, change method, or find correct route."
+                },
+                {
                     "code" : "J001",
                     "msg" : "User already has a request pending."
                 },
@@ -889,6 +905,10 @@
                 {
                     "code" : "L035",
                     "msg" : "No provided notifType, could not verify type with system type."
+                },
+                {
+                    "code" : "L036",
+                    "msg" : "Client notification was not found with the notificationID provided."
                 },
                 {
                     "code" : "N001",
