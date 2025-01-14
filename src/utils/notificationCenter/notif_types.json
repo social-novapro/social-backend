@@ -42,8 +42,8 @@
             "description" : "Notifications for new follows.",
             "ids" : [600, 699],
             "required" : false
-        }, {
-            "sectionId" : 7,
+        }, {"sectionId" : 7}, {"sectionId" : 8}, {"sectionId" : 9}, {
+            "sectionId" : 10,
             "ids" : [1000, 1099],
             "name" : "Other",
             "description" : "Other notifications",
@@ -339,10 +339,12 @@
             ]
         }, {
             "name" : "other",
-            "id" : 1001
+            "id" : 1001,
+            "render" : false
         }, {
             "name" : "unknown",
-            "id" : 1002
+            "id" : 1002,
+            "render" : false
         }
     ],
     "systems": [

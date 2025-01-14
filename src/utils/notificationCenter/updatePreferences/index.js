@@ -95,6 +95,7 @@ async function getNotifPreference({ userID, typeID, systemType }) {
 }
 
 /* initalizes all preferences for a user */
+// TODO: is this not being used at all??
 async function initalizePreferences({ userID }) {
     if (!userID) return searchErrorV2("L023", { userID: 'unknown' });
     const preferences = [];
@@ -179,10 +180,10 @@ async function getAllNotifPreferences({ userID }) {
     const notificationSystemPreferences = [];
     for (let i = 0; i < deviceSystemCount; i++) {
         const preferences = await getNotifData({ userID, systemType: i+1 });
-        notificationSystemPreferences.push({preferences, system: reformatSystemTypes(i+1)});
+        notificationSystemPreferences.push({ preferences, system: reformatSystemTypes(i+1)});
     }
 
-    return notificationSystemPreferences;
+    return {systemPreferences: notificationSystemPreferences, sectionTypes: notif_types.sectionTypes};
 }
 
 /* gets all notif preferences of a given type, and creates a new one if not set*/
@@ -203,19 +204,27 @@ async function getNotifData({ userID, systemType }) {
         
         const setType = {...types[i]._doc};
         const foundPref = foundPreferences.find(preference => preference.type === setType._id);
-
+        const sectionTypeID = getIndexFromNumber(types[i].id);
+        
         if (foundPref) {
-            userPreferences.push(reformatTypePref(foundPref, setType));
+            userPreferences.push({ setting: reformatTypePref(foundPref, setType), sectionId: sectionTypeID });
         } else {
             const newPref = await setPreference({ userID, systemType, enabled: 0, typeID: setType._id });
-            userPreferences.push(reformatTypePref(newPref, setType));
+            userPreferences.push({ setting: reformatTypePref(newPref, setType), sectionTypeID });
         }
     }
     
-    return {
-        userPreferences,
-        sectionTypes: notif_types.sectionTypes,
-    }; 
+    return userPreferences;
+}
+
+/* thanks copliot, --update, actually fuck you, you half worked  */
+function getIndexFromNumber(number) {
+    // Convert the number to a string
+    let numberStr = number.toString();
+    let truncatedStr = numberStr.slice(0, -2);
+    console.log(number, truncatedStr)
+    if (truncatedStr === '') return 0
+    else return parseInt(truncatedStr);
 }
 
 /* changes multiple preferences at once */

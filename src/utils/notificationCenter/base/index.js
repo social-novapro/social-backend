@@ -129,6 +129,8 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
     var sendQuoteNotif = false;
     var sendReplyNotif = false;
     var taggedNotifs = [];
+    const allNotifs = [];
+
     // notificationID(s)
 
     // quote - #3 - dont show if mentioned
@@ -156,7 +158,7 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
                 const notifID = await createNotification({ postID, userID, type: notifType });
                 // const notifID = await createNotification({ postID, userID: userIDTagged, type: notifType });
                 const notificationLayouts = await createPostNotifLayouts({ userData, postData, type: notifType });
-                allNotifs.push({forUserID: userIDTagged, notifData: notifID, notifsLayouts: notificationLayouts});
+                allNotifs.push({forUserID: tag.userIDTagged, notifData: notifID, notifsLayouts: notificationLayouts});
             }
         }
     }
@@ -190,8 +192,6 @@ async function pushPostNotifs({ postID, userID, postData, userData, coposters, t
             }
         }
     }
-
-    const allNotifs = [];
 
     // send notif for quote, and reply
     if (sendQuoteNotif) {
