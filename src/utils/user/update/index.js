@@ -74,12 +74,14 @@ async function userUpdate({ userID, body }) {
                 ...validated
             });
             continue;
+        // expect string (should be usaully)
         } else if (validated.type === "String" && typeof body[field] !== "string") {
             fails.push({
                 field,
                 ...searchErrorV2("C031", { userID, options: [{ name: "field", data: field }, { name: "reason", data: "field is not a string." }] })
             });
             continue;
+        // expect number, but if its not then itll fail
         } else if (validated.type === "Date" && (isNaN(body[field]))) {
             fails.push({
                 field,
@@ -100,7 +102,6 @@ async function userUpdate({ userID, body }) {
         }
     
         // update field
-        // push to {valueString, valueDate, valuePrevString, valuePrevDate}
         if (validated.type === "String") {
             toUpdates.push({
                 "field": field,
@@ -120,8 +121,6 @@ async function userUpdate({ userID, body }) {
                 "valuePrevDate": Number(prevUpdate.currentValue)
             })
         }
-        // toUpdates.push({"field": field, "value": body[field], "prevValue": prevUpdate.currentValue, type: validated.type});
-        // await lastUpdatedField({ userID, field });
     }
 
     // updates
