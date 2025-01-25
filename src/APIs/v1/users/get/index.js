@@ -15,4 +15,8 @@ router.get('/:searchTerm', async (req, res) => {
     return res.status(200).send(send);
 });
 
+router.get('/:postIndexID', async (req, res) => {
+
+});
+
 module.exports = router;

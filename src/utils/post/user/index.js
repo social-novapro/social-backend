@@ -1,9 +1,9 @@
 const { getPostWithData } = require("../getPost");
-const { getPostsFromUser } = require("../main");
+const { getPostsFromUserIndex } = require("../main");
 
-async function getUserPosts({ userID, requesterID, coposts }) {
+async function getUserPosts({ userID, requesterID, coposts, indexID }) {
     const userPosts = []
-    const foundPosts = await getPostsFromUser({ userID, coposts});
+    const foundPosts = await getPostsFromUserIndex({ userID, coposts});
     if (foundPosts.error || !foundPosts) {
         return foundPosts
     };

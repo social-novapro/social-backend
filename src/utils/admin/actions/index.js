@@ -6,6 +6,7 @@ const { updateUserBadges, undoUserBadges } = require("../../user/badges/firstRun
 const { undoAllUsernameLc, updateAllUsernameLc } = require("../../userAuth");
 const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
+const { updateAllUserPostIndexes, undoAllUserPostIndexes } = require("./userPostIndexes");
 
 // APR 2024 - 1.4
 async function updatePostEmbeddings({ adminID }) {
@@ -112,6 +113,28 @@ async function undoUsernameLc({ adminID }) {
 }
 
 
+// JAN 2025 - 1.7 OR 1.6.3
+async function updateUserPostIndexes({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userPostIndexes" });
+    // if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await updateAllUserPostIndexes({ adminID });
+    // await interactAdminUpdateActionsSchema.create({
+    //     _id: "userPostIndexes",
+    //     done: true,
+    //     timestamp: checktime(),
+    // })
+    return result;
+}
+
+async function undoUserPostIndexes({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userPostIndexes" });
+
+    // await undoAllUserPostIndexes({ adminID });
+    // await undoAllPostIndexes({ adminID });
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "userPostIndexes" })
+    return { done: true }
+}
 module.exports = { 
     updateUsernameLc,
     undoUsernameLc,
@@ -122,5 +145,9 @@ module.exports = {
     updateBadges,
     undoBadges,
     updatePostEmbeddings,
-    undoPostEmbeddings
+    undoPostEmbeddings,
+    updateUserPostIndexes,
+    undoUserPostIndexes,
+
 }
+

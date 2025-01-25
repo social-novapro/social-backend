@@ -16,7 +16,7 @@ async function getUser({userID, searchTerm}) {
     return searchErrorV2("C009", { userID });
 }
 
-async function getAllUserData({userID, searchTerm}) {
+async function getAllUserData({userID, searchTerm }) {
     if (!userID) return searchErrorV2("B009", { userID })
     if (!searchTerm) return searchErrorV2("C021", { userID })
 
@@ -31,7 +31,8 @@ async function getAllUserData({userID, searchTerm}) {
     const postData = await getUserPosts({ 
         userID: userData._id, 
         requesterID: userID, 
-        coposts: true 
+        coposts: true,
+        indexID: userData.postIndexID
     });
 
     // badges

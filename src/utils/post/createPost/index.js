@@ -105,6 +105,7 @@ async function newPostIndex(userID, data) {
     });
 
     await pushPostToIndex({ postID, userID });
+    // push to user index
     
     const foundUser = await interactUserSchema.findOne({ _id: userID });
     foundUser.totalPosts = foundUser.totalPosts ? foundUser.totalPosts + 1 : 1;
