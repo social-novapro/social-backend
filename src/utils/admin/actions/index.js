@@ -113,7 +113,7 @@ async function undoUsernameLc({ adminID }) {
 }
 
 
-// JAN 2025 - 1.7 OR 1.6.3
+// JAN 2025 - 1.7 OR 1.6.4
 async function updateUserPostIndexes({ adminID }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userPostIndexes" });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });

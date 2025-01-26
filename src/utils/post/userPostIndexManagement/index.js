@@ -3,6 +3,7 @@ const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactUserPostIndexSchema = require('../../../schemas/postSchemas/interactUserPostIndexSchema');
 const { checktime } = require('../../checktime');
 const interactPostSchema = require('../../../schemas/interactPostSchema');
+const { searchErrorV2 } = require('../../searchError');
 
 const MAX_POSTS_PER_USER_INDEX = 30;
 
@@ -34,47 +35,43 @@ async function createUserPostIndex({ userID, prevIndexID }) {
 async function getUserPostIndex({ userID, indexID }) {
     var userIndexID = indexID ? indexID : null;
     if (!userIndexID) {
-        userIndexID = await getCurrentUserPostIndexID({ userID });
-        if (!userIndexID || userIndexID.error) return userIndexID;//{ error: true, msg: "could not get index" };
         // get current user post index
+        userIndexID = await getCurrentUserPostIndexID({ userID });
+        if (!userIndexID || userIndexID.error) return userIndexID;
     }
 
     const foundIndex = await interactUserPostIndexSchema.findOne({ _id: userIndexID });
-    if (!foundIndex) return { error: true, msg: "index not found" };
-
+    if (!foundIndex) return searchErrorV2("C035", { userID });
     return foundIndex;
 }
 
+// Get current userPostIndexID
 async function getCurrentUserPostIndexID({ userID, createNew }) {
     const userFound = await interactUserSchema.findOne({_id: userID});
-    if (!userFound) return { error: true, msg: "user not found while looking for index id" };
-    // console.log(userFound);
+    if (!userFound) return searchErrorV2("C036", { userID });
     if (userFound.postIndexID == null && createNew == true) {
         const newIndexID = await createUserPostIndex({userID});
-        if (!newIndexID || newIndexID.error) return newIndexID;//return { error: true, msg: "could not create new index" };
-
+        if (!newIndexID || newIndexID.error) return newIndexID;
         return newIndexID;
-    } else if (userFound.postIndexID == null) return { error: true, msg: "no index found with user" };
-
+    } else if (userFound.postIndexID == null) return searchErrorV2("C037", { userID });
     return userFound.postIndexID;
 }
 
+// Push a post to user's post index (via provided or current index)
 async function pushPostToUserPostIndex({ userID, postID, currentIndexID }) {
-    console.log("PUSHING", postID, currentIndexID);
-    // const post = await interactPostSchema.findOne
     // can provide which index to use (other than if index over max)
     var useIndexID = null;
     if (!currentIndexID) useIndexID = await getCurrentUserPostIndexID({ userID, createNew: true });
     else useIndexID = currentIndexID;
     
-    if (!useIndexID || useIndexID.error) return useIndexID//{ error: true, msg: "indexID not provided" };
+    if (!useIndexID || useIndexID.error) return useIndexID;
 
     var foundIndex = await interactUserPostIndexSchema.findOne({ _id: useIndexID });
-    if (!foundIndex) return { error: true, msg: "index not found" };
+    if (!foundIndex) return searchErrorV2("C035", { userID });
 
     if (foundIndex.amount >= MAX_POSTS_PER_USER_INDEX) {
         const newIndexID = await createUserPostIndex({ userID, prevIndexID: useIndexID });
-        if (!newIndexID || newIndexID.error) return newIndexID;//{ error: true, msg: "could not create new index" };
+        if (!newIndexID || newIndexID.error) return newIndexID;
         // update data
         useIndexID = newIndexID;
         foundIndex = await interactUserPostIndexSchema.findOne({ _id: useIndexID });
@@ -82,7 +79,6 @@ async function pushPostToUserPostIndex({ userID, postID, currentIndexID }) {
 
     // add postID to index
     // and increment amount
-    console.log("ADDING", useIndexID, postID);
     await interactUserPostIndexSchema.findOneAndUpdate({ 
         _id: useIndexID 
     }, {
@@ -99,23 +95,23 @@ async function pushPostToUserPostIndex({ userID, postID, currentIndexID }) {
     return useIndexID;
 }
 
-async function getUserPostIndexIDfromPostID({ postID }) {
+// Get userPostIndexID from postID
+async function getUserPostIndexIDfromPostID({ userID, postID }) {
     const foundPost = await interactPostSchema.findOne({ _id: postID });
-    if (!foundPost) return { error: true, msg: "post not found" };
+    if (!foundPost) return searchErrorV2("C038", { userID });
 
     const userIndexID = foundPost.userPostIndexID;
-    if (!userIndexID) return { error: true, msg: "post not in any index" };
+    if (!userIndexID) return searchErrorV2("C039", { userID });
 
     return userIndexID;
 }
 
+// Remove post from user's post index
 async function removePostFromUserPostIndex({ userID, postID, userPostIndexID }) {
     const postIndexID = userPostIndexID ? userPostIndexID 
-        : await getUserPostIndexIDfromPostID({ userID }); // seems not to work, already deleted by this point
+        : await getUserPostIndexIDfromPostID({ userID, postID }); // seems not to work, already deleted by this point
 
     if (!postIndexID || postIndexID.error) return postIndexID;
-
-    console.log("FOUND INDEX", postIndexID);
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -129,9 +125,9 @@ async function removePostFromUserPostIndex({ userID, postID, userPostIndexID }) 
         $inc: { amount: -1 },
         $pull: { postIDs: { _id: postID } }
     });
+
     // check if need to remove / revert index
     // maybe dont need to, because if index is less than 5 itll include last index
-
     return { "success": true };
 }
 
