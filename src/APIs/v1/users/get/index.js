@@ -13,14 +13,15 @@ router.get('/userPosts/u/:userID', async (req, res) => {
     const { userID } = req.params;
     const send = await getUserPosts({ userID, requesterID: req.headers.userid, postIndexID });
     if (send.error) return res.status(400).send(send);
-    return res.status(200).send(send);
+    return res.status(200).send(reorgIndex(send));
 });
 
 router.get('/userPosts/:postIndexID', async (req, res) => {
     const { postIndexID } = req.params;
     const send = await getUserPosts({ userID: null, requesterID: req.headers.userid, indexID: postIndexID });
     if (send.error) return res.status(400).send(send);
-    return res.status(200).send(send);
+   
+    return res.status(200).send(reorgIndex(send));
 });
 
 router.get('/:searchTerm', async (req, res) => {
@@ -29,5 +30,18 @@ router.get('/:searchTerm', async (req, res) => {
     if (send.error) return res.status(400).send(send);
     return res.status(200).send(send);
 });
+
+// reorganize index data, this will make it be equal to what /:searchTerm does
+function reorgIndex(postData) {
+    return {
+        index: {
+            indexID: postData.index._id,
+            nextIndexID: postData.index.nextIndexID,
+            prevIndexID: postData.index.prevIndexID,
+            amount: postData.index.amount
+        },
+        posts: postData.posts
+    }
+}
 
 module.exports = router;
