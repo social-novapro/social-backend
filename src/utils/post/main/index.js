@@ -2,19 +2,45 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserPostIndexSchema = require("../../../schemas/postSchemas/interactUserPostIndexSchema");
 const { searchErrorV2 } = require("../../searchError");
 const { getCoposts } = require("../coposter");
+const { getUserPostIndex } = require("../userPostIndexManagement");
 
 async function getPostsFromUserIndex({ userID, coposts, indexID }) {
-    var useIndexID = indexID ? indexID : null;
-    const foundIndex = await interactUserPostIndexSchema.findOne({ _id: indexID });
-    if (!foundIndex)  return { error: true, errorCode: "0000", msg: "not found", userID };
+    const foundIndex = await getUserPostIndex({ userID, indexID });
+    // var useIndexID = indexID ? indexID : null;
+    // // or current index?
+    // if (!useIndexID) {
+    //     const foundUser = await interactUserSchema.findOne({_id: userID});
+
+
+    // const foundIndex = await interactUserPostIndexSchema.findOne({ _id: useIndexID });
+    // console.log(foundIndex);
+    // if (!foundIndex)  return { error: true, errorCode: "0000", msg: "not found", userID };
+    
+    const foundPostIDs = [];
+    if (foundIndex.amount < 5) {
+        console.log("less than 5");
+        // add next index
+        const prevIndexID = foundIndex.prevIndexID;
+        if (prevIndexID) {
+            const prevIndex = await interactUserPostIndexSchema.findOne({ _id: prevIndexID });
+            if (prevIndex && prevIndex.amount > 0 && prevIndex.postIDs) {
+                foundPostIDs.push(...prevIndex.postIDs);
+            }
+        }
+    } 
+    foundPostIDs.push(...foundIndex.postIDs);
 
     const foundPosts = [];
-    for (const postID of foundIndex.postIDs) {
-        const foundPost = await interactPostSchema.findOne({_id: postID});
+    for (const postID of foundPostIDs) {
+        // console.log(postID)
+        const foundPost = await interactPostSchema.findOne({_id: postID._id});
+        // console.log(foundPost)
         if (foundPost && !foundPost.deleted) foundPosts.push(foundPost);
     }
 
-    return foundPosts;
+    // console.log(foundPosts);
+
+    return {index: foundIndex, posts: foundPosts};
 }
 
 async function getPostsFromUser({ userID, coposts }) {

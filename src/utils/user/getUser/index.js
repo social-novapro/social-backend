@@ -28,12 +28,18 @@ async function getAllUserData({userID, searchTerm }) {
     if (userData.error) return userData;
 
     // posts
-    const postData = await getUserPosts({ 
+    const postIndex= await getUserPosts({ 
         userID: userData._id, 
         requesterID: userID, 
         coposts: true,
         indexID: userData.postIndexID
     });
+
+    const postIndexData = {
+        nextIndexID: postIndex.index.nextIndexID ?? null,
+        prevIndexID: postIndex.index.prevIndexID ?? null,
+        amount: postIndex.index.amount ?? 0
+    }
 
     // badges
     const badgeData = await getUserBadges({ userID: userData._id});
@@ -51,14 +57,16 @@ async function getAllUserData({userID, searchTerm }) {
     const sendBack = {
         included: {
             user: "true",
-            posts: `${postData ? true : false}`,
+            posts: `${postIndex ? true : false}`,
             pins: pinData.length > 0 ? true : false,
             badges: badgeData.length > 0 ? true : false,
             mentions: mentionData.length > 0 ? true : false,
+            userPostIndexData: postIndex ? true : false,
             extraData: true
         },
         userData: userData,
-        postData: postData,
+        postData: postIndex.posts,
+        userPostIndexData: postIndexData,
         pinData: pinData,
         badgeData: badgeData,
         mentionData: mentionData,

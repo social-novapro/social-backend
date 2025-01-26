@@ -76,6 +76,8 @@ async function subscriptionFeedV2({ userID }) {
     return sendingData;
 }
 
+// TODO: implement new version
+// - getUserPosts only getting newest index of user, past that you cant get more posts
 async function subscriptionFeed({ userID }) {
     const sendPosts = [];
     const subscriptions = await getSubscriptions({ userID });
@@ -84,7 +86,7 @@ async function subscriptionFeed({ userID }) {
     
     for (const sub of subscriptions) {
         const foundPosts = await getUserPosts({ userID: sub._id, requesterID: userID, coposts: true});
-        if ((foundPosts && !foundPosts.error) || (foundPosts.length > 0 && !foundPosts.error) ) sendPosts.push(...foundPosts);
+        if ((foundPosts && !foundPosts.error) || (foundPosts.length > 0 && !foundPosts.error) ) sendPosts.push(...foundPosts.posts);
     }
 
     sendPosts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);

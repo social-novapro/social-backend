@@ -60,6 +60,7 @@ async function getCurrentUserPostIndexID({ userID, createNew }) {
 }
 
 async function pushPostToUserPostIndex({ userID, postID, currentIndexID }) {
+    console.log("PUSHING", postID, currentIndexID);
     // const post = await interactPostSchema.findOne
     // can provide which index to use (other than if index over max)
     var useIndexID = null;
@@ -98,13 +99,23 @@ async function pushPostToUserPostIndex({ userID, postID, currentIndexID }) {
     return useIndexID;
 }
 
-
-async function removePostFromUserPostIndex({ userID, postID }) {
+async function getUserPostIndexIDfromPostID({ postID }) {
     const foundPost = await interactPostSchema.findOne({ _id: postID });
     if (!foundPost) return { error: true, msg: "post not found" };
 
     const userIndexID = foundPost.userPostIndexID;
     if (!userIndexID) return { error: true, msg: "post not in any index" };
+
+    return userIndexID;
+}
+
+async function removePostFromUserPostIndex({ userID, postID, userPostIndexID }) {
+    const postIndexID = userPostIndexID ? userPostIndexID 
+        : await getUserPostIndexIDfromPostID({ userID }); // seems not to work, already deleted by this point
+
+    if (!postIndexID || postIndexID.error) return postIndexID;
+
+    console.log("FOUND INDEX", postIndexID);
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -113,10 +124,13 @@ async function removePostFromUserPostIndex({ userID, postID }) {
     });
 
     await interactUserPostIndexSchema.findOneAndUpdate({
-        _id: userIndexID
+        _id: postIndexID
     }, {
+        $inc: { amount: -1 },
         $pull: { postIDs: { _id: postID } }
     });
+    // check if need to remove / revert index
+    // maybe dont need to, because if index is less than 5 itll include last index
 
     return { "success": true };
 }
@@ -125,5 +139,6 @@ module.exports = {
     createUserPostIndex,
     getUserPostIndex,
     pushPostToUserPostIndex,
-    removePostFromUserPostIndex
+    removePostFromUserPostIndex,
+    getUserPostIndex
 };
