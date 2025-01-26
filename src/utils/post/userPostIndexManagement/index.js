@@ -41,7 +41,7 @@ async function getUserPostIndex({ userID, indexID }) {
     }
 
     const foundIndex = await interactUserPostIndexSchema.findOne({ _id: userIndexID });
-    if (!foundIndex) return searchErrorV2("C035", { userID });
+    if (!foundIndex) return searchErrorV2("C035", { userID : userID ?? "unknown"});
     return foundIndex;
 }
 

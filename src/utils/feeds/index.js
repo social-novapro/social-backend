@@ -85,7 +85,7 @@ async function subscriptionFeed({ userID }) {
     if (subscriptions.error) return subscriptions;
     
     for (const sub of subscriptions) {
-        const foundPosts = await getUserPosts({ userID: sub._id, requesterID: userID, coposts: true});
+        const foundPosts = await getUserPosts({ userID: sub._id, requesterID: userID });
         if ((foundPosts && !foundPosts.error) || (foundPosts.length > 0 && !foundPosts.error) ) sendPosts.push(...foundPosts.posts);
     }
 

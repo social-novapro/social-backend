@@ -28,14 +28,15 @@ async function getAllUserData({userID, searchTerm }) {
     if (userData.error) return userData;
 
     // posts
-    const postIndex= await getUserPosts({ 
+    const postIndex = await getUserPosts({ 
         userID: userData._id, 
         requesterID: userID, 
-        coposts: true,
         indexID: userData.postIndexID
     });
 
+    // userPostIndex data
     const postIndexData = {
+        indexID: postIndex.index._id ?? null,
         nextIndexID: postIndex.index.nextIndexID ?? null,
         prevIndexID: postIndex.index.prevIndexID ?? null,
         amount: postIndex.index.amount ?? 0
