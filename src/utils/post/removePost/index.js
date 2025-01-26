@@ -9,6 +9,7 @@ const { pullPostBookmarks } = require("../../bookmarks");
 const { removePostFromIndex } = require("../postIndexManagement");
 const { deleteEmbedPost } = require("../../search/embed");
 const { removeTags } = require("../tags");
+const { removePostFromUserPostIndex } = require("../userPostIndexManagement");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -16,11 +17,13 @@ async function removePost(postData) {
     
     // if postData.isQuote later
     if (postData.replyIndexID) await deleteReplyIndex(postData);
+
     await deleteLikes({ postID: postData._id });
+    await removePostFromIndex({ userID: postData.userID, postID: postData._id });
+    await removePostFromUserPostIndex({ userID: postData.userID, postID: postData._id, userPostIndexID: postData.userPostIndexID });
+
     await interactPostSchema.findOneAndDelete({_id: postData._id});
 
-    await removePostFromIndex({ userID: postData.userID, postID: postData._id });
-    
     await interactPostSchema.findOneAndUpdate({
         _id: postData.postID
     }, {

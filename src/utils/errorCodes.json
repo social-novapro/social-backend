@@ -364,6 +364,26 @@
                     "msg" : "No userAge provided."
                 },
                 {
+                    "code" : "C035",
+                    "msg": "There was no index found for provided indexID."
+                },
+                {
+                    "code" : "C036",
+                    "msg" : "User was not found while looking for userPostIndex."
+                },
+                {
+                    "code" : "C037",
+                    "msg" : "There was no userPostIndex found with user data."
+                },
+                {
+                    "code" : "C038",
+                    "msg" : "Post was not found while looking for userPostIndexID."
+                },
+                {
+                    "code" : "C039",
+                    "msg" : "Post did not have a userPostIndexID."
+                },
+                {
                     "code" : "D001",
                     "msg" : "The provided postID is not valid. It was either deleted or does not exist."
                 },

@@ -17,6 +17,8 @@ const {searchError} = require('./utils/searchError');
 require('dotenv').config({ path: 'secret.env' })
 
 
+// process.on('warning', e => console.warn(e.stack));
+
 // sending email
 const { sendTest } = require('./utils/email/send');
 // sendTest();
