@@ -195,7 +195,6 @@ const dmUtils = require('./WS/v1/dms');
 const interactUserSchema = require('./schemas/interactUserSchema');
 const liveChatSchema = require('./schemas/liveChatSchema');
 const { checkRequestTokens } = require('./utils/checkRequestTokens');
-// const { checkRequestTokens } = require('./utils/checkRequestTokens');
 
 function sendEveryone(sendMessage) {
     wss.clients.forEach(client => {
@@ -419,7 +418,7 @@ wss.on('connection', async (ws, req) => {
                 if (!data.tokens) return;
                 if (data.tokens.userid != userID) return ws.close();
 
-                const tokenData = await checkRequestTokens(req);
+                const tokenData = await checkRequestTokens(req, true);
                 if (tokenData.authorized == false) {
                     messageError = {
                         // _id: newID,

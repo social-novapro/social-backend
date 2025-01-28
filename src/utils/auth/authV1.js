@@ -30,7 +30,7 @@ async function authV1(req, res, next) {
         else return next();
     } else {
         console.log("authV1: checking auth")
-        const tokenData = await checkRequestTokens(req, true);
+        const tokenData = await checkRequestTokens(req);
         if (tokenData.authorized == false) return res.status(401).send(tokenData);
         else return next();
     }
