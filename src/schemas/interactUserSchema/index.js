@@ -47,6 +47,7 @@ const interactUserSchema = mongoose.Schema({
     // lastEditUsername: reqNum,
 
     pins: [pinnedPostsSchema],
+    postIndexID: reqString, // user post index id
 
     themeData: themeSchema, // theme id
 
