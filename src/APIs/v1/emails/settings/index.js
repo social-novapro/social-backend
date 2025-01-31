@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const {checkRequestTokens} = require('../../../../utils/checkRequestTokens');
 const { settings, possibleOptions } = require('../../../../utils/email/settings/');
 const { searchErrorV2 } = require('../../../../utils/searchError');
 
@@ -14,9 +13,6 @@ router.get('/', async (req, res) => {
  * Update email settings
  */
 router.put('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { userid: userID } = req.headers;
 
     const foundOptions = [];

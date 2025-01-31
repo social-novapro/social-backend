@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const { searchError } = require('../../../../../utils/searchError');
-const { checkRequestTokens } = require('../../../../../utils/checkRequestTokens');
 const { confirmRemove } = require('../../../../../utils/email/setEmail');
 
 router.post('/:removeEmailVerID', async (req, res) => {

@@ -13,7 +13,7 @@ async function searchUserTag({ username, userID }) {
     var possibleUsers = []
 
     for (const user of users) {
-        if (user?.username?.startsWith(searchUsernameLc)) {
+        if (user?.usernameLc?.startsWith(searchUsernameLc)) {
             var possibility = searchUsernameLc.length / user.username.length
             var pushUser = {
                 possibility: possibility.toFixed(3),
@@ -37,7 +37,7 @@ async function lookupUsers({ userID, lookUpKey, lookUpKeyLower, UserData }) {
     var usersFound = [];
 
     for (user of UserData) {
-        var username = user.username?.toLowerCase();
+        var username = user.usernameLc?.toLowerCase();
         var displayname = user.displayName?.toLowerCase();
 
         const userPrivacy = await getPrivacySetting({ userID: user._id, privacy: "profile" });

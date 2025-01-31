@@ -1,12 +1,8 @@
 const router = require('express').Router();
 const { searchError } = require('../../../../utils/searchError');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { setEmail } = require('../../../../utils/email/setEmail');
 
 router.post('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { email, password } = req.body;
     const { userid } = req.headers;
 

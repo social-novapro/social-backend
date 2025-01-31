@@ -1,12 +1,7 @@
 const router = require('express').Router();
-const { searchError } = require('../../../../utils/searchError');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const interactDmsGroupsSchema = require('../../../../schemas/websocket/dms/interactDmsGroupsSchema');
 const { getGroupData } = require('../../../../WS/v1/dms');
 
 router.get('/:groupID', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
     const { groupID } = req.params
 
     if (!groupID) return res.status(400).send({error: "You didnt include a groupID"})

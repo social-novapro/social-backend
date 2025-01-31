@@ -17,6 +17,7 @@ const { coposterRequestNotification } = require('../../pushNotifications/postAct
 const { embedPost } = require('../../search/embed');
 const { pushPostTag, checkForTags } = require('../tags');
 const { pushPostNotifs } = require('../../notificationCenter/base');
+const { pushPostToUserPostIndex } = require('../userPostIndexManagement');
 
 async function createNewPost({
     content,
@@ -111,6 +112,8 @@ async function newPostIndex(userID, data) {
     });
 
     await pushPostToIndex({ postID, userID });
+    // push to user index
+    await pushPostToUserPostIndex({ userID, postID });
     
     const foundUser = await interactUserSchema.findOne({ _id: userID });
     foundUser.totalPosts = foundUser.totalPosts ? foundUser.totalPosts + 1 : 1;
