@@ -1,11 +1,7 @@
 const router = require('express').Router();
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { dismissNotification } = require('../../../../utils/notifications/dismissNotification');
 
 router.delete('/:notificationID', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { notificationID } = req.params;
     const { userid } = req.headers;
     

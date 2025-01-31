@@ -1,13 +1,7 @@
 const router = require('express').Router();
-const { searchError } = require('../../../../utils/searchError');
-const { checktime } = require('../../../../utils/checktime');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
-const { createPollVote, removePollVote } = require('../../../../utils/polls');
+const { removePollVote } = require('../../../../utils/polls');
 
 router.put('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { pollID, pollOptionID } = req.body;
     const userID = req.headers.userid;
 

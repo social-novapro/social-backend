@@ -3,12 +3,8 @@ const interactAdminRequestSchema = require('../../../../schemas/admin/interactAd
 const interactAdminRequestSchema = require('../../../../schemas/admin/interactAdminSchema')
 const { searchErrorV2 } = require('../../../../utils/searchError');
 const { checktime } = require('../../../../utils/checktime');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.post('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { content } = req.body;
     const { userid } = req.headers;
     

@@ -2,13 +2,9 @@ const router = require('express').Router();
 const { newDeveloperToken } = require('../../../../utils/developer/create/devToken');
 const developerToken = require('../../../../schemas/developer/developerToken');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.post('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { userid } = req.headers;
     const userID = userid;
     // const { userID } = req.params;

@@ -1,19 +1,13 @@
 const router = require('express').Router();
 const { newUserIndex } = require('../../../../utils/user/createUser');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
-const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
 const { searchErrorV2 } = require('../../../../utils/searchError/');
 const { checkUsername, checkPassword, checkUserage } = require('../../../../utils/checks/');
-const { checkDevTokens } = require('../../../../utils/checkDevTokens');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
-const SHA1 = require("crypto-js/sha1");
 const { setEmail } = require('../../../../utils/email/setEmail');
 const { quickCheckPassword } = require('../../../../utils/userAuth');
 
 router.post('/', async (req, res) => {
-    const tokenData = await checkDevTokens(req.headers.devtoken, req.headers.apptoken);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { username, displayName, password, description, pronouns, statusTitle, email, userAge } = req.body;
 
     if (!username && !displayName) return res.status(400).send(searchErrorV2("C002", { userID: null }));

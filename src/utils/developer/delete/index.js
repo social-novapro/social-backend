@@ -14,7 +14,7 @@ async function getAccessTokens({ userID }) {
 }
 
 /**
- * get all app tokens from a deveoper
+ * get all app tokens from a developer
  */
 async function getAppTokens({ userID }) {
     const apps = await developerAppToken.find({ userID });

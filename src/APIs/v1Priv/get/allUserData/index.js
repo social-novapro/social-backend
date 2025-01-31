@@ -5,12 +5,8 @@ const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSche
 const developerAppToken = require('../../../../schemas/developer/developerAppToken');
 const developerToken = require('../../../../schemas/developer/developerToken');
 const interactUserAnalyticSchema = require('../../../../schemas/analytics/interactUserAnalyticSchema');
-const { checkRequestTokens } = require('./../../../../utils/checkRequestTokens');
 
 router.get('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { userid } = req.headers;
     const userID = userid;
 

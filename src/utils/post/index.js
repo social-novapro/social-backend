@@ -7,6 +7,8 @@ const { checktime } = require("../checktime");
 const { searchErrorV2 } = require("../searchError");
 const { embedEditedPost } = require("../search/embed");
 const { editTags } = require("./tags");
+const { getPostWithData } = require("./getPost");
+const interactUserSchema = require("../../schemas/interactUserSchema");
 
 async function getPostReplies({ postID, userID }) {
     const postData = await interactPostSchema.findOne({_id: postID});
@@ -105,9 +107,51 @@ async function editPost({ postID, userID, content}) {
     return { "before": postCheck, "new": postData }
 }
 
+async function getPostRepliesFull({ postID, userID }) {
+    const foundReplies = await getPostReplies({ postID, userID });
+    if (!foundReplies || foundReplies.error) return foundReplies;
+
+    const ownUser = await interactUserSchema.findOne({_id: userID});
+    const fullReplies = [];
+    for (const reply of foundReplies.replies) {
+        const postData = await getPostWithData({userID: userID, postID: reply._id, post: reply, ownUser});
+        fullReplies.push(postData);
+    }
+    
+    const dataSend = {
+        'post': foundReplies.postData,
+        'replyIndex': foundReplies.replyIndex,
+        'replies': fullReplies
+    }
+    
+    return dataSend;
+}
+
+async function getPostQuotesFull({ postID, userID }) {
+    const foundQuotes = await getPostQuotes({ postID, userID });
+    if (!foundQuotes || foundQuotes.error) return foundQuotes;
+
+    const ownUser = await interactUserSchema.findOne({_id: userID});
+    const fullQuotes = [];
+    for (const quote of foundQuotes.quotes) {
+        const postData = await getPostWithData({userID: userID, postID: quote._id, post: quote, ownUser});
+        fullQuotes.push(postData);
+    }
+
+    const dataSend = {
+        'post': foundQuotes.postData,
+        'quoteIndex': foundQuotes.quoteIndex,
+        'quotes': fullQuotes
+    }
+    
+    return dataSend;
+}
+
 module.exports = { 
     getPostReplies,
     getPostQuotes,
     getPostEdits,
     editPost,
+    getPostRepliesFull,
+    getPostQuotesFull
 };

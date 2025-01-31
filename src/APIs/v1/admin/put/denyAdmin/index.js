@@ -1,16 +1,9 @@
 const router = require('express').Router();
-const interactUserSchema = require('../../../../../schemas/interactUserSchema');
-const {checkRequestTokens} = require('../../../../../utils/checkRequestTokens');
 const {checkUserPerms} = require('../../../../../utils/checkUserPerms');
-const { searchError } = require('../../../../../utils/searchError');
 const interactVerifyRequests = require('../../../../../schemas/interactVerifyRequests');
 const interactVerificationSchema = require('../../../../../schemas/interactVerificationSchema');
-const { checktime } = require('../../../../../utils/checktime');
 
-router.put('/:userid', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-    
+router.put('/:userid', async (req, res) => {    
     const userPerms = await checkUserPerms(req.headers.userid);
     if (userPerms.admin == false) return res.status(401).send({error: "You do not have permission to access this resource."});
     else if (userPerms.adminType < 2) return res.status(401).send({error: "You do not have permission to access this resource."});
