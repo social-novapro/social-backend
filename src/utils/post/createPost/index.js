@@ -17,6 +17,7 @@ const { coposterRequestNotification } = require('../../pushNotifications/postAct
 const { embedPost } = require('../../search/embed');
 const { pushPostTag, checkForTags } = require('../tags');
 const { pushPostToUserPostIndex } = require('../userPostIndexManagement');
+const { categorizePost } = require('../../feeds/personalized');
 
 async function createNewPost({
     content,
@@ -54,8 +55,10 @@ async function createNewPost({
 
     await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
     pushNewPost(userID, postID)
-    embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
-
+    embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content }).then((embedData) => {
+        categorizePost({ postID})
+    });
+    console.log("Post created")
     return postData
 }
 

@@ -1,6 +1,8 @@
 const { allPostsFeedV2 } = require("..");
 const interactPostSchema = require("../../../schemas/interactPostSchema");
+const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { checktime } = require("../../checktime");
+const { getPostWithData } = require("../../post/getPost");
 const { embedSearch, getPostEmbedding } = require("../../search/embed");
 const { cosineSimilarity } = require("../../search/searchV2");
 const fs = require("fs");
@@ -25,9 +27,6 @@ const categories = [{
     embedding: [],
 }, {
     name: "statement",
-    embedding: [],
-}, {
-    name: "i understand",
     embedding: [],
 },{
     name: "test",
@@ -62,14 +61,20 @@ const categories = [{
 }];
 
 // "development", "design", "marketing", "business", "productivity", "other"
-async function categorizePosts({ posts }) {
+async function categorizePost({ postID }) {
     // c
     // get all posts
     // categorize them
 
 
+    var foundPosts = [];
     const categorizedPosts = [];
-    const foundPosts = await interactPostSchema.find({_id: "27e7e43c-422b-4a6b-b899-384dee1affbc"});
+    if (postID) {
+        foundPosts = await interactPostSchema.find({_id: postID})//{_id: "27e7e43c-422b-4a6b-b899-384dee1affbc"});
+        
+    } else {
+        foundPosts = await interactPostSchema.find()//{_id: "27e7e43c-422b-4a6b-b899-384dee1affbc"});
+    }
 
     for (const post of foundPosts) {
         const postCategory = {
@@ -104,15 +109,16 @@ async function categorizePosts({ posts }) {
                 allCatEmbeddings,
                 allCatNames,
             );
-            console.log(sentence.sentence)
+            // console.log(sentence.sentence)
 
             foundSimlarities.push(foundSimlaritySentence);
-            console.log(foundSimlaritySentence);
+            // console.log(foundSimlaritySentence);
             
             for (const similarity of foundSimlaritySentence) {
-                console.log(similarity)
+                // console.log(similarity)
                 if (!similarity.content || !similarity.similarity || isNaN(similarity.similarity)) continue;
                 // similarity.similarity = Math.round(similarity.similarity*100);
+
                 if (!finalScores[similarity.content]) {
                     finalScores[similarity.content] = similarity;
                 } else {
@@ -126,7 +132,8 @@ async function categorizePosts({ posts }) {
                 // console.log(finalScores[similarity.content]);
 
                 // finalScores[similarity.content].similarity = finalScores[similarity.content].similarity / amount;
-                console.log(finalScores[similarity.content].similarity / amount, finalScores[similarity.content].similarity, amount, similarity.similarity);
+
+                // console.log(finalScores[similarity.content].similarity / amount, finalScores[similarity.content].similarity, amount, similarity.similarity);
             }
 
             amount++;
@@ -144,6 +151,12 @@ async function categorizePosts({ posts }) {
             // }
         }
         
+        var categoriesFound = [];
+        for (const score in finalScores) {
+            finalScores[score].similarity = finalScores[score].similarity / amount;
+            if (finalScores[score].similarity < 0.5) continue;
+            categoriesFound.push(finalScores[score]);
+        }
         // var finalScore
         // for (const similarity of foundSimlarities) {
             
@@ -178,16 +191,27 @@ async function categorizePosts({ posts }) {
         */
 
         var topCategory = {}; // name, similarity
+        var subCategories = [];
 
+        categoriesFound.sort((a, b) => a.similarity - b.similarity);
+
+        console.log(categoriesFound)
+        categoriesFound.reverse();
+        topCategory = categoriesFound[0];
+
+        subCategories = categoriesFound.slice(1, 6);
+        
+        /*
         for (const score in finalScores) {
-            console.log( finalScores[score])
+            // console.log( finalScores[score])
             if (!topCategory.similarity) {
                 topCategory = finalScores[score];
                 
             } else if (finalScores[score].similarity > topCategory.similarity) {
+                subCategories.push(topCategory);
                 topCategory = finalScores[score];
             }
-        }
+        }*/
         
         // // find the index of the category, temp fix
         // for (const cat of categories) {
@@ -196,12 +220,13 @@ async function categorizePosts({ posts }) {
         //         topCategory.index = categories.indexOf(cat);
         //     }
         // }
-
+        if (!topCategory || !topCategory.similarity) continue;
         if (topCategory.similarity < 0.5) continue;
         // postCategory.category = categories[topCategory.index].name;
         const pushToArr = {
             _id: post._id,
             category: topCategory.content,
+            subCats: subCategories.map((sub) => sub.content),
             content: post.content,
             simliarityScore: topCategory.similarity,
         }
@@ -218,14 +243,42 @@ async function categorizePosts({ posts }) {
 async function buildPersonalizedFeed({ userID }) {
     if (!userID) return searchError("B009");
 
+    const ownUser = await interactUserSchema.findOne({_id: userID});
     // get embeddings
-    const foundCategories = await categorizePosts({ posts: [] });
+    const foundPosts = await categorizePost({});
 
+    // const myFeed = await allPostsFeedV2({ userID });
+
+
+    var sendingData = {
+        // nextIndexID: currentIndex.nextIndexID,
+        // prevIndexID: currentIndex.prevIndexID,
+        amount: 0,
+        feedVersion: 2,
+        posts: [ ]
+    }
+
+
+
+    for (const post of foundPosts) {
+        if (!post || !post._id) continue;
+        if (post.category != "software") continue;
+        console.log(post);
+        const postData = await getPostWithData({ userID, postID: post._id, ownUser });
+        if (postData && !postData.error) {
+            sendingData.posts.push(postData);
+        } else {
+            console.log("errr");
+        }
+    }
+
+    sendingData.amount = sendingData.posts.length;
     
-    const myFeed = await allPostsFeedV2({ userID });
-    return myFeed;
+    sendingData.posts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
+    return sendingData;
 }
 
 module.exports = {
     buildPersonalizedFeed,
+    categorizePost
 }
