@@ -134,4 +134,4 @@ function cosineSimilarity(inputSearch, similarEmbeddings, contents) {
     return similarities;
 }
 
-module.exports = { searchV2 };
+module.exports = { searchV2, cosineSimilarity };

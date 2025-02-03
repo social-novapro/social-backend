@@ -36,6 +36,21 @@ async function removePostEmbeddings({ postID }) {
         sentencePosts,
     };
 }
+async function getPostEmbedding({ postID }) {
+    const embeddingPost = await interactEmbedPostSchema.findOne({_id: postID});
+    const sentencePosts = await interactEmbedSentencePostSchema.find({ postID });
+
+    const sentences = [ ];
+    for (const sentencePost of sentencePosts) {
+        const sentence = await interactEmbedSentenceSchema.find({ _id: sentencePost.sentenceID});
+        sentences.push(sentence);
+    }
+
+    return {
+        embeddingPost,
+        sentences,
+    };
+}
 
 async function savePostEmbeddings({ postID, userID, timestamp, content, embeddings}) {
     await interactEmbedPostSchema.create({
@@ -126,6 +141,7 @@ async function embedSearch({ content }) {
 
 module.exports = {
     embedPost,
+    getPostEmbedding, 
     embedEditedPost,
     deleteEmbedPost,
     embedSearch
