@@ -96,6 +96,18 @@ async function categorizePost({ postID }) {
             allCatNames.push(cat.name);
         }
 
+
+    //  /* chatgpt quick closet category
+        function findClosestCategory(postEmbedding, allCatEmbeddings, allCatNames) {
+            const similarities = cosineSimilarity(postEmbedding, allCatEmbeddings, allCatNames);
+            return similarities.sort((a, b) => b.similarity - a.similarity)[0].content; // Top category
+        }
+        if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) continue;
+        const postCategory2 = findClosestCategory(JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"), allCatEmbeddings, allCatNames);
+        // console.log("Predicted Category:", postCategory2, post.content);
+        // continue;
+        // */
+
         const foundSimlarities = [];
         var amount = 1;
         var finalScores = {};
@@ -109,46 +121,20 @@ async function categorizePost({ postID }) {
                 allCatEmbeddings,
                 allCatNames,
             );
-            // console.log(sentence.sentence)
-
+            
             foundSimlarities.push(foundSimlaritySentence);
-            // console.log(foundSimlaritySentence);
             
             for (const similarity of foundSimlaritySentence) {
-                // console.log(similarity)
                 if (!similarity.content || !similarity.similarity || isNaN(similarity.similarity)) continue;
-                // similarity.similarity = Math.round(similarity.similarity*100);
 
                 if (!finalScores[similarity.content]) {
                     finalScores[similarity.content] = similarity;
                 } else {
                     finalScores[similarity.content].similarity += similarity.similarity;
                 }
-                // if (!finalScores[similarity.content]) finalScores[similarity.content] = similarity;
-                // else {
-                //     finalScores[similarity.content].similarity += similarity.similarity;
-                // }
-
-                // console.log(finalScores[similarity.content]);
-
-                // finalScores[similarity.content].similarity = finalScores[similarity.content].similarity / amount;
-
-                // console.log(finalScores[similarity.content].similarity / amount, finalScores[similarity.content].similarity, amount, similarity.similarity);
             }
 
             amount++;
-
-            // for (const similarity of foundSimlarities) {
-            //     if (similarity.similarity == NaN) continue;
-            //     if (similarity.similarity < 0.5) continue;
-            //     if (similarity.content == categories[0].name) {
-            //         console.log(post);
-            //         console.log("ERROR: ", similarity);
-            //         continue;
-            //     } else {
-            //         console.log(similarity.content);
-            //     }
-            // }
         }
         
         var categoriesFound = [];
@@ -157,38 +143,6 @@ async function categorizePost({ postID }) {
             if (finalScores[score].similarity < 0.5) continue;
             categoriesFound.push(finalScores[score]);
         }
-        // var finalScore
-        // for (const similarity of foundSimlarities) {
-            
-        // }
-
-//         const topCategory = foundSimlarities[0]
-        /*
-        // compares the entire post embedding to each category
-        if (!foundEmbedding.embeddingPost?.embedding) continue;
-        const foundSimlarities = cosineSimilarity(
-            JSON.parse(foundEmbedding.embeddingPost?.embedding ?? "[]"), 
-            allCatEmbeddings,
-            allCatNames,
-        );
-
-        // console.log(foundSimlarities);
-        const topCategory = foundSimlarities[0];
-
-        if (topCategory.content == categories[0].name) {
-            console.log(post);
-            console.log("ERROR: ", topCategory);
-            continue;
-        } else {
-            console.log(topCategory.content);
-        }
-
-        if (topCategory.similarity == NaN) {
-            console.log(post);
-            console.log("ERROR: ", topCategory);
-            continue;
-        }
-        */
 
         var topCategory = {}; // name, similarity
         var subCategories = [];
@@ -201,35 +155,17 @@ async function categorizePost({ postID }) {
 
         subCategories = categoriesFound.slice(1, 6);
         
-        /*
-        for (const score in finalScores) {
-            // console.log( finalScores[score])
-            if (!topCategory.similarity) {
-                topCategory = finalScores[score];
-                
-            } else if (finalScores[score].similarity > topCategory.similarity) {
-                subCategories.push(topCategory);
-                topCategory = finalScores[score];
-            }
-        }*/
-        
-        // // find the index of the category, temp fix
-        // for (const cat of categories) {
-        //     console.log(cat.name, topCategory.content);
-        //     if (cat.name == topCategory.content) {
-        //         topCategory.index = categories.indexOf(cat);
-        //     }
-        // }
         if (!topCategory || !topCategory.similarity) continue;
         if (topCategory.similarity < 0.5) continue;
-        // postCategory.category = categories[topCategory.index].name;
         const pushToArr = {
             _id: post._id,
             category: topCategory.content,
             subCats: subCategories.map((sub) => sub.content),
             content: post.content,
             simliarityScore: topCategory.similarity,
+            predicted: postCategory2
         }
+
         categorizedPosts.push(pushToArr);
         console.log(finalScores);
     }
@@ -244,11 +180,7 @@ async function buildPersonalizedFeed({ userID }) {
     if (!userID) return searchError("B009");
 
     const ownUser = await interactUserSchema.findOne({_id: userID});
-    // get embeddings
     const foundPosts = await categorizePost({});
-
-    // const myFeed = await allPostsFeedV2({ userID });
-
 
     var sendingData = {
         // nextIndexID: currentIndex.nextIndexID,
@@ -258,12 +190,10 @@ async function buildPersonalizedFeed({ userID }) {
         posts: [ ]
     }
 
-
-
     for (const post of foundPosts) {
         if (!post || !post._id) continue;
-        if (post.category != "software") continue;
-        console.log(post);
+        if (post.category != "life" && post.category != "science"&& post.category != "software" && post.category != "business") continue;
+
         const postData = await getPostWithData({ userID, postID: post._id, ownUser });
         if (postData && !postData.error) {
             sendingData.posts.push(postData);
