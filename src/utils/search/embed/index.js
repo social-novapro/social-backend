@@ -42,7 +42,7 @@ async function getPostEmbedding({ postID }) {
 
     const sentences = [ ];
     for (const sentencePost of sentencePosts) {
-        const sentence = await interactEmbedSentenceSchema.find({ _id: sentencePost.sentenceID});
+        const sentence = await interactEmbedSentenceSchema.findOne({ _id: sentencePost.sentenceID});
         sentences.push(sentence);
     }
 
