@@ -7,58 +7,11 @@ const { embedSearch, getPostEmbedding } = require("../../search/embed");
 const { cosineSimilarity } = require("../../search/searchV2");
 const fs = require("fs");
 
-const categories = [{
-    name: "art",
-    embedding: [],
-}, {
-    name: "design",
-    embedding: [],
-}, {
-    name: "marketing",
-    embedding: [],
-}, {
-    name: "business",
-    embedding: [],
-}, {
-    name: "productivity",
-    embedding: [],
-}, {
-    name: "other",
-    embedding: [],
-}, {
-    name: "statement",
-    embedding: [],
-},{
-    name: "test",
-    embedding: [],
-}, {
-    name: "development",
-    embedding: [],
-}, {
-    name: "technology",
-    embedding: [],
-}, {
-    name: "science",
-    embedding: [],
-}, {
-    name: "artifical intelligence",
-    embedding: [],
-}, {
-    name: "life",
-    embedding: [],
-}, {
-    name: "music",
-    embedding: [],
-}, {
-    name: "javascript",
-    embedding: [],
-}, {
-    name: "software",
-    embedding: [],
-}, {
-    name: "finance",
-    embedding: [],
-}];
+// var { categories } = require("../../post/categories/startup/categories.json");
+const { getCategoriesFromDB, getCategoryFromDB } = require("../../post/categories/startup");
+// var categories = []
+
+var categories = null;
 
 // "development", "design", "marketing", "business", "productivity", "other"
 async function categorizePost({ postID }) {
@@ -76,6 +29,10 @@ async function categorizePost({ postID }) {
         foundPosts = await interactPostSchema.find()//{_id: "27e7e43c-422b-4a6b-b899-384dee1affbc"});
     }
 
+    if (!categories) {
+        categories = await getCategoriesFromDB();
+    }
+
     for (const post of foundPosts) {
         const postCategory = {
             content: post.content,
@@ -89,12 +46,14 @@ async function categorizePost({ postID }) {
 
         // console.log(foundEmbedding);
         for (const cat of categories) {
-            if (cat.embedding.length == 0) {
-                cat.embedding = await embedSearch({ content: cat.name });
-            }
-            allCatEmbeddings.push(cat.embedding.embedding.embedding);
+            // if (!cat.embedding || cat.embedding.length == 0) {
+            //     cat.embedding = await embedSearch({ content: cat.name });
+            // }
+            allCatEmbeddings.push(JSON.parse(cat.embedding ?? "[]"));
             allCatNames.push(cat.name);
         }
+        // console.log(allCatEmbeddings);
+        // console.log(allCatNames);
 
 
     //  /* chatgpt quick closet category
@@ -102,6 +61,7 @@ async function categorizePost({ postID }) {
             const similarities = cosineSimilarity(postEmbedding, allCatEmbeddings, allCatNames);
             return similarities.sort((a, b) => b.similarity - a.similarity)[0].content; // Top category
         }
+
         if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) continue;
         const postCategory2 = findClosestCategory(JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"), allCatEmbeddings, allCatNames);
         // console.log("Predicted Category:", postCategory2, post.content);
@@ -154,6 +114,7 @@ async function categorizePost({ postID }) {
         topCategory = categoriesFound[0];
 
         subCategories = categoriesFound.slice(1, 6);
+        console.log(finalScores);
         
         if (!topCategory || !topCategory.similarity) continue;
         if (topCategory.similarity < 0.5) continue;
@@ -167,11 +128,10 @@ async function categorizePost({ postID }) {
         }
 
         categorizedPosts.push(pushToArr);
-        console.log(finalScores);
     }
 
     console.log(categorizedPosts);
-    fs.writeFileSync(`categorizedPosts_${checktime()}.json`, JSON.stringify(categorizedPosts));
+    fs.writeFileSync(`cat_tests/categorizedPosts_${checktime()}.json`, JSON.stringify(categorizedPosts));
 
     return categorizedPosts;
 }
@@ -191,8 +151,19 @@ async function buildPersonalizedFeed({ userID }) {
     }
 
     for (const post of foundPosts) {
+        const category = post.category;
+        const foundCategory = await getCategoryFromDB({ categoryName: category });
+        var compareCat = category;
+        if (foundCategory.parentCategory) {
+            compareCat = foundCategory.parentCategory;
+        }
+
+        console.log(compareCat, category)
+
         if (!post || !post._id) continue;
-        if (post.category != "life" && post.category != "science"&& post.category != "software" && post.category != "business") continue;
+        if (compareCat != "technology" && compareCat != "development") continue;
+
+        // if (post.category != "life" && post.category != "science"&& post.category != "software" && post.category != "marketing") continue;
 
         const postData = await getPostWithData({ userID, postID: post._id, ownUser });
         if (postData && !postData.error) {

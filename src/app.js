@@ -13,6 +13,7 @@ const APIdata = require('./APIs/API');
 const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
+const { startupCategories } = require('./utils/post/categories/startup');
 
 require('dotenv').config({ path: 'secret.env' })
 
@@ -47,6 +48,7 @@ mongoose.connect(mongoURL, {
     useFindAndModify: false 
 });
 
+startupCategories();
 /*
 const developerAppToken = require('./schemas/developer/developerAppToken');
 const developerToken = require('./schemas/developer/developerToken');

@@ -1,0 +1,255 @@
+{
+    "version": "1.7",
+    "categories" : [
+        {
+            "name" : "art",
+            "subCategories" : [
+                {
+                    "name" : "painting"
+                }, {
+                    "name" : "sculpture"
+                }, {
+                    "name" : "photography"
+                }, {
+                    "name" : "drawing"
+                }, {
+                    "name" : "music"
+                }, {
+                    "name" : "dance"
+                }, {
+                    "name" : "theatre"
+                }, {
+                    "name" : "film"
+                }, {
+                    "name" : "books"
+                }, {
+                    "name" : "design"
+                }
+            ]
+        }, {
+            "name" : "development",
+            "subCategories" : [
+                {
+                    "name" : "web"
+                }, {
+                    "name" : "mobile"
+                }, {
+                    "name" : "desktop"
+                }, {
+                    "name" : "game"
+                }, {
+                    "name" : "database"
+                }, {
+                    "name" : "network"
+                }, {
+                    "name" : "security"
+                }, {
+                    "name" : "cloud"
+                }, {
+                    "name" : "AI"
+                }, {
+                    "name" : "VR"
+                }, {
+                    "name" : "software"
+                }, {
+                    "name" : "android"
+                }, {
+                    "name" : "ios"
+                }, {
+                    "name" : "testing"
+                }, {
+                    "name" : "automation"
+                }, {
+                    "name" : "testing"
+                }
+            ]
+        }, {
+            "name" : "business",
+            "subCategories" : [
+                {
+                    "name" : "startup"
+                }, {
+                    "name" : "marketing"
+                }, {
+                    "name" : "finance"
+                }, {
+                    "name" : "management"
+                }, {
+                    "name" : "sales"
+                }, {
+                    "name" : "strategy"
+                }, {
+                    "name" : "economics"
+                }, {
+                    "name" : "entrepreneurship"
+                }, {
+                    "name" : "accounting"
+                }, {
+                    "name" : "HR"
+                }, {
+                    "name" : "logistics"
+                }, {
+                    "name" : "supply chain"
+                }
+            ]
+        }, {
+            "name" : "science",
+            "subCategories" : [
+                {
+                    "name" : "math"
+                }, {
+                    "name" : "physics"
+                }, {
+                    "name" : "chemistry"
+                }, {
+                    "name" : "biology"
+                }, {
+                    "name" : "astronomy"
+                }, {
+                    "name" : "geology"
+                }, {
+                    "name" : "psychology"
+                }, {
+                    "name" : "sociology"
+                }, {
+                    "name" : "anthropology"
+                }, {
+                    "name" : "archaeology"
+                }, {
+                    "name" : "medicine"
+                }, {
+                    "name" : "engineering"
+                }
+            ]
+        }, {
+            "name" : "technology",
+            "subCategories" : [
+                {
+                    "name" : "hardware"
+                }, {
+                    "name" : "network"
+                }, {
+                    "name" : "security"
+                }, {
+                    "name" : "cloud"
+                }, {
+                    "name" : "AI"
+                }, {
+                    "name" : "VR"
+                }, {
+                    "name" : "blockchain"
+                }, {
+                    "name" : "IoT"
+                }, {
+                    "name" : "robotics"
+                }, {
+                    "name" : "3D printing"
+                }
+            ]
+        },  {
+            "name" : "education",
+            "subCategories" : [
+                {
+                    "name" : "school"
+                }, {
+                    "name" : "college"
+                }, {
+                    "name" : "university"
+                }, {
+                    "name" : "online"
+                }, {
+                    "name" : "e-learning"
+                }, {
+                    "name" : "teaching"
+                }, {
+                    "name" : "learning"
+                }, {
+                    "name" : "research"
+                }, {
+                    "name" : "library"
+                }, {
+                    "name" : "literature"
+                }, {
+                    "name" : "language"
+                }
+            ]
+        }, {
+            "name" : "lifestyle",
+            "subCategories" : [
+                {
+                    "name" : "food"
+                }, {
+                    "name" : "travel"
+                }, {
+                    "name" : "fashion"
+                }, {
+                    "name" : "beauty"
+                }, {
+                    "name" : "health"
+                }, {
+                    "name" : "fitness"
+                }, {
+                    "name" : "home"
+                }, {
+                    "name" : "garden"
+                }, {
+                    "name" : "craft"
+                }, {
+                    "name" : "pet"
+                }, {
+                    "name" : "parenting"
+                }
+            ]
+        }, {
+            "name" : "entertainment",
+            "subCategories" : [
+                {
+                    "name" : "music"
+                }, {
+                    "name" : "film"
+                }, {
+                    "name" : "TV"
+                }, {
+                    "name" : "shows"
+                }, {
+                    "name" : "comedy"
+                }, {
+                    "name" : "magic"
+                }, {
+                    "name" : "circus"
+                }, {
+                    "name" : "festival"
+                }, {
+                    "name" : "event"
+                }, {
+                    "name" : "party"
+                }, {
+                    "name" : "nightlife"
+                }
+            ]
+        }, {
+            "name": "personal",
+            "subCategories": [
+                {
+                    "name": "life"
+                }, {
+                    "name": "relationship"
+                }, {
+                    "name": "family"
+                }, {
+                    "name": "friendship"
+                }, {
+                    "name": "love"
+                }, {
+                    "name": "marriage"
+                }, {
+                    "name": "parents"
+                }, {
+                    "name": "divorce"
+                }, {
+                    "name": "dating"
+                }
+            ]
+        }
+    ]
+}

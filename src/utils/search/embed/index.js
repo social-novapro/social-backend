@@ -36,6 +36,7 @@ async function removePostEmbeddings({ postID }) {
         sentencePosts,
     };
 }
+
 async function getPostEmbedding({ postID }) {
     const embeddingPost = await interactEmbedPostSchema.findOne({_id: postID});
     const sentencePosts = await interactEmbedSentencePostSchema.find({ postID });
