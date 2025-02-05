@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString, reqBool, nonreqString } = require('../../types');
+const { reqNum, reqString, reqBool, nonreqString, nonreqNum } = require('../../types');
 
 const interactCategorySchema = mongoose.Schema({
     _id: reqString, // uuid
+    id: reqNum,
     name: reqString,
     timestamp: reqNum,
     isSubCategory: reqBool,
-    parentCategory: nonreqString,
+    parentCategoryID: nonreqNum,
     embedding: nonreqString
 });
 

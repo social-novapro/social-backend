@@ -52,9 +52,6 @@ async function categorizePost({ postID }) {
             allCatEmbeddings.push(JSON.parse(cat.embedding ?? "[]"));
             allCatNames.push(cat.name);
         }
-        // console.log(allCatEmbeddings);
-        // console.log(allCatNames);
-
 
     //  /* chatgpt quick closet category
         function findClosestCategory(postEmbedding, allCatEmbeddings, allCatNames) {
@@ -152,18 +149,18 @@ async function buildPersonalizedFeed({ userID }) {
 
     for (const post of foundPosts) {
         const category = post.category;
-        const foundCategory = await getCategoryFromDB({ categoryName: category });
+        const foundCategory = await getCategoryFromDB({ categoryName: category  });
+        
         var compareCat = category;
-        if (foundCategory.parentCategory) {
-            compareCat = foundCategory.parentCategory;
+        if (foundCategory.parentCategoryID) {
+            const parentCategory = await getCategoryFromDB({ categoryID: foundCategory.parentCategoryID  });
+            compareCat = parentCategory.name;
         }
 
         console.log(compareCat, category)
 
         if (!post || !post._id) continue;
         if (compareCat != "technology" && compareCat != "development") continue;
-
-        // if (post.category != "life" && post.category != "science"&& post.category != "software" && post.category != "marketing") continue;
 
         const postData = await getPostWithData({ userID, postID: post._id, ownUser });
         if (postData && !postData.error) {
