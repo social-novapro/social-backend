@@ -16,6 +16,7 @@ const posts = require('./posts');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
 const search = require('./search');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -33,6 +34,27 @@ router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
 router.use('/search', search);
+
+// re-routes
+router.use('/ai', async (req, res, next) => {
+    let targetService = "http://localhost:5004/v1"; // AI service
+    try {
+        createProxyMiddleware({
+            target: targetService,
+            changeOrigin: true,
+            selfHandleResponse: false, // Let the backend handle the response
+            onProxyReq: (proxyReq, req, res) => {
+                // Forward request headers
+                Object.keys(req.headers).forEach((key) => {
+                    proxyReq.setHeader(key, req.headers[key]);
+                });
+            },
+        })(req, res, next);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 
 // Legacy Routes
 // GET
