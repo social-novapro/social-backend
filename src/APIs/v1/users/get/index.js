@@ -11,7 +11,7 @@ router.get('/basic/:searchTerm', async (req, res) => {
 
 router.get('/userPosts/u/:userID', async (req, res) => {
     const { userID } = req.params;
-    const send = await getUserPosts({ userID, requesterID: req.headers.userid, postIndexID });
+    const send = await getUserPosts({ userID, requesterID: req.headers.userid });
     if (send.error) return res.status(400).send(send);
     return res.status(200).send(reorgIndex(send));
 });

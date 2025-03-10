@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const bodyParser = require('body-parser');
 const { searchErrorV2 } = require('../../utils/searchError');
 
 // Legacy Routes Imports (still used)
@@ -36,7 +37,7 @@ router.use('/feeds', feeds);
 router.use('/search', search);
 
 // re-routes
-router.use('/ai', async (req, res, next) => {
+router.use('/ai', bodyParser.json(), async (req, res, next) => {
     let targetService = "http://localhost:5004/v1"; // AI service
     try {
         createProxyMiddleware({
@@ -48,6 +49,15 @@ router.use('/ai', async (req, res, next) => {
                 Object.keys(req.headers).forEach((key) => {
                     proxyReq.setHeader(key, req.headers[key]);
                 });
+
+                // Forward request body
+                console.log(req.body)
+                if (req.body) {
+                    const bodyData = JSON.stringify(req.body);
+                    console.log(bodyData)
+                    proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                    proxyReq.write(bodyData);
+                }
             },
         })(req, res, next);
     } catch (error) {
