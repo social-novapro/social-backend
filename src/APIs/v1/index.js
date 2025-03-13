@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const bodyParser = require('body-parser');
 const { searchErrorV2 } = require('../../utils/searchError');
+const { whichEnv } = require('../../../runMode/whichEnv');
+require('dotenv').config({ path: whichEnv()})
 
 // Legacy Routes Imports (still used)
 const getAPI = require('./get');
@@ -38,7 +40,7 @@ router.use('/search', search);
 
 // re-routes
 router.use('/ai', async (req, res, next) => {
-    let targetService = "http://localhost:5004/v1"; // AI service
+    let targetService = `${process.env.AI_INTERFACE_SERVICE}/v1`//"http://localhost:5004/v1"; // AI service
     console.log("Proxying request to AI service")
     try {
         createProxyMiddleware({
@@ -72,7 +74,7 @@ router.use('/ai', async (req, res, next) => {
 
 // re-routes
 router.use('/cdn', bodyParser.json(), async (req, res, next) => {
-    let targetService = "http://localhost:5005/v1"; // CDN service
+    let targetService = `${process.env.CDN_SERVICE}/v1`//"http://localhost:5004/v1"; // AI service
     console.log("Proxying request to CDN service")
     try {
         createProxyMiddleware({
