@@ -37,8 +37,43 @@ router.use('/feeds', feeds);
 router.use('/search', search);
 
 // re-routes
-router.use('/ai', bodyParser.json(), async (req, res, next) => {
+router.use('/ai', async (req, res, next) => {
     let targetService = "http://localhost:5004/v1"; // AI service
+    console.log("Proxying request to AI service")
+    try {
+        createProxyMiddleware({
+            target: targetService,
+            changeOrigin: true,
+            selfHandleResponse: false, // Let the backend handle the response
+            on: {
+                proxyReq: (proxyReq, req, res) => {
+                    console.log("Forwarding request to AI service")
+                    // Forward request headers
+                    Object.keys(req.headers).forEach((key) => {
+                        proxyReq.setHeader(key, req.headers[key]);
+                    });
+
+                    // Forward request body
+                    if (req.body) {
+                        console.log("Forwarding request body to AI service")
+                        const bodyData = JSON.stringify(req.body);
+                        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                        proxyReq.write(bodyData);
+                        proxyReq.end(); // Ensure the request is completed
+                    }
+                }
+            },
+        })(req, res, next);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// re-routes
+router.use('/cdn', bodyParser.json(), async (req, res, next) => {
+    let targetService = "http://localhost:5005/v1"; // CDN service
+    console.log("Proxying request to CDN service")
     try {
         createProxyMiddleware({
             target: targetService,
@@ -49,15 +84,6 @@ router.use('/ai', bodyParser.json(), async (req, res, next) => {
                 Object.keys(req.headers).forEach((key) => {
                     proxyReq.setHeader(key, req.headers[key]);
                 });
-
-                // Forward request body
-                console.log(req.body)
-                if (req.body) {
-                    const bodyData = JSON.stringify(req.body);
-                    console.log(bodyData)
-                    proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-                    proxyReq.write(bodyData);
-                }
             },
         })(req, res, next);
     } catch (error) {
