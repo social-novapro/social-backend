@@ -82,6 +82,30 @@ router.use('/cdn', bodyParser.json(), async (req, res, next) => {
             changeOrigin: true,
             selfHandleResponse: false, // Let the backend handle the response
             onProxyReq: (proxyReq, req, res) => {
+                // req.pipe(proxyReq); // Stream request directly
+
+                // Forward request headers
+                Object.keys(req.headers).forEach((key) => {
+                    proxyReq.setHeader(key, req.headers[key]);
+                });
+            },
+        })(req, res, next);
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// re-routes
+router.use('/video_embed', bodyParser.json(), async (req, res, next) => {
+    let targetService = `${process.env.VIDEO_EMBED}`
+    console.log("Proxying request to video embed service")
+    try {
+        createProxyMiddleware({
+            target: targetService,
+            changeOrigin: true,
+            selfHandleResponse: false, // Let the backend handle the response
+            onProxyReq: (proxyReq, req, res) => {
                 // Forward request headers
                 Object.keys(req.headers).forEach((key) => {
                     proxyReq.setHeader(key, req.headers[key]);
