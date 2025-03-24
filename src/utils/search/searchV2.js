@@ -25,7 +25,9 @@ async function searchV2({ lookUpKey, userID }) {
     const PostData = [];
     const postsAdded = {};
 
-    for (const postID of postIDs) {
+    for (const ranking of postIDs) {
+        if (!ranking) {"No ranking"; continue}
+        const postID = ranking.postID;
         if (postsAdded[postID]) {
             console.log("ALREADY ADDED")
             continue
@@ -33,7 +35,6 @@ async function searchV2({ lookUpKey, userID }) {
         const post = await interactPostSchema.findOne({ _id: postID });
         if (post) {
             const fullPost = await getPostWithData({ userID: userID, post, ownUser });
-            console.log(fullPost)
             if (fullPost && !fullPost.error) PostData.push(fullPost);
             postsAdded[postID] = true;
         }
@@ -66,6 +67,7 @@ async function searchV2({ lookUpKey, userID }) {
 async function top50SimilarPosts({ lookUpKey, userID }) {
     // get the embedding of the search key
     const searchEmbedding = await embedSearch({ content: lookUpKey });
+    const finalRanking = [];
 
     // get all post embeddings
     const allEmbeddings = await interactEmbedPostSchema.find();
@@ -82,7 +84,11 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
     // console.log(similarities)
     const shortenedRank = similarities.slice(0, 50);
     const postIDs = shortenedRank.map((rank) => allEmbeddings[rank.index]._id);
-
+    for (const rank of shortenedRank) {
+        if (rank.similarity > 0.8) {
+            finalRanking.push({postID: allEmbeddings[rank.index]._id, similarity: rank.similarity});
+        }
+    }
     // return postIDs.reversed();
 
     // ranking top sentences
@@ -106,11 +112,12 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
     // console.log(similarities)
     
     const topSentences = similarSentences.slice(0, 50);
-    const topPostIDs = topSentences.map((rank) => {
-        if (rank.similarity > 0.9) return allSentences[rank.index].postID
-    });
-
-    return topPostIDs.reverse();
+    for (const rank of topSentences) {
+        if (rank.similarity > 0.8) {
+            finalRanking.push({postID: allSentences[rank.index].postID, similarity: rank.similarity});
+        }
+    }
+    return finalRanking.sort((a, b) => a.similarity - b.similarity);
 }
 
 function cosineSimilarity(inputSearch, similarEmbeddings, contents) {

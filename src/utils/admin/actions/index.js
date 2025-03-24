@@ -8,23 +8,25 @@ const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
 const { updateAllUserPostIndexes, undoAllUserPostIndexes } = require("./userPostIndexes");
 
-// APR 2024 - 1.4
-async function updatePostEmbeddings({ adminID }) {
-    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "postEmbeddings" });
+// APR 2024 - 1.4, MAR 2025 - 1.7
+async function updatePostEmbeddings({ adminID, version=null }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: `postEmbeddings${version?version:""}` });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    if (version) await undoAllPostEmbeddings();
 
     const result = await updateAllPostEmbeddings();
     await interactAdminUpdateActionsSchema.create({
-        _id: "postEmbeddings",
+        _id: `postEmbeddings${version?version:""}`,
         done: true,
         timestamp: checktime(),
     })
     return result;
 }
 
-async function undoPostEmbeddings({ adminID }) {
+async function undoPostEmbeddings({ adminID, version=null }) {
     await undoAllPostEmbeddings();
-    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "postEmbeddings" })
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: `postEmbeddings${version?version:""}` })
     return { done: true }
 }
 
@@ -113,7 +115,7 @@ async function undoUsernameLc({ adminID }) {
 }
 
 
-// JAN 2025 - 1.7 OR 1.6.4
+// JAN 2025 - 1.6.4
 async function updateUserPostIndexes({ adminID }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userPostIndexes" });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
@@ -133,6 +135,25 @@ async function undoUserPostIndexes({ adminID }) {
     await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "userPostIndexes" })
     return { done: true }
 }
+// MAR 2025 - 1.7
+// async function updateCategorizePosts({ adminID }) {
+//     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts" });
+//     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+//     const result = await categorizePosts();
+//     await interactAdminUpdateActionsSchema.create({
+//         _id: "categorizePosts",
+//         done: true,
+//         timestamp: checktime(),
+//     });
+
+//     return result;
+// };
+// async function undoCategorizePosts({ adminID }) {
+//     await uncategorizePosts();
+//     await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "categorizePosts" })
+//     return { done: true }
+// }
 
 module.exports = { 
     updateUsernameLc,
@@ -147,6 +168,8 @@ module.exports = {
     undoPostEmbeddings,
     updateUserPostIndexes,
     undoUserPostIndexes,
+    updateCategorizePosts,
+    undoCategorizePosts
 
 }
 
