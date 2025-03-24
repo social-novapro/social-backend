@@ -1,5 +1,6 @@
 const interactAdminUpdateActionsSchema = require("../../../schemas/admin/interactAdminUpdateActionsSchema");
 const { checktime } = require("../../checktime");
+const { categorizeAllPosts, undoAllCategorizePosts } = require("../../post/categories/updateAction");
 const { updateAllPostEmbeddings, undoAllPostEmbeddings } = require("../../search/embed/firstRun");
 const { searchErrorV2 } = require("../../searchError");
 const { updateUserBadges, undoUserBadges } = require("../../user/badges/firstRun");
@@ -135,25 +136,27 @@ async function undoUserPostIndexes({ adminID }) {
     await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "userPostIndexes" })
     return { done: true }
 }
+
 // MAR 2025 - 1.7
-// async function updateCategorizePosts({ adminID }) {
-//     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts" });
-//     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+async function updateCategorizePosts({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
 
-//     const result = await categorizePosts();
-//     await interactAdminUpdateActionsSchema.create({
-//         _id: "categorizePosts",
-//         done: true,
-//         timestamp: checktime(),
-//     });
+    const result = await categorizeAllPosts();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "categorizePosts",
+        done: true,
+        timestamp: checktime(),
+    });
 
-//     return result;
-// };
-// async function undoCategorizePosts({ adminID }) {
-//     await uncategorizePosts();
-//     await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "categorizePosts" })
-//     return { done: true }
-// }
+    return result;
+};
+
+async function undoCategorizePosts({ adminID }) {
+    await undoAllCategorizePosts();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "categorizePosts" })
+    return { done: true }
+}
 
 module.exports = { 
     updateUsernameLc,
@@ -170,6 +173,5 @@ module.exports = {
     undoUserPostIndexes,
     updateCategorizePosts,
     undoCategorizePosts
-
 }
 

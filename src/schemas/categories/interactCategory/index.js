@@ -6,6 +6,7 @@ const interactCategorySchema = mongoose.Schema({
     id: reqNum,
     name: reqString,
     timestamp: reqNum,
+    version: reqNum,
     isSubCategory: reqBool,
     parentCategoryID: nonreqNum,
     embedding: nonreqString

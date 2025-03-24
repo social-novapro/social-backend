@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 // get all categories, get embeddings for each category
 
 const fs = require('fs');
+const { checktime } = require('../../../checktime');
 // parse categories, then subcategories
 
 /* Assign ids to categories and subcategories */
@@ -81,6 +82,12 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
             reason = `Name is incorrect. Found: ${foundCategory.name}, Expected: ${categoryName}`;
         }
 
+        // make sure version is correct
+        if (foundCategory.version != categories.version) {
+            updatedCategory = true;
+            reason = `Version is incorrect. Found: ${foundCategory.version}, Expected: ${categories.version}`;
+        }
+
         // make sure parent ID is correct
         // parentID was not found, but was found in DB
         else if (
@@ -115,7 +122,8 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         _id: uuidv4(),
         id: id,
         name: categoryName,
-        timestamp: Date.now(),
+        timestamp: checktime(),
+        version: categories.version,
         isSubCategory: parentCategoryID != null ? true : false,
         parentCategoryID: parentCategoryID ? parentCategoryID : null,
         embedding: JSON.stringify(embedding.embedding.embedding),

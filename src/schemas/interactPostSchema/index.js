@@ -66,6 +66,11 @@ const interactPostSchema = mongoose.Schema({
 
     hasTags: nonreqBool,
 
+    category: nonreqString,
+    subCats: [nonreqString],
+    categoryAssignmentTimestamp: nonreqNum,
+    hasCategory: nonreqBool,
+
     // legacy data
     authorID: nonreqString, // legacy
     timePosted: nonreqString, // legacy
