@@ -2,6 +2,14 @@ const { getPostWithData } = require('../../../../utils/post/getPost');
 const { getPostThread } = require('../../../../utils/post/getPostThread');
 const router = require('express').Router();
 
+router.get('/basic/:postID', async (req, res) => {
+    const { postID } = req.params;
+    const postData = await getPostWithData({ userID: req.headers.userid, postID})
+    
+    if (postData.error) return res.status(404).send(postData);
+    else return res.status(200).send(postData.postData); // wtf? + why cant i find /basic anywhere but so much needs it?
+})
+
 router.get('/:postID', async (req, res) => {
     const { postID } = req.params;
     const postData = await getPostWithData({ userID: req.headers.userid, postID})

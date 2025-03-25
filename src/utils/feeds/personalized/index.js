@@ -106,12 +106,10 @@ async function categorizePost({ postID }) {
 
         categoriesFound.sort((a, b) => a.similarity - b.similarity);
 
-        console.log(categoriesFound)
         categoriesFound.reverse();
         topCategory = categoriesFound[0];
 
         subCategories = categoriesFound.slice(1, 6);
-        console.log(finalScores);
         
         if (!topCategory || !topCategory.similarity) continue;
         if (topCategory.similarity < 0.5) continue;
@@ -127,7 +125,6 @@ async function categorizePost({ postID }) {
         categorizedPosts.push(pushToArr);
     }
 
-    console.log(categorizedPosts);
     fs.writeFileSync(`cat_tests/categorizedPosts_${checktime()}.json`, JSON.stringify(categorizedPosts));
 
     return categorizedPosts;
