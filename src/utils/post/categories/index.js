@@ -6,8 +6,9 @@ const { getCategoriesFromDB } = require("./startup");
 const allCatEmbeddings = [];
 const allCatNames = [];
 var categories = null;
+var sortedCategories = [];
 
-fillCategories = async () => {
+async function fillCategories() {
     if (!categories) {
         categories = await getCategoriesFromDB();
     }
@@ -18,6 +19,7 @@ fillCategories = async () => {
         allCatNames.push(cat.name);
     }
 }
+
 async function categorizePost({ postID }) {
     if ((!allCatEmbeddings || !allCatNames) || (!allCatEmbeddings[0] || !allCatNames[0])) await fillCategories();
     const post = await interactPostSchema.findOne({_id: postID});
@@ -131,8 +133,53 @@ async function removeCategoryData({ postID }) {
     return updatedPost;
 }
 
+function formatCategory(category) {
+    if (!category) return { error: true, msg: "No category found" };
+    return {
+        id: category.id,
+        name: category.name,
+        version: category.version,
+        isSubCategory: category.isSubCategory,
+        parentCategoryID: category.parentCategoryID ?? null,
+        value: 50,
+        subCategories: []
+    }
+}
+function sortCategories() {
+    if (!categories || !categories[0]) return { error: true, msg: "No categories found" };
+    // need, id, name, version, isSubCategory, parentCategoryName
+    const foundCategories = [];
+    const foundSubcategories = [];
+
+    for (const cat of categories) {
+        if (!cat) continue;
+        if (!cat.isSubCategory) foundCategories.push(formatCategory(cat));
+        else foundSubcategories.push(formatCategory(cat));
+    }
+
+    for (const subcat of foundSubcategories) {
+        for (const cat of foundCategories) {
+            if (subcat.parentCategoryID === cat.id) {
+                cat.subCategories.push(subcat);
+            }
+        }
+    }
+    sortedCategories = foundCategories
+    return foundCategories;
+}
+
+async function getCategories({userID}) {
+    if (!categories || !categories[0]) {
+        categories = await getCategoriesFromDB();
+    }
+
+    if (!sortedCategories || !sortedCategories[0]) sortCategories();
+    return sortedCategories;
+}
+
 module.exports = { 
     categorizePost,
     saveCategoryData,
-    removeCategoryData
+    removeCategoryData,
+    getCategories
 }
