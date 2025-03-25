@@ -2,12 +2,8 @@ const router = require('express').Router();
 const developerToken = require('../../../../schemas/developer/developerToken');
 const developerAppToken = require('../../../../schemas/developer/developerAppToken');
 const interactUserAccessSchema = require('../../../../schemas/interactUserAccessSchema')
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 
 router.get('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { userid } = req.headers
 
     var returnData = {

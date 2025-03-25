@@ -28,6 +28,11 @@ $ docker push registry.xnet.com:5000/novapro/interact_api
 Registry Format:
 // Eg: registry.xnet.com:5000/daniel/novapro/homepage_test:latest
 
+local run
+```
+docker build -t novapro/interact_api . && docker run --name interact_api -p 5002:5002 novapro/interact_api
+```
+
 Docker Tag Standard:
  is the latest master master build (used for production)
  is the latest non master branch build

@@ -20,6 +20,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.17.1",
     "http": "0.0.1-security",
+    "http-proxy-middleware": "^3.0.3",
     "marked": "^4.0.18",
     "mongoose": "^5.13.3",
     "nodemailer": "^6.9.1",

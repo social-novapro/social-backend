@@ -30,6 +30,15 @@ const mentionDataSchema = mongoose.Schema({
     index: reqNum
 });
 
+const attachmentDataSchema = mongoose.Schema({
+    _id: reqString,
+    index: reqString,
+    type: reqString,
+    host: nonreqString,
+    url: reqString,
+    vuid: nonreqString,
+});
+
 const interactPostSchema = mongoose.Schema({
     _id: reqString,
     userID: reqString,
@@ -41,6 +50,8 @@ const interactPostSchema = mongoose.Schema({
     totalLikes: reqNum,
     totalReplies: reqNum,
     totalQuotes: reqNum,
+
+    attachments: [attachmentDataSchema],
 
     privacyOverride: nonreqNum,
     /*
@@ -65,6 +76,11 @@ const interactPostSchema = mongoose.Schema({
     pollID: nonreqString,
 
     hasTags: nonreqBool,
+
+    category: nonreqString,
+    subCats: [nonreqString],
+    categoryAssignmentTimestamp: nonreqNum,
+    hasCategory: nonreqBool,
 
     // legacy data
     authorID: nonreqString, // legacy

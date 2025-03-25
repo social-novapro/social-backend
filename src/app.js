@@ -13,6 +13,7 @@ const APIdata = require('./APIs/API');
 const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
+const {InteractStartup} = require('./utils/startup');
 
 require('dotenv').config({ path: 'secret.env' })
 
@@ -47,6 +48,7 @@ mongoose.connect(mongoURL, {
     useFindAndModify: false 
 });
 
+InteractStartup();
 /*
 const developerAppToken = require('./schemas/developer/developerAppToken');
 const developerToken = require('./schemas/developer/developerToken');
@@ -107,6 +109,12 @@ async function createTokens() {
 //     credentials: true
 // }));
 app.use(cors())
+
+// app.use(cors({
+//     origin: '*'
+// }));
+// app.use(express.json({ limit: '200mb' }));
+// app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
 /*
 app.get('/', (req, res) => {
@@ -195,7 +203,6 @@ const dmUtils = require('./WS/v1/dms');
 const interactUserSchema = require('./schemas/interactUserSchema');
 const liveChatSchema = require('./schemas/liveChatSchema');
 const { checkRequestTokens } = require('./utils/checkRequestTokens');
-// const { checkRequestTokens } = require('./utils/checkRequestTokens');
 
 function sendEveryone(sendMessage) {
     wss.clients.forEach(client => {
@@ -419,7 +426,7 @@ wss.on('connection', async (ws, req) => {
                 if (!data.tokens) return;
                 if (data.tokens.userid != userID) return ws.close();
 
-                const tokenData = await checkRequestTokens(req);
+                const tokenData = await checkRequestTokens(req, true);
                 if (tokenData.authorized == false) {
                     messageError = {
                         // _id: newID,

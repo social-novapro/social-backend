@@ -1,13 +1,7 @@
 const router = require('express').Router();
-const { searchError } = require('../../../../utils/searchError');
-const { checktime } = require('../../../../utils/checktime');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { findUserVote } = require('../../../../utils/polls');
 
 router.get('/:pollID', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { pollID } = req.params;
     const { userid: userID } = req.headers;
 
