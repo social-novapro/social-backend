@@ -3,7 +3,7 @@ const interactUserSchema = require('../../../schemas/interactUserSchema');
 const interactPostSchema = require('../../../schemas/interactPostSchema');
 const interactRepliesSchema = require('../../../schemas/postSchemas/interactRepliesSchema');
 const interactQuotesSchema = require('../../../schemas/postSchemas/interactQuotesSchema');
-const { SCHEMA_VERSIONS } = require('../../../../config.json');
+const { current, SCHEMA_VERSIONS } = require('../../../../config.json');
 const { checktime } = require('../../checktime');
 const { pushQuotePost } = require('../../../utils/notifications/pustQuotePost');
 const { findPoll } = require('../../polls');
@@ -87,6 +87,8 @@ async function newPostIndex(userID, data) {
     // const newIndex = await newReplyIndex(postID);
 
     const spotifyIncludedContent = await getSpotifyEmbeds(content);
+    const foundAttachments = await checkForAttachments(content, spotifyIncludedContent.spotifyEmbeds);
+    console.log("Found attachments", foundAttachments)
     //const userFound = await interactUserSchema.findOne({ _id: userID });
     //if (!userFound) return searchError("E004");
 
@@ -96,7 +98,8 @@ async function newPostIndex(userID, data) {
         timePosted: currentTime,
         timestamp: currentTime,
         userID,
-        content: spotifyIncludedContent,
+        content: spotifyIncludedContent.newText,
+        attachments: foundAttachments,
         totalLikes: 0,
         totalReplies: 0,
         totalQuotes: 0,
@@ -424,6 +427,135 @@ async function checkQuoteIndexID(newID) {
 
     else return newID;
 }
+function getId(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    if (!match || match.length < 2) return undefined;
+
+    return (match && match[2].length === 11) ? match[2] : undefined;
+}
+
+async function checkForAttachments(content) {
+    const imageFormats = ['.jpg', '.png','.jpeg', '.svg', '.gif']
+    const videoFormats = [{'urlEnd': '.mp4', "type": 'mp4'}, {'urlEnd':'.mov','type':'mp4'}, {'urlEnd':'.ogg', 'type': 'ogg'}]
+
+    if (!content) return '';
+    const contentArgs = content.split(/[ ]+/)
+    var foundImage = false
+    var foundSpotifys = 1
+
+    var attachments = []
+    for (index = 0; index < contentArgs.length; index++) {
+        if (contentArgs[index].startsWith('https://') || (current == 'dev' && contentArgs[index].startsWith('http://'))) {
+            for (const imageFormat of imageFormats) {
+                if (contentArgs[index].endsWith(imageFormat)) {
+                    foundImage = true
+
+                    if (contentArgs[index].startsWith("http://localhost:5002/v1/cdn/static") || contentArgs[index].startsWith("https://interact-api.novapro.net/v1/cdn/static")) {
+                        attachments.push({
+                            _id: uuidv4(),
+                            index: index,
+                            type: 'image',
+                            host: 'interact',
+                            url: contentArgs[index],
+                            vuid: contentArgs[index].includes("http://localhost:5002/") ? contentArgs[index].replace("http://localhost:5002/v1/cdn/static/", "") : contentArgs[index].replace("https://interact-api.novapro.net/v1/cdn/static/", "")
+                        })
+                    } else {
+                        attachments.push({
+                            _id: uuidv4(),
+                            index: index,
+                            type: 'image',
+                            url: contentArgs[index]
+                        })
+                    }
+                }
+            }
+
+            const videoId = getId(contentArgs[index]);
+            var foundVideo = false;
+            for (const videoFormat of videoFormats) {
+                if (foundVideo || !contentArgs[index].includes(videoFormat.urlEnd)) {
+                }
+                else if (contentArgs[index].startsWith("http://localhost:5002/v1/cdn/static")) {
+                    foundImage = true
+                    foundVideo = true
+                    attachments.push({
+                        _id: uuidv4(),
+                        index: index,
+                        type: 'video',
+                        host: 'interact',
+                        url: contentArgs[index],
+                        vuid: contentArgs[index].replace("http://localhost:5002/v1/cdn/static/", "")
+                    })
+                }
+                else if (contentArgs[index].startsWith("https://interact-api.novapro.net/v1/cdn/static")) {
+                    foundImage = true
+                    foundVideo = true
+                    attachments.push({
+                        _id: uuidv4(),
+                        index: index,
+                        type: 'video',
+                        host: 'interact',
+                        url: contentArgs[index],
+                        vuid: contentArgs[index].replace("https://interact-api.novapro.net/v1/cdn/static/", "")
+                    })
+                }
+                else if (contentArgs[index].endsWith(videoFormat.urlEnd)) {
+                    // regular video 
+                    foundImage = true
+                    foundVideo = true
+                    attachments.push({
+                        _id: uuidv4(),
+                        index: index,
+                        type: 'video',
+                        host: 'unknown',
+                        url: contentArgs[index]
+                    })
+                }
+            }
+
+            if (videoId) {
+                foundImage = true
+                attachments.push({
+                    _id: uuidv4(),
+                    index: index,
+                    type: 'video',
+                    host: 'youtube',
+                    url: contentArgs[index],
+                    vuid: videoId
+                })
+            }
+
+            if (contentArgs[index].startsWith("https://huelet.net/w/")) {
+                foundImage = true
+
+                const URL = contentArgs[index]
+                var videoID = URL.replace("https://huelet.net/w/", "")
+
+                attachments.push({
+                    _id: uuidv4(),
+                    index: index,
+                    type: 'video',
+                    host: 'huelet',
+                    url: contentArgs[index],
+                    vuid: videoID,
+                })
+            } 
+
+            if (contentArgs[index].startsWith("https://open.spotify.com/embed/")) {
+                foundImage = true
+                attachments.push({
+                    _id: uuidv4(),
+                    index: index,
+                    type: 'spotify',
+                    url: contentArgs[index]
+                })
+            }
+        }
+    }
+
+    return attachments;
+}
 
 async function getSpotifyEmbeds(text) {
     const spotifyRegex = /(?:https?:\/\/(?:open\.spotify\.com|spotify\.link)\/(?:embed\/)?[a-zA-Z0-9]+\/?[a-zA-Z0-9_-]*)/g;
@@ -470,7 +602,7 @@ async function getSpotifyEmbeds(text) {
         newText = newText.replace(`{{spotify_${i}}}`, spotifyEmbeds[i]);
     }
 
-    return newText;
+    return {newText, spotifyEmbeds};
 }
 
 module.exports = { createNewPost, addReplyToIndex, addQuoteToIndex };
