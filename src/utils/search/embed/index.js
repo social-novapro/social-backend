@@ -13,7 +13,7 @@ const {
 
 const EMBED_API_ROUTE = productionMode == true ? EMBED_API_PROD_ROUTE : EMBED_API_DEV_ROUTE;
 console.log(`---\nEmbedding API: ${EMBED_API_ROUTE}`)
-
+const EMBEDING_VERSION = 2;
 async function embedContent({ content }) {
     const result = await fetch(EMBED_API_ROUTE, {
         method: 'POST',
@@ -37,9 +37,26 @@ async function removePostEmbeddings({ postID }) {
     };
 }
 
+async function getPostEmbedding({ postID }) {
+    const embeddingPost = await interactEmbedPostSchema.findOne({_id: postID});
+    const sentencePosts = await interactEmbedSentencePostSchema.find({ postID });
+
+    const sentences = [ ];
+    for (const sentencePost of sentencePosts) {
+        const sentence = await interactEmbedSentenceSchema.findOne({ _id: sentencePost.sentenceID});
+        sentences.push(sentence);
+    }
+
+    return {
+        embeddingPost,
+        sentences,
+    };
+}
+
 async function savePostEmbeddings({ postID, userID, timestamp, content, embeddings}) {
     await interactEmbedPostSchema.create({
         _id: postID,
+        version: EMBEDING_VERSION,
         userID,
         timestamp,
         content,
@@ -51,6 +68,7 @@ async function savePostEmbeddings({ postID, userID, timestamp, content, embeddin
         if (sentenceFound) {
             await interactEmbedSentencePostSchema.create({
                 _id: uuidv4(),
+                version: EMBEDING_VERSION,
                 postID,
                 sentenceID: sentenceFound._id,
             });
@@ -58,12 +76,14 @@ async function savePostEmbeddings({ postID, userID, timestamp, content, embeddin
             const sentenceID = uuidv4();
             await interactEmbedSentenceSchema.create({
                 _id: sentenceID,
+                version: EMBEDING_VERSION,
                 sentence: sentence.sentence,
                 embedding: JSON.stringify(sentence.embedding),
             });
     
             await interactEmbedSentencePostSchema.create({
                 _id: uuidv4(),
+                version: EMBEDING_VERSION,
                 postID,
                 sentenceID: sentenceID,
             });
@@ -78,7 +98,8 @@ async function embedPost({ postID, userID, timestamp, content }) {
             postID: postID ?? "Unknown",
             timestamp: checktime(),
             fixed: false,
-            reason: "Missing data",
+            version: EMBEDING_VERSION,
+            reason: "Missing data, " + JSON.stringify({ postID, userID, timestamp, content }),
         });
         return { success: false, error: "Missing data" };
     }
@@ -91,6 +112,7 @@ async function embedPost({ postID, userID, timestamp, content }) {
             postID: postID ?? "Unknown",
             timestamp: checktime(),
             fixed: false,
+            version: EMBEDING_VERSION,
             reason: embeddings.error ?? "unknown error",
         });
     };
@@ -126,6 +148,7 @@ async function embedSearch({ content }) {
 
 module.exports = {
     embedPost,
+    getPostEmbedding, 
     embedEditedPost,
     deleteEmbedPost,
     embedSearch

@@ -1,0 +1,467 @@
+{
+  "version": "1.7",
+  "categories": [
+    {
+      "name": "art",
+      "subCategories": [
+        {
+          "name": "painting",
+          "id": 101
+        },
+        {
+          "name": "sculpture",
+          "id": 102
+        },
+        {
+          "name": "photography",
+          "id": 103
+        },
+        {
+          "name": "drawing",
+          "id": 104
+        },
+        {
+          "name": "music",
+          "id": 105
+        },
+        {
+          "name": "dance",
+          "id": 106
+        },
+        {
+          "name": "theatre",
+          "id": 107
+        },
+        {
+          "name": "film",
+          "id": 108
+        },
+        {
+          "name": "books",
+          "id": 109
+        },
+        {
+          "name": "design",
+          "id": 110
+        }
+      ],
+      "id": 100
+    },
+    {
+      "name": "development",
+      "subCategories": [
+        {
+          "name": "web",
+          "id": 201
+        },
+        {
+          "name": "mobile",
+          "id": 202
+        },
+        {
+          "name": "desktop",
+          "id": 203
+        },
+        {
+          "name": "game",
+          "id": 204
+        },
+        {
+          "name": "database",
+          "id": 205
+        },
+        {
+          "name": "network",
+          "id": 206
+        },
+        {
+          "name": "security",
+          "id": 207
+        },
+        {
+          "name": "cloud",
+          "id": 208
+        },
+        {
+          "name": "AI",
+          "id": 209
+        },
+        {
+          "name": "VR",
+          "id": 210
+        },
+        {
+          "name": "software",
+          "id": 211
+        },
+        {
+          "name": "android",
+          "id": 212
+        },
+        {
+          "name": "ios",
+          "id": 213
+        },
+        {
+          "name": "testing",
+          "id": 214
+        },
+        {
+          "name": "automation",
+          "id": 215
+        },
+        {
+          "name": "testing",
+          "id": 216
+        }
+      ],
+      "id": 200
+    },
+    {
+      "name": "business",
+      "subCategories": [
+        {
+          "name": "startup",
+          "id": 301
+        },
+        {
+          "name": "marketing",
+          "id": 302
+        },
+        {
+          "name": "finance",
+          "id": 303
+        },
+        {
+          "name": "management",
+          "id": 304
+        },
+        {
+          "name": "sales",
+          "id": 305
+        },
+        {
+          "name": "strategy",
+          "id": 306
+        },
+        {
+          "name": "economics",
+          "id": 307
+        },
+        {
+          "name": "entrepreneurship",
+          "id": 308
+        },
+        {
+          "name": "accounting",
+          "id": 309
+        },
+        {
+          "name": "HR",
+          "id": 310
+        },
+        {
+          "name": "logistics",
+          "id": 311
+        },
+        {
+          "name": "supply chain",
+          "id": 312
+        }
+      ],
+      "id": 300
+    },
+    {
+      "name": "science",
+      "subCategories": [
+        {
+          "name": "math",
+          "id": 401
+        },
+        {
+          "name": "physics",
+          "id": 402
+        },
+        {
+          "name": "chemistry",
+          "id": 403
+        },
+        {
+          "name": "biology",
+          "id": 404
+        },
+        {
+          "name": "astronomy",
+          "id": 405
+        },
+        {
+          "name": "geology",
+          "id": 406
+        },
+        {
+          "name": "psychology",
+          "id": 407
+        },
+        {
+          "name": "sociology",
+          "id": 408
+        },
+        {
+          "name": "anthropology",
+          "id": 409
+        },
+        {
+          "name": "archaeology",
+          "id": 410
+        },
+        {
+          "name": "medicine",
+          "id": 411
+        },
+        {
+          "name": "engineering",
+          "id": 412
+        }
+      ],
+      "id": 400
+    },
+    {
+      "name": "technology",
+      "subCategories": [
+        {
+          "name": "hardware",
+          "id": 501
+        },
+        {
+          "name": "network",
+          "id": 502
+        },
+        {
+          "name": "security",
+          "id": 503
+        },
+        {
+          "name": "cloud",
+          "id": 504
+        },
+        {
+          "name": "AI",
+          "id": 505
+        },
+        {
+          "name": "VR",
+          "id": 506
+        },
+        {
+          "name": "blockchain",
+          "id": 507
+        },
+        {
+          "name": "IoT",
+          "id": 508
+        },
+        {
+          "name": "robotics",
+          "id": 509
+        },
+        {
+          "name": "3D printing",
+          "id": 510
+        }
+      ],
+      "id": 500
+    },
+    {
+      "name": "education",
+      "subCategories": [
+        {
+          "name": "school",
+          "id": 601
+        },
+        {
+          "name": "college",
+          "id": 602
+        },
+        {
+          "name": "university",
+          "id": 603
+        },
+        {
+          "name": "online",
+          "id": 604
+        },
+        {
+          "name": "e-learning",
+          "id": 605
+        },
+        {
+          "name": "teaching",
+          "id": 606
+        },
+        {
+          "name": "learning",
+          "id": 607
+        },
+        {
+          "name": "research",
+          "id": 608
+        },
+        {
+          "name": "library",
+          "id": 609
+        },
+        {
+          "name": "literature",
+          "id": 610
+        },
+        {
+          "name": "language",
+          "id": 611
+        }
+      ],
+      "id": 600
+    },
+    {
+      "name": "lifestyle",
+      "subCategories": [
+        {
+          "name": "food",
+          "id": 701
+        },
+        {
+          "name": "travel",
+          "id": 702
+        },
+        {
+          "name": "fashion",
+          "id": 703
+        },
+        {
+          "name": "beauty",
+          "id": 704
+        },
+        {
+          "name": "health",
+          "id": 705
+        },
+        {
+          "name": "fitness",
+          "id": 706
+        },
+        {
+          "name": "home",
+          "id": 707
+        },
+        {
+          "name": "garden",
+          "id": 708
+        },
+        {
+          "name": "craft",
+          "id": 709
+        },
+        {
+          "name": "pet",
+          "id": 710
+        },
+        {
+          "name": "parenting",
+          "id": 711
+        }
+      ],
+      "id": 700
+    },
+    {
+      "name": "entertainment",
+      "subCategories": [
+        {
+          "name": "music",
+          "id": 801
+        },
+        {
+          "name": "film",
+          "id": 802
+        },
+        {
+          "name": "TV",
+          "id": 803
+        },
+        {
+          "name": "shows",
+          "id": 804
+        },
+        {
+          "name": "comedy",
+          "id": 805
+        },
+        {
+          "name": "magic",
+          "id": 806
+        },
+        {
+          "name": "circus",
+          "id": 807
+        },
+        {
+          "name": "festival",
+          "id": 808
+        },
+        {
+          "name": "event",
+          "id": 809
+        },
+        {
+          "name": "party",
+          "id": 810
+        },
+        {
+          "name": "nightlife",
+          "id": 811
+        }
+      ],
+      "id": 800
+    },
+    {
+      "name": "personal",
+      "subCategories": [
+        {
+          "name": "life",
+          "id": 901
+        },
+        {
+          "name": "relationship",
+          "id": 902
+        },
+        {
+          "name": "family",
+          "id": 903
+        },
+        {
+          "name": "friendship",
+          "id": 904
+        },
+        {
+          "name": "love",
+          "id": 905
+        },
+        {
+          "name": "marriage",
+          "id": 906
+        },
+        {
+          "name": "parents",
+          "id": 907
+        },
+        {
+          "name": "divorce",
+          "id": 908
+        },
+        {
+          "name": "dating",
+          "id": 909
+        }
+      ],
+      "id": 900
+    }
+  ]
+}

@@ -11,7 +11,11 @@ async function authV1(req, res, next) {
         req.originalUrl.startsWith('/v1/users/public') || 
         req.originalUrl.startsWith('/v1/auth/password/requests') ||
         /* actions for db updates, only to be done once */
-        req.originalUrl.startsWith('/v1/admin/updateActions')
+        req.originalUrl.startsWith('/v1/admin/updateActions') ||
+        /* cdn static */
+        req.originalUrl.startsWith('/v1/cdn/static/')  ||
+        req.originalUrl.startsWith('/v1/cdn/file/') ||
+        req.originalUrl.startsWith('/v1/video_embed/') 
     ) {
         console.log("authV1: bypassing auth")
         return next();

@@ -6,6 +6,7 @@ const { searchErrorV2 } = require('../../../utils/searchError');
 const { checkUsername, checkUserage } = require('../../checks');
 const { checktime } = require('../../checktime');
 const { checkSafeURL } = require('../../checkSafeURL');
+const { current } = require("../../../../config.json");
 
 async function validField({ userID, field }) {
     for (const option of options.options) {
@@ -135,7 +136,7 @@ async function userUpdate({ userID, body }) {
 
         // step 2 - make sure not updated recently
         const lastUpdate = await lastUpdatedField({ userID, field: update.field });
-        if (lastUpdate.error) {
+        if (lastUpdate.error && current != "dev") {
             fails.push(lastUpdate);
             continue;
         }
