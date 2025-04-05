@@ -9,6 +9,7 @@ const { embedEditedPost } = require("../search/embed");
 const { editTags } = require("./tags");
 const { getPostWithData } = require("./getPost");
 const interactUserSchema = require("../../schemas/interactUserSchema");
+const { editAttachments } = require("./attachments");
 
 async function getPostReplies({ postID, userID }) {
     const postData = await interactPostSchema.findOne({_id: postID});
@@ -71,10 +72,14 @@ async function editPost({ postID, userID, content}) {
     if (!checkedContent || checkedContent.error) return checkedContent;
 
     const postCheck = await interactPostSchema.findOne({ _id: postID});
-
     if (!postCheck) return searchErrorV2("K002", { userID });
     else if (postCheck.userID != userID) return searchErrorV2("D008", { userID });
     else if (postCheck.content == content) return searchErrorV2("D009", { userID });
+
+    // check for attachments
+    // re-add attachments
+    const addedAttachments = await editAttachments({ postID, content });
+
 
     const editedTimestamp = checktime();
     var editedAmount;
@@ -83,7 +88,7 @@ async function editPost({ postID, userID, content}) {
     
     await interactPostSchema.findOneAndUpdate(
         { _id: postID }, 
-        { content, edited: true, editedTimestamp, editedAmount },
+        { content: addedAttachments.newContent, attachments: addedAttachments.attachments, edited: true, editedTimestamp, editedAmount },
         { upsert: true }
     );
 
