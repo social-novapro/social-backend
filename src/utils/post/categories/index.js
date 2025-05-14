@@ -14,7 +14,6 @@ async function fillCategories() {
     }
 
     for (const cat of categories) {
-        console.log(cat);
         allCatEmbeddings.push(JSON.parse(cat.embedding ?? "[]"));
         allCatNames.push(cat.name);
     }
@@ -139,6 +138,7 @@ function formatCategory(category) {
         id: category.id,
         name: category.name,
         version: category.version,
+        embeddingVersion: category.embeddingVersion,
         isSubCategory: category.isSubCategory,
         parentCategoryID: category.parentCategoryID ?? null,
         value: 50,

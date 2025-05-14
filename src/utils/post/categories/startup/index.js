@@ -1,5 +1,5 @@
 const interactCategory = require('../../../../schemas/categories/interactCategory');
-const { embedSearch } = require('../../../search/embed');
+const { embedSearch, EMBEDING_VERSION } = require('../../../search/embed');
 const categories = require('./categories.json');
 const { v4: uuidv4 } = require('uuid');
 // get all categories, get embeddings for each category
@@ -76,6 +76,11 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         var updatedCategory = false;
         var reason = null;
 
+        if (foundCategory.embeddingVersion != EMBEDING_VERSION) {
+            updatedCategory = true;
+            reason = `Embedding version is incorrect. Found: ${foundCategory.embeddingVersion}, Expected: ${EMBEDING_VERSION}`;
+        }
+
         // make sure name is correct
         if (foundCategory.name != categoryName) {
             updatedCategory = true;
@@ -124,6 +129,7 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         name: categoryName,
         timestamp: checktime(),
         version: categories.version,
+        embeddingVersion: EMBEDING_VERSION,
         isSubCategory: parentCategoryID != null ? true : false,
         parentCategoryID: parentCategoryID ? parentCategoryID : null,
         embedding: JSON.stringify(embedding.embedding.embedding),
@@ -132,4 +138,21 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     return newCategory;
 }
 
-module.exports = { startupCategories, getCategoriesFromDB, getCategoryFromDB };
+async function getCategoryRuntimeInfo() {
+    const categories = await getCategoriesFromDB();
+    const catEmbeddings = [];
+    const catNames = [];
+
+    for (const cat of categories) {
+        catEmbeddings.push(JSON.parse(cat.embedding ?? "[]"));
+        catNames.push(cat.name);
+    }
+
+    return {
+        categories: categories,
+        catEmbeddings: catEmbeddings,
+        catNames: catNames
+    }
+}
+
+module.exports = { startupCategories, getCategoriesFromDB, getCategoryFromDB, getCategoryRuntimeInfo };

@@ -57,7 +57,10 @@ async function createNewPost({
     await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
     pushNewPost(userID, postID)
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content }).then((embedData) => {
-        categorizePost({ postID})
+        console.log("Embed data: ", embedData)
+        categorizePost({ postID }).then((catData) => {
+            console.log("Categorized data: ", catData)
+        });
     });
     console.log("Post created")
     return postData

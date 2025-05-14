@@ -14,6 +14,7 @@ const {
 const EMBED_API_ROUTE = productionMode == true ? EMBED_API_PROD_ROUTE : EMBED_API_DEV_ROUTE;
 console.log(`---\nEmbedding API: ${EMBED_API_ROUTE}`)
 const EMBEDING_VERSION = 2;
+
 async function embedContent({ content }) {
     const result = await fetch(EMBED_API_ROUTE, {
         method: 'POST',
@@ -151,5 +152,6 @@ module.exports = {
     getPostEmbedding, 
     embedEditedPost,
     deleteEmbedPost,
-    embedSearch
+    embedSearch,
+    EMBEDING_VERSION
 }
