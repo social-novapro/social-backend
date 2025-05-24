@@ -1,12 +1,17 @@
+const interactCategoryUser = require("../../../schemas/categories/interactCategoryUser");
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const { checktime } = require("../../checktime");
 const { getPostEmbedding } = require("../../search/embed");
 const { cosineSimilarity } = require("../../search/searchV2");
 const { getCategoriesFromDB } = require("./startup");
+const { v4: uuidv4 } = require("uuid");
+const { searchError, searchErrorV2 } = require("../../searchError");
+const interactCategory = require("../../../schemas/categories/interactCategory");
 const allCatEmbeddings = [];
 const allCatNames = [];
 var categories = null;
 var sortedCategories = [];
+const DEFAULT_CAT_VALUE = 5;
 
 async function fillCategories() {
     if (!categories) {
@@ -141,10 +146,11 @@ function formatCategory(category) {
         embeddingVersion: category.embeddingVersion,
         isSubCategory: category.isSubCategory,
         parentCategoryID: category.parentCategoryID ?? null,
-        value: 50,
+        value: DEFAULT_CAT_VALUE,
         subCategories: []
     }
 }
+
 function sortCategories() {
     if (!categories || !categories[0]) return { error: true, msg: "No categories found" };
     // need, id, name, version, isSubCategory, parentCategoryName
@@ -177,9 +183,113 @@ async function getCategories({userID}) {
     return sortedCategories;
 }
 
+async function getUserCategories({ userID }) {
+    const sortedCategoriesFound = await getCategories({ userID });
+    const foundUserCategories = await interactCategoryUser.find({ userID: userID });
+    if (!foundUserCategories) return { error: true, msg: "No user categories found" };
+
+    for (const category of sortedCategoriesFound) {
+        if (!category) continue;
+
+        const foundCategory = foundUserCategories.find((cat) => cat.categoryID === category.id);
+        if (foundCategory) {
+            category.value = foundCategory.userScore;
+        }
+    }
+    return sortedCategoriesFound;
+}
+
+async function updateUserCategory({ userID, categoryID, value }) {
+    if (!userID) return { error: true, msg: "No user ID found" };
+    if (!categoryID) return { error: true, msg: "No category ID found" };
+    if (!value) return { error: true, msg: "No value found to update to" };
+
+    const foundCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
+    if (!foundCategory) {
+        await createUserCategory({ userID, categoryID, value });
+    } else {
+        await interactCategoryUser.findOneAndUpdate({
+            userID: userID,
+            categoryID: categoryID,
+        }, {
+            userScore: value,
+            timestamp: checktime(),
+        }, {
+            new: true,
+        });
+    }
+
+
+    const updatedUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
+    if (!updatedUserCategory) return { error: true, msg: "No category found" };
+
+    return updatedUserCategory;
+}
+
+async function createUserCategory({ userID, categoryID, value }) {
+    if (!userID) return { error: true, msg: "No user ID found" };
+    if (!categoryID) return { error: true, msg: "No category ID found" };
+    
+    const foundUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
+    if (foundUserCategory) return { error: true, msg: "Category already exists" };
+
+    const foundCategory = await interactCategory.findOne({ id: categoryID });
+    if (!foundCategory) return { error: true, msg: "No category found" };
+    
+    const newCategory = await interactCategoryUser.create({
+        _id: uuidv4(),
+        userID: userID,
+        categoryID,
+        userScore: value ?? DEFAULT_CAT_VALUE,
+        timestamp: checktime(),
+    });
+
+    return newCategory;
+}
+
+async function resetUserCategories({ userID }) {
+    if (!userID) return { error: true, msg: "No user ID found" };
+
+    const foundUserCategories = await interactCategoryUser.find({ userID: userID });
+    if (!foundUserCategories) return { error: true, msg: "No user categories found" };
+
+    for (const category of foundUserCategories) {
+        await interactCategoryUser.findOneAndDelete({
+            userID: userID,
+            categoryID: category.categoryID,
+        })
+    }
+
+    const newCategories = await updateUserCategory({ userID, categoryID: category.categoryID, value: DEFAULT_CAT_VALUE });
+    return {
+        newCategories,
+        oldCategories: foundUserCategories,
+    };
+}
+
+async function restoreUserCategories({ userID, body }) {
+    if (!userID) return { error: true, msg: "No user ID found" };
+
+    for (const category of body) {
+        if (!category) continue;
+        if (!category.id) return { error: true, msg: "No category ID found" };
+        if (!category.value) return { error: true, msg: "No value found" };
+
+        await updateUserCategory({ userID, categoryID: category.categoryID, value: category.value });
+    }
+
+    const updatedUserCategories = await getUserCategories({ userID });
+    if (!updatedUserCategories) return { error: true, msg: "No user categories found" };
+    return updatedUserCategories;
+}
+
 module.exports = { 
     categorizePost,
     saveCategoryData,
     removeCategoryData,
-    getCategories
+    getCategories,
+    getUserCategories,
+    updateUserCategory,
+    resetUserCategories,
+    restoreUserCategories
 }
