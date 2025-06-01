@@ -37,16 +37,6 @@ async function categorizePost({ postID }) {
     var amount = 1;
     var finalScores = {};
 
-    
-    // const mainSimlarity = cosineSimilarity(
-    //     JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"),
-    //     allCatEmbeddings,
-    //     allCatNames,
-    // );
-
-    // foundSimlarities.push(mainSimlarity);
-    // finalScores[mainSimlarity[0].content] = mainSimlarity[0];
-
     for (const sentence of foundEmbedding.sentences ?? []) {
         if (!sentence || !sentence.embedding) continue;
 
@@ -202,9 +192,9 @@ async function getUserCategories({ userID }) {
 async function updateUserCategory({ userID, categoryID, value }) {
     if (!userID) return { error: true, msg: "No user ID found" };
     if (!categoryID) return { error: true, msg: "No category ID found" };
-    if (!value) return { error: true, msg: "No value found to update to" };
+    if (!value && value!=0) return { error: true, msg: "No value found to update to" };
 
-    const foundCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
+    const foundCategory = await interactCategoryUser.findOne({ userID, categoryID: categoryID });
     if (!foundCategory) {
         await createUserCategory({ userID, categoryID, value });
     } else {
@@ -222,7 +212,8 @@ async function updateUserCategory({ userID, categoryID, value }) {
 
     const updatedUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
     if (!updatedUserCategory) return { error: true, msg: "No category found" };
-
+    if (!updatedUserCategory.userScore && updatedUserCategory.userScore != 0) return { error: true, msg: "No user score found" };
+    if (updatedUserCategory.userScore != value) return { error: true, msg: "User score not updated" };
     return updatedUserCategory;
 }
 
@@ -230,11 +221,11 @@ async function createUserCategory({ userID, categoryID, value }) {
     if (!userID) return { error: true, msg: "No user ID found" };
     if (!categoryID) return { error: true, msg: "No category ID found" };
     
-    const foundUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
-    if (foundUserCategory) return { error: true, msg: "Category already exists" };
-
     const foundCategory = await interactCategory.findOne({ id: categoryID });
     if (!foundCategory) return { error: true, msg: "No category found" };
+
+    const foundUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
+    if (foundUserCategory) return { error: true, msg: "Category already exists" };
     
     const newCategory = await interactCategoryUser.create({
         _id: uuidv4(),
