@@ -6,7 +6,10 @@ const { v4: uuidv4 } = require('uuid');
 
 const fs = require('fs');
 const { checktime } = require('../../../checktime');
+const interactCategoryEmbed = require('../../../../schemas/categories/interactCategoryEmbed');
 // parse categories, then subcategories
+
+var exampleCategoriesVersion = -1;
 
 /* Assign ids to categories and subcategories */
 function assignIds() {
@@ -36,12 +39,12 @@ function assignIds() {
 async function assignExamplesFromOllama() {
     for (const category of categories.categories) {
         console.log("CHECKING", category.name);
-        const result = await generateExample({ categoryName: category.name, categoryID: category.id });
+        // const result = await generateExample({ categoryName: category.name, categoryID: category.id });
         if (result.error) {
             console.error("Error generating example for category", category.name, result);
             continue;
         }
-            console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
+        console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
         // console.log(myCat);
         for (const subcategory of category.subCategories) {
             console.log("CHECKING", subcategory.name, category.name);
@@ -52,8 +55,32 @@ async function assignExamplesFromOllama() {
             }
 
             console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
-
         }
+    }
+}
+
+async function quickUpdateScriptCategory() {
+    // update with new category thing
+    const alLCategories = await interactCategoryEmbed.find({});
+    for (const category of alLCategories) {
+        const categoryUUID = category._id;
+        const newUUID = uuidv4();
+        console.log("Updating category", category.name, "with new UUID", newUUID, "and old UUID", categoryUUID, "and ID", category.id);
+        
+        await interactCategoryEmbed.create({
+            _id: newUUID,
+            categoryUUID: categoryUUID,
+            categoryID: category.id,
+            content: category.content,
+            timestamp: category.timestamp,
+            embeddingVersion: category.embeddingVersion,
+            embedding: category.embedding,
+            categoryExampleVersion: category.categoryExampleVersion,
+            categoryExamples: category.categoryExamples,
+            categorySentences: category.categorySentences,
+        })
+
+        await interactCategoryEmbed.deleteOne({ _id: categoryUUID });
     }
 }
 
@@ -63,20 +90,28 @@ async function generateExample({ categoryName, categoryID }) {
     });
 
     const res = await result.json();
-    console.log("generating...")
     return res;
 }
 
 /* Startup categories */
 async function startupCategories() {
+    // await quickUpdateScriptCategory()
     // deleteAllCategories();
-    assignExamplesFromOllama();
+    // assignExamplesFromOllama();
     // assignIds();
+    if (exampleCategoriesVersion == -1) {
+        const result = await fetch('http://localhost:5004/v1/categoryExample/version', {
+            method: 'GET',
+        });
+
+        const res = await result.json();
+        exampleCategoriesVersion = res.version;
+    }
+
     for (const category of categories.categories) {
         console.log("CHECKING", category.name);
         const myCat = await saveCategoryToDB({ id: category.id, categoryName: category.name, parentCategoryID: null });
         
-        // console.log(myCat);
         for (const subcategory of category.subCategories) {
             console.log("CHECKING", subcategory.name, category.name);
             await saveCategoryToDB({ id: subcategory.id, categoryName: subcategory.name, parentCategoryID: myCat.id });
@@ -107,14 +142,14 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     // save category to database
     // might not have subcategory if its main category (e.g. "Technology")
     const foundCategory = await interactCategory.findOne({ id: id });
+    const foundExamples = await interactCategoryEmbed.find({ id: id });
+    var toUpdateExamples = false;
+
+    const foundExample = foundExamples && foundExamples.length > 0 ? foundExamples[0] : null;
     if (foundCategory) {
         var updatedCategory = false;
         var reason = null;
 
-        if (foundCategory.embeddingVersion != EMBEDING_VERSION) {
-            updatedCategory = true;
-            reason = `Embedding version is incorrect. Found: ${foundCategory.embeddingVersion}, Expected: ${EMBEDING_VERSION}`;
-        }
 
         // make sure name is correct
         if (foundCategory.name != categoryName) {
@@ -126,6 +161,36 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         if (foundCategory.version != categories.version) {
             updatedCategory = true;
             reason = `Version is incorrect. Found: ${foundCategory.version}, Expected: ${categories.version}`;
+        }
+        else if (foundCategory.embeddingVersion != EMBEDING_VERSION) {
+            updatedCategory = true;
+            toUpdateExamples = true;
+            reason = `Embedding version is incorrect. Found: ${foundCategory.embeddingVersion}, Expected: ${EMBEDING_VERSION}`;
+        }
+        // make sure has examples entry
+        else if (!foundExamples || foundExamples.length <= 0) {
+            updatedCategory = true;
+            toUpdateExamples = true;
+            reason = `Examples are missing, or to many entries. Found: ${foundExamples ? foundExamples.length : 0}, Expected: >0`;
+        }
+        // make sure has sentences and examples
+        else if ((!foundExample.categoryExamples || !foundExample.categorySentences) || (foundExample.categoryExamples <= 0 || foundExample.categorySentences <= 0)) {
+            updatedCategory = true;
+            toUpdateExamples = true;
+            reason = `Category examples or sentences are missing, or to many entries. Found: ${foundExample.categoryExamples ? foundExample.categoryExamples.length : 0}, Expected: >0`;
+        }
+
+        // make sure example version is correct
+        else if (!foundExample.categoryExampleVersion || foundExample.categoryExampleVersion != exampleCategoriesVersion) {
+            updatedCategory = true;
+            toUpdateExamples = true;
+            reason = `Category example version is incorrect. Found: ${foundExample.categoryExampleVersion}, Expected: ${exampleCategoriesVersion}`;
+            await interactCategoryEmbed.findOneAndUpdate({
+                id: id,
+                content: categoryName,
+            }, {
+                categoryExampleVersion: exampleCategoriesVersion,
+            })
         }
 
         // make sure parent ID is correct
@@ -152,6 +217,9 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
 
         if (!updatedCategory) return foundCategory;
         await interactCategory.deleteOne({ id: id });
+        if (toUpdateExamples) {
+            await interactCategoryEmbed.deleteOne({ id: id });
+        }
         console.log("--- DELETED", id, reason);
     }
 
@@ -167,7 +235,67 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         embeddingVersion: EMBEDING_VERSION,
         isSubCategory: parentCategoryID != null ? true : false,
         parentCategoryID: parentCategoryID ? parentCategoryID : null,
+    });
+
+    if (!toUpdateExamples) {
+        // update the category UUID in the examples
+        await interactCategoryEmbed.findOneAndUpdate(
+            { _id: foundExample },
+            {
+                categoryUUID: newCategory._id,
+            }
+        );
+    
+        return newCategory;
+    }
+
+    console.log("--- Updating Examples for", categoryName, "with ID", id);
+
+    // Category Example Schema
+    const generatedExamples = await generateExample({ categoryName: categoryName, categoryID: id });
+    if (!generatedExamples || generatedExamples.error || generatedExamples.length <= 0) {
+        console.error("Error generating examples for category", categoryName, generatedExamples);
+        return newCategory;
+    }
+
+    const categoryExamples = [];
+    const categorySentences = [];
+    // make "categoryExamples" and "categorySentences" array
+    for (const example of generatedExamples) {
+        const exampleID = uuidv4();
+        const example_embedding = await embedSearch({ content: example.response });
+        categoryExamples.push({
+            _id: exampleID,
+            categoryEmbedID: newCategory.id,
+            content: example.response,
+            embeddingVersion: EMBEDING_VERSION,
+            embedding: JSON.stringify(example_embedding.embedding.embedding),
+        });
+
+        for (const sentence of example_embedding.embedding.sentences) {
+            const sentenceID = uuidv4();
+            categorySentences.push({
+                _id: sentenceID,
+                exampleID: exampleID,
+                content: sentence.sentence,
+                embeddingVersion: EMBEDING_VERSION,
+                embedding: JSON.stringify(sentence.embedding),
+            });
+        }
+    }
+
+    // get and embed examples
+    await interactCategoryEmbed.create({
+        _id: uuidv4(),
+        categoryUUID: newCategory._id,
+        categoryID: newCategory.id,
+        content: newCategory.name,
+        timestamp: checktime(),
+        embeddingVersion: EMBEDING_VERSION,
         embedding: JSON.stringify(embedding.embedding.embedding),
+        categoryExampleVersion: generatedExamples[0].versionNumber,
+        categoryExamples: categoryExamples,
+        categorySentences: categorySentences,
     });
 
     return newCategory;
