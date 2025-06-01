@@ -138,13 +138,13 @@ async function undoUserPostIndexes({ adminID }) {
 }
 
 // MAR 2025 - 1.7
-async function updateCategorizePosts({ adminID }) {
-    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts" });
+async function updateCategorizePosts({ adminID, version=null }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts"+(version?version:"") });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
 
     const result = await categorizeAllPosts();
     await interactAdminUpdateActionsSchema.create({
-        _id: "categorizePosts",
+        _id: "categorizePosts"+(version?version:""),
         done: true,
         timestamp: checktime(),
     });
@@ -152,9 +152,9 @@ async function updateCategorizePosts({ adminID }) {
     return result;
 };
 
-async function undoCategorizePosts({ adminID }) {
+async function undoCategorizePosts({ adminID, version=null }) {
     await undoAllCategorizePosts();
-    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "categorizePosts" })
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "categorizePosts"+(version?version:"") })
     return { done: true }
 }
 

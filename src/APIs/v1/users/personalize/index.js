@@ -18,6 +18,8 @@ router.post('/', async (req, res) => {
 
     return res.status(200).send(updated);
 });
+
+// untested
 router.post('/restore', async (req, res) => {
     const { userid: userID } = req.headers;
     

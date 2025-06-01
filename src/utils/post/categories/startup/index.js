@@ -33,9 +33,44 @@ function assignIds() {
     fs.writeFileSync('src/utils/post/categories/startup/categories.json', JSON.stringify(categories, null, 2));
 }
 
+async function assignExamplesFromOllama() {
+    for (const category of categories.categories) {
+        console.log("CHECKING", category.name);
+        const result = await generateExample({ categoryName: category.name, categoryID: category.id });
+        if (result.error) {
+            console.error("Error generating example for category", category.name, result);
+            continue;
+        }
+            console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
+        // console.log(myCat);
+        for (const subcategory of category.subCategories) {
+            console.log("CHECKING", subcategory.name, category.name);
+            const result = await generateExample({ categoryName: subcategory.name, categoryID: subcategory.id });
+            if (result.error) {
+                console.error("Error generating example for category", category.name, result);
+                continue;
+            }
+
+            console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
+
+        }
+    }
+}
+
+async function generateExample({ categoryName, categoryID }) {
+    const result = await fetch('http://localhost:5004/v1/categoryExample/'+encodeURIComponent(categoryName), {
+        method: 'POST',
+    });
+
+    const res = await result.json();
+    console.log("generating...")
+    return res;
+}
+
 /* Startup categories */
 async function startupCategories() {
     // deleteAllCategories();
+    assignExamplesFromOllama();
     // assignIds();
     for (const category of categories.categories) {
         console.log("CHECKING", category.name);
