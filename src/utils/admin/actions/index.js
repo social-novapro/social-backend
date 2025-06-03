@@ -9,7 +9,7 @@ const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
 const { updateAllUserPostIndexes, undoAllUserPostIndexes } = require("./userPostIndexes");
 
-// APR 2024 - 1.4, MAR 2025 - 1.7
+// APR 2024 - 1.4, MAR 2025 - 1.7, JUN 2025 - 1.8
 async function updatePostEmbeddings({ adminID, version=null }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: `postEmbeddings${version?version:""}` });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
@@ -137,7 +137,7 @@ async function undoUserPostIndexes({ adminID }) {
     return { done: true }
 }
 
-// MAR 2025 - 1.7
+// MAR 2025 - 1.7, JUN 2025 - 1.8
 async function updateCategorizePosts({ adminID, version=null }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts"+(version?version:"") });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });

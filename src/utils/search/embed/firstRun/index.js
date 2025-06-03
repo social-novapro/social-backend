@@ -1,4 +1,4 @@
-const { deleteEmbedPost, embedPost } = require("..");
+const { deleteEmbedPost, embedPost, findPostEmbedZombies } = require("..");
 const interactPostSchema = require("../../../../schemas/interactPostSchema");
 
 async function updateAllPostEmbeddings() {
@@ -15,11 +15,15 @@ async function updateAllPostEmbeddings() {
 async function undoAllPostEmbeddings() {
     const updates = [];
     const posts = await interactPostSchema.find();
+
     for (const post of posts) {
         const update = await deleteEmbedPost({postID: post._id});
         updates.push(update);
     }
 
+    // check for embeddings zombies
+    await findPostEmbedZombies();
+    
     return { done: true, updates: updates };
 }
 

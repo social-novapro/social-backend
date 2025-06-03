@@ -4,7 +4,7 @@ const interactEmbedSentenceSchema = require('../../../schemas/embeddings/interac
 const interactEmbedSentencePostSchema = require('../../../schemas/embeddings/interactEmbedSentencePost');
 const interactEmbedPostFailSchema = require('../../../schemas/embeddings/interactEmbedPostFail');
 const { checktime } = require('../../checktime');
-const { current } = require('../../../../config.json')
+const { current } = require('../../../../config.json');
 const productionMode = current == "prod" ? true : false;
 const {
     EMBED_API_DEV_ROUTE,
@@ -30,7 +30,39 @@ async function embedContent({ content }) {
 
 async function removePostEmbeddings({ postID }) {
     const embeddingPost = await interactEmbedPostSchema.findByIdAndDelete(postID);
-    const sentencePosts = await interactEmbedSentencePostSchema.deleteMany({ postID });
+    const sentencePosts = await interactEmbedSentencePostSchema.find({ postID });
+
+   /*
+    // delete sentences that are not used by any other post
+    for (const sentencePost of sentencePosts) {
+        const moreFound = await interactEmbedSentencePostSchema.find({ sentenceID: sentencePost.sentenceID });
+        var deleteZombie = true;
+        if (moreFound) {
+            for (const found of moreFound) {
+                if (found.postID == postID) continue; // skip the current post
+                
+                console.log(`Found sentence ${sentencePost.sentenceID} used by post ${found.postID}`);
+
+                const foundPost = await interactPostSchema.findOne({ _id: found.postID });
+                if (foundPost) {
+                    console.log(`Found post ${found.postID} with content: ${foundPost.content}`);
+                    // this sentence is still used by another post
+                    deleteZombie = false; 
+                } else {
+                    console.log(`Post ${found.postID} not found`);
+                }
+            }
+            console.log(`Not deleting sentence ${sentencePost.sentenceID}, still used by ${moreFound.length} posts`);
+        }
+
+        if (!moreFound || deleteZombie) {
+            console.log("Deleting sentence", sentencePost.sentenceID);
+            await interactEmbedSentenceSchema.findByIdAndDelete(sentencePost.sentenceID);
+        }
+    }
+   
+   */
+    await interactEmbedSentencePostSchema.deleteMany({ postID });
 
     return {
         embeddingPost,
@@ -131,6 +163,31 @@ async function embedEditedPost({ postID, userID, timestamp, content }) {
     return { success: true };
 }
 
+async function findPostEmbedZombies() {
+    const allPostsEmbedding = await interactEmbedPostSchema.find();
+    const allSentencePostsEmbedding = await interactEmbedSentencePostSchema.find();
+    const allSentencesEmbedding = await interactEmbedSentenceSchema.find();
+
+    console.log(`Found ${allPostsEmbedding.length} post embeddings, ${allSentencePostsEmbedding.length} sentence posts, and ${allSentencesEmbedding.length} sentences.`);
+
+    for (const postEmbed of allPostsEmbedding) {
+        await interactEmbedPostSchema.findOneAndDelete({ _id: postEmbed._id });
+    }
+    for (const sentencePostEmbed of allSentencePostsEmbedding) {
+        await interactEmbedSentencePostSchema.findOneAndDelete({ _id: sentencePostEmbed._id });
+    }
+    for (const sentenceEmbed of allSentencesEmbedding) {
+        await interactEmbedSentenceSchema.findOneAndDelete({ _id: sentenceEmbed._id });
+    }
+    console.log("Deleted all post embeddings, sentence posts, and sentences.");
+
+    return {
+        allPostsEmbedding,
+        allSentencePostsEmbedding,
+        allSentencesEmbedding,
+    }
+}
+
 async function deleteEmbedPost({ postID }) {
     const embeddings = await removePostEmbeddings({ postID });
     return { success: true, embeddings };
@@ -153,5 +210,6 @@ module.exports = {
     embedEditedPost,
     deleteEmbedPost,
     embedSearch,
+    findPostEmbedZombies,
     EMBEDING_VERSION
 }

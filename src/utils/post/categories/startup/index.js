@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const { checktime } = require('../../../checktime');
 const interactCategoryEmbed = require('../../../../schemas/categories/interactCategoryEmbed');
+const { cosineSimilarity } = require('../../../search/searchV2');
 // parse categories, then subcategories
 
 var exampleCategoriesVersion = -1;
@@ -137,15 +138,23 @@ async function getCategoriesFromDB() {
     return foundCategories;
 }
 
+/* Get all categories embeddings from the database */
+async function getCategoriesEmbeddingsFromDB() {
+    const foundCategories = await interactCategoryEmbed.find({});
+    return foundCategories;
+}
+
 /* Save a category or subcategory to the database */
 async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     // save category to database
     // might not have subcategory if its main category (e.g. "Technology")
     const foundCategory = await interactCategory.findOne({ id: id });
-    const foundExamples = await interactCategoryEmbed.find({ id: id });
+    const foundExamples = await interactCategoryEmbed.find({ categoryID: id });
     var toUpdateExamples = false;
 
-    const foundExample = foundExamples && foundExamples.length > 0 ? foundExamples[0] : null;
+    const foundExample = (foundExamples && foundExamples.length > 0) ? foundExamples[0] : null;
+    if (!foundExample) toUpdateExamples = true;
+
     if (foundCategory) {
         var updatedCategory = false;
         var reason = null;
@@ -162,19 +171,19 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
             updatedCategory = true;
             reason = `Version is incorrect. Found: ${foundCategory.version}, Expected: ${categories.version}`;
         }
-        else if (foundCategory.embeddingVersion != EMBEDING_VERSION) {
+        // make sure has examples entry, and not to many
+        else if (!foundExamples || foundExamples.length <= 0 || foundExamples.length > 1) {
             updatedCategory = true;
             toUpdateExamples = true;
-            reason = `Embedding version is incorrect. Found: ${foundCategory.embeddingVersion}, Expected: ${EMBEDING_VERSION}`;
+            reason = `Examples are missing, or to many entries. Found: ${foundExamples ? foundExamples.length : 0}, Expected: 1`;
         }
-        // make sure has examples entry
-        else if (!foundExamples || foundExamples.length <= 0) {
+        else if (foundExample.embeddingVersion != EMBEDING_VERSION) {
             updatedCategory = true;
             toUpdateExamples = true;
-            reason = `Examples are missing, or to many entries. Found: ${foundExamples ? foundExamples.length : 0}, Expected: >0`;
+            reason = `Embedding version is incorrect. Found: ${foundExample.embeddingVersion}, Expected: ${EMBEDING_VERSION}`;
         }
-        // make sure has sentences and examples
-        else if ((!foundExample.categoryExamples || !foundExample.categorySentences) || (foundExample.categoryExamples <= 0 || foundExample.categorySentences <= 0)) {
+        // make sure has sentences and examples needed
+        else if ((!foundExample.categoryExamples || !foundExample.categorySentences) || (foundExample.categoryExamples <= 0 || foundExample.categorySentences <= 0) || (foundExample.categoryExamples.length < 5)) {
             updatedCategory = true;
             toUpdateExamples = true;
             reason = `Category examples or sentences are missing, or to many entries. Found: ${foundExample.categoryExamples ? foundExample.categoryExamples.length : 0}, Expected: >0`;
@@ -186,7 +195,7 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
             toUpdateExamples = true;
             reason = `Category example version is incorrect. Found: ${foundExample.categoryExampleVersion}, Expected: ${exampleCategoriesVersion}`;
             await interactCategoryEmbed.findOneAndUpdate({
-                id: id,
+                categoryID: id,
                 content: categoryName,
             }, {
                 categoryExampleVersion: exampleCategoriesVersion,
@@ -214,11 +223,10 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
             reason = `Parent ID is incorrect. Found: ${foundCategory.parentCategoryID}, Expected: ${parentCategoryID}`;
         }
 
-
         if (!updatedCategory) return foundCategory;
         await interactCategory.deleteOne({ id: id });
         if (toUpdateExamples) {
-            await interactCategoryEmbed.deleteOne({ id: id });
+            await interactCategoryEmbed.deleteMany({ categoryID: id });
         }
         console.log("--- DELETED", id, reason);
     }
@@ -263,11 +271,13 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     // make "categoryExamples" and "categorySentences" array
     for (const example of generatedExamples) {
         const exampleID = uuidv4();
-        const example_embedding = await embedSearch({ content: example.response });
+        if (!example || !example.response) return console.error("Error generating example for category", categoryName, example);
+        const exampleContent = example.response.toLowerCase();
+        const example_embedding = await embedSearch({ content: exampleContent });
         categoryExamples.push({
             _id: exampleID,
             categoryEmbedID: newCategory.id,
-            content: example.response,
+            content: exampleContent,
             embeddingVersion: EMBEDING_VERSION,
             embedding: JSON.stringify(example_embedding.embedding.embedding),
         });
@@ -300,22 +310,62 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
 
     return newCategory;
 }
+async function quickTest() {
+    const catRunTime = await getCategoryRuntimeInfo();
+    for (const cat of catRunTime.categories) {
+        console.log("Category:", cat.name, "ID:", cat.id);
+    }
+
+    var i = 0;
+    for (const cat of catRunTime.catEmbeddings) {
+        i++;
+
+        const foundSimilarityPost = cosineSimilarity(
+            cat,
+            catRunTime.catEmbeddings,
+            catRunTime.catExampleSentences,
+        );
+        console.log("Found Similarity:", foundSimilarityPost, catRunTime.catNames[i], catRunTime.catExampleSentences[i] + "\n---");
+    }
+
+    console.log("Category Embeddings:", catRunTime.catEmbeddings.length);
+    console.log("Category Names:", catRunTime.catNames.length);
+
+
+}
+// quickTest();
 
 async function getCategoryRuntimeInfo() {
     const categories = await getCategoriesFromDB();
+    const catExamples = await getCategoriesEmbeddingsFromDB();
     const catEmbeddings = [];
+    const catExampleSentences = [];
     const catNames = [];
 
-    for (const cat of categories) {
-        catEmbeddings.push(JSON.parse(cat.embedding ?? "[]"));
-        catNames.push(cat.name);
+    for (const cat of catExamples.sort((a, b) => a.categoryID - b.categoryID)) {
+        // push category examples 
+        for (const example of cat.categoryExamples ?? []) {
+            if (!example || !example.embedding) continue;
+            catEmbeddings.push(JSON.parse(example.embedding ?? "[]"));
+            catExampleSentences.push(example.content);
+            catNames.push(cat.content);
+            console.log(`Pushed category example embedding for ${cat.content}, example: ${example.content}`);
+        }
     }
+   
+
+    // for (const cat of categories) {
+    //     catEmbeddings.push(JSON.parse(cat.embedding ?? "[]"));
+    //     catNames.push(cat.name);
+    // }
 
     return {
         categories: categories,
         catEmbeddings: catEmbeddings,
-        catNames: catNames
+        catNames: catNames,
+        catExamples: catExamples,
+        catExampleSentences: catExampleSentences,
     }
 }
 
-module.exports = { startupCategories, getCategoriesFromDB, getCategoryFromDB, getCategoryRuntimeInfo };
+module.exports = { startupCategories, getCategoriesFromDB, getCategoriesEmbeddingsFromDB, getCategoryFromDB, getCategoryRuntimeInfo };

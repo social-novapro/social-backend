@@ -14,6 +14,8 @@ const { getCategoriesFromDB, getCategoryFromDB, getCategoryRuntimeInfo } = requi
 var categoryRuntimeInfo = null;
 
 // "development", "design", "marketing", "business", "productivity", "other"
+// check out /categories, why is there a repeat of simlar code
+// DONT USE THIS ONE 
 async function categorizePost({ postID }) {
     // get post by id and embedding
     if (!postID) return { error: true, msg: "No post ID provided" }; 
@@ -50,7 +52,8 @@ async function categorizePost({ postID }) {
 
         const foundSimlaritySentence = cosineSimilarity(
             JSON.parse(sentence.embedding ?? "[]"), 
-            categoryRuntimeInfo.catEmbeddings, categoryRuntimeInfo.catNames
+            categoryRuntimeInfo.catEmbeddings,
+            categoryRuntimeInfo.catNames
         );
         
         foundSimlarities.push(foundSimlaritySentence);
@@ -179,6 +182,8 @@ async function buildPersonalizedFeed({ userID }) {
             const parentCategory = await getCategoryFromDB({ categoryID: foundCategory.parentCategoryID  });
             compareCat = parentCategory.name;
         }
+
+        // implement subcategories here too, this is just comparing the main category
 
         console.log(compareCat, category)
 
