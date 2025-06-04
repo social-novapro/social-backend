@@ -108,7 +108,9 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
         }
     }
 
-    const similarSentences = cosineSimilarity(searchEmbedding.embedding.sentences[0].embedding, similarArrSentence, sentenceContents);
+    // why comparing first sentence of the search embedding? 
+    /// searchEmbedding.embedding.sentence[0].embedding
+    const similarSentences = cosineSimilarity(searchEmbedding.embedding.embedding, similarArrSentence, sentenceContents);
     // console.log(similarities)
     
     const topSentences = similarSentences.slice(0, 50);
@@ -120,7 +122,7 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
     return finalRanking.sort((a, b) => a.similarity - b.similarity);
 }
 
-function cosineSimilarity(inputSearch, similarEmbeddings, contents) {
+function cosineSimilarity(inputSearch, similarEmbeddings, contents, id=null) {
     // Function to calculate dot product of two arrays
     const dotProduct = (arr1, arr2 ) => arr1.reduce((acc, val, i) => acc + val * arr2[i], 0);
 
@@ -133,7 +135,7 @@ function cosineSimilarity(inputSearch, similarEmbeddings, contents) {
         const inputMagnitude = magnitude(inputSearch);
         const arrMagnitude = magnitude(arr);
         const similarity = dotProd / (inputMagnitude * arrMagnitude);
-        return {similarity, index, content: contents[index]};
+        return {similarity, index, content: contents[index], id: id ? id[index] : null};
     });
 
     // Sort by similarity in descending order

@@ -59,9 +59,9 @@ async function createNewPost({
     pushNewPost(userID, postID)
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content }).then((embedData) => {
         console.log("Embed data: ", embedData)
-        categorizePost({ postID }).then((catData) => {
+        categorizePost({ postID })/*.then((catData) => {
             console.log("Categorized data: ", catData)
-        });
+        });*/
     });
     console.log("Post created")
     return postData

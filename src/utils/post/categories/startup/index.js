@@ -310,6 +310,8 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
 
     return newCategory;
 }
+
+// Run a quick test to see if cosine simlarity is working correctly
 async function quickTest() {
     const catRunTime = await getCategoryRuntimeInfo();
     for (const cat of catRunTime.categories) {
@@ -330,40 +332,45 @@ async function quickTest() {
 
     console.log("Category Embeddings:", catRunTime.catEmbeddings.length);
     console.log("Category Names:", catRunTime.catNames.length);
-
-
 }
 // quickTest();
 
 async function getCategoryRuntimeInfo() {
     const categories = await getCategoriesFromDB();
-    const catExamples = await getCategoriesEmbeddingsFromDB();
+    const categoryEmbeddings = await getCategoriesEmbeddingsFromDB();
     const catEmbeddings = [];
-    const catExampleSentences = [];
+    const catExamples = [];
+    const catExampleSentences = {};
     const catNames = [];
+    const exampleIDs = [];
 
-    for (const cat of catExamples.sort((a, b) => a.categoryID - b.categoryID)) {
+    for (const cat of categoryEmbeddings.sort((a, b) => a.categoryID - b.categoryID)) {
         // push category examples 
         for (const example of cat.categoryExamples ?? []) {
             if (!example || !example.embedding) continue;
+            catExamples.push(example);
+
             catEmbeddings.push(JSON.parse(example.embedding ?? "[]"));
-            catExampleSentences.push(example.content);
             catNames.push(cat.content);
+            exampleIDs.push(example._id);
+            catExampleSentences[example._id] = [];
+            for (const sentence of cat.categorySentences ?? []) {
+                if (!sentence || !sentence.embedding) continue;
+                if (sentence.exampleID == example._id) catExampleSentences[example._id].push(sentence);
+            }
+
+            console.log(`Pushed example embedding for ${cat.content}, example: ${example.content}`);
             console.log(`Pushed category example embedding for ${cat.content}, example: ${example.content}`);
         }
     }
    
-
-    // for (const cat of categories) {
-    //     catEmbeddings.push(JSON.parse(cat.embedding ?? "[]"));
-    //     catNames.push(cat.name);
-    // }
-
     return {
         categories: categories,
         catEmbeddings: catEmbeddings,
         catNames: catNames,
+        categoryEmbeddings: categoryEmbeddings,
         catExamples: catExamples,
+        exampleIDs: exampleIDs,
         catExampleSentences: catExampleSentences,
     }
 }

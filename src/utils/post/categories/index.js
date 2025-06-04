@@ -29,12 +29,6 @@ async function categorizePost({ postID }) {
     const foundEmbedding = await getPostEmbedding({ postID });
     if (!foundEmbedding) return { error: true, msg: "No embedding found for post" };
     if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) return { error: true, msg: "Missing Embedding data for post" };
-    
-
-    const foundSimlarities = [];
-    var amount = 1;
-    var finalScores = {};
-
     // compare entire post embeding to each category example (5), then average the similarity
 
 
@@ -42,41 +36,80 @@ async function categorizePost({ postID }) {
     // compare each sentence to each example of category
     // compare the entire post
 
-    // var i = 0;
 
     // compares entire post embedding to each category example
+    // full examples vs full post embedding
     const categoriesFound = cosineSimilarity(
         JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"),
         categoryRuntimeInfo.catEmbeddings,
         categoryRuntimeInfo.catNames,
+        categoryRuntimeInfo.exampleIDs
     );
-
     categoriesFound.sort((a, b) => a.similarity - b.similarity);
-
     categoriesFound.reverse();
-    const topCategory = categoriesFound[0];
-    
-    const subCategories = categoriesFound.slice(1, 6);
 
-    if (!topCategory || !topCategory.similarity) return {error: true, msg: "No top category found"};
-    if (topCategory.similarity < 0.5) return {error: true, msg: "No top category found"};
-    console.log(categoriesFound);
+    //const topCategories = categoriesFound.slice(0, 9); // top 10 categories found
+    // filter out categories that are the same
+    const filteredCategories = filterOutDuplicates(categoriesFound, 0.80, 10)
 
-/*
-    // filter out subcategories that already exist in top or subCategories
-    const subCategoriesFiltered = subCategories.filter((sub) => {
-        if (!sub || !sub.content || !sub.similarity) return false;
-        if (sub.content === topCategory.content) return false;
-        if (subCategories.find((s) => s.content === sub.content)) return false;
-        return true;
-    });
+    // compare each sentence in post with each category example sentences
+    const exampleSentencesEmbeddings = [];
+    const exampleSentencesIDs = [];
+    const exampleSentencesCategories = [];
+    for (const example of filteredCategories) {
+        if (!example || !example.content || !example.similarity || !example.id) continue;
 
-    // refill subCategories with filtered subCategories
-    if (subCategoriesFiltered.length > 5) {
-        subCategories.push(...subCategoriesFiltered.slice(0, 5-subCategories.length));
+        // can get ID from category.id
+        // exampleSentences = [...exampleSentences, ...categoryRuntimeInfo.catExampleSentences[example.id]];
+        if (!categoryRuntimeInfo.catExampleSentences[example.id]) {console.log('no examples for ', example.id); continue;}; // no example sentences for this category
+        for (const sentence of categoryRuntimeInfo.catExampleSentences[example.id] ?? []) {
+            exampleSentencesEmbeddings.push(JSON.parse(sentence.embedding));
+            exampleSentencesIDs.push(sentence._id);
+            exampleSentencesCategories.push(example.content);
+        }
     }
-    */
+    
+    // get the example sentences for the category
+    // compare each sentence in post with each category example sentences
+    const finalScores = {}; // { category: { similarity: 0, count: 0 } }
+    for (const sentence of foundEmbedding.sentences ?? []) {
+        if (!sentence || !sentence.embedding) continue;
+        const sentenceEmbedding = JSON.parse(sentence.embedding);
+        const similarities = cosineSimilarity(
+            sentenceEmbedding,
+            exampleSentencesEmbeddings,
+            exampleSentencesCategories,
+            exampleSentencesIDs
+        );
 
+        for (const similarity of similarities) {
+            if (!similarity || !similarity.similarity || !similarity.content) continue;
+            if (!finalScores[similarity.content]) finalScores[similarity.content] = { similarity: 0, count: 0, index: [] };
+            finalScores[similarity.content].count += 1;
+            finalScores[similarity.content].similarity += (similarity.similarity);
+            finalScores[similarity.content].index.push(similarity.index);
+        }
+    }
+
+    const categoriesFoundSentences = [];
+    for (const category in finalScores) {
+        if (!finalScores[category] || !finalScores[category].similarity || !finalScores[category].count) continue;
+        const avgSimilarity = finalScores[category].similarity / finalScores[category].count;
+
+        categoriesFoundSentences.push({
+            content: category,
+            similarity: avgSimilarity,
+            index: finalScores[category].index,
+        });
+    }
+
+    // filter out
+    const categoriesFoundFinal = filterOutDuplicates(categoriesFoundSentences, 0.5, 6);
+    if (!categoriesFoundFinal || !categoriesFoundFinal[0]) return { error: true, msg: "No categories found" };
+
+    const topCategory = categoriesFoundFinal[0];
+    const subCategories = categoriesFoundFinal.slice(1, 6);
+    console.log(`Sentence Comparision`, categoriesFoundFinal, "Example Comparision", filteredCategories);
     const pushToArr = {
         _id: post._id,
         category: topCategory.content,
@@ -92,83 +125,21 @@ async function categorizePost({ postID }) {
         subCats: pushToArr.subCats
     });
 
-    console.log(`Post ${post._id}: ${post.content} categorized as ${pushToArr.category}, subcat: ${pushToArr.subCats} with similarity score of ${pushToArr.simliarityScore}`);
-
     return pushToArr;
-    // for (const cat of categoryRuntimeInfo.catEmbeddings) {
-    //     i++;
+}
 
-    //     const foundSimilarityPost = cosineSimilarity(
-    //         cat,
-    //         categoryRuntimeInfo.catEmbeddings,
-    //         categoryRuntimeInfo.catExampleSentences,
-    //     );
-    //     console.log("Found Similarity:", foundSimilarityPost, categoryRuntimeInfo.catNames[i], categoryRuntimeInfo.catExampleSentences[i] + "\n---");
-    // }
+// filter out categories that are duplicates or have low similarity
+function filterOutDuplicates(categoriesFound, simlarityScore = 0.5, amountCategories = 10) {
+    const uniqueCategories = [];
+    for (const category of categoriesFound) {
+        if (!category || !category.content || !category.similarity) continue;
+        if (category.similarity < simlarityScore) continue; // skip categories with low similarity
+        if (uniqueCategories.length >= amountCategories) break; // limit to 5 unique categories
 
-    // const foundSimilarityPost = cosineSimilarity(
-    //     JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"),
-    //     categoryRuntimeInfo.catEmbeddings,
-    //     categoryRuntimeInfo.catExampleSentences,
-    // );
-
-    // console.log("foundSimilarityPost", foundSimilarityPost);
-console.log("Post embedding:", JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"));
-console.log("Category embedding:", categoryRuntimeInfo.catEmbeddings[2]);
-    /*
-    for (const sentence of foundEmbedding.sentences ?? []) {
-        if (!sentence || !sentence.embedding) continue;
-
-        const foundSimlaritySentence = cosineSimilarity(
-            JSON.parse(sentence.embedding ?? "[]"),
-            categoryRuntimeInfo.catEmbeddings,
-            categoryRuntimeInfo.catNames,
-        );
-
-        foundSimlarities.push(foundSimlaritySentence);
-
-        for (const similarity of foundSimlaritySentence) {
-            if (!similarity.content || !similarity.similarity || isNaN(similarity.similarity)) continue;
-
-            console.log("similarity", similarity);
-            if (!finalScores[similarity.content]) {
-                finalScores[similarity.content] = similarity;
-            } else {
-                finalScores[similarity.content].amount = finalScores[similarity.content].amount+1 ?? 1;
-                finalScores[similarity.content].similarity += (similarity.similarity);
-            }
-        }
-        
-        amount++;
-    }*/
-
-    // console.log("v2, ", finalScores, amount, foundSimlarities);
-
-return { error: true, msg: "No category found" };
-
-    for (const score in finalScores) {
-        finalScores[score].similarity = finalScores[score].similarity / amount;
-        if (finalScores[score].similarity < 0.5) {
-            console.log(`Skipping category ${finalScores[score].content} with similarity score of ${finalScores[score].similarity}`);
-            continue;
-        }
-        categoriesFound.push(finalScores[score]);
+        if (uniqueCategories.find((c) => c.content === category.content)) continue; // already exists
+        uniqueCategories.push(category);
     }
-
-    console.log(finalScores);
-
-    categoriesFound.sort((a, b) => a.similarity - b.similarity);
-
-    categoriesFound.reverse();
-    topCategory = categoriesFound[0];
-
-    subCategories = categoriesFound.slice(1, 6);
-    // console.log(`Top category found: ${topCategory.content} with similarity score of ${topCategory.similarity}`);
-    console.log(categoriesFound);
-    if (!topCategory || !topCategory.similarity) return {error: true, msg: "No top category found"};
-    if (topCategory.similarity < 0.5) return {error: true, msg: "No top category found"};
-
-    return pushToArr;
+    return uniqueCategories;
 }
 
 // Save category data to the post db
