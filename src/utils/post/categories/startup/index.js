@@ -354,13 +354,11 @@ async function getCategoryRuntimeInfo() {
             catNames.push(cat.content);
             exampleIDs.push(example._id);
             catExampleSentences[example._id] = [];
+            
             for (const sentence of cat.categorySentences ?? []) {
                 if (!sentence || !sentence.embedding) continue;
                 if (sentence.exampleID == example._id) catExampleSentences[example._id].push(sentence);
             }
-
-            console.log(`Pushed example embedding for ${cat.content}, example: ${example.content}`);
-            console.log(`Pushed category example embedding for ${cat.content}, example: ${example.content}`);
         }
     }
    

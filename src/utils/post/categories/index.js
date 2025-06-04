@@ -109,7 +109,8 @@ async function categorizePost({ postID }) {
 
     const topCategory = categoriesFoundFinal[0];
     const subCategories = categoriesFoundFinal.slice(1, 6);
-    console.log(`Sentence Comparision`, categoriesFoundFinal, "Example Comparision", filteredCategories);
+    // console.log(`Sentence Comparision`, categoriesFoundFinal, "Example Comparision", filteredCategories);
+    
     const pushToArr = {
         _id: post._id,
         category: topCategory.content,
@@ -154,6 +155,12 @@ async function saveCategoryData({ postID, category, subCats }) {
     });
 
     return updatedPost;
+}
+
+async function categorizeEditedPost({ postID }) {
+    await removeCategoryData({ postID });
+    const categorizedPost = await categorizePost({ postID });
+    return categorizedPost;
 }
 
 // remove category data from post db
@@ -325,5 +332,6 @@ module.exports = {
     getUserCategories,
     updateUserCategory,
     resetUserCategories,
-    restoreUserCategories
+    restoreUserCategories,
+    categorizeEditedPost
 }
