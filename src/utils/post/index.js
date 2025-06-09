@@ -107,7 +107,7 @@ async function editPost({ postID, userID, content}) {
     embedEditedPost({ postID, userID, timestamp: postCheck.timestamp, content }).then((embedResult) => {
         if (embedResult.error) return console.error("Error embedding edited post:", embedResult);
         // re-categorizes post
-        categorizeEditedPost({ postID });
+        categorizeEditedPost({ postID, userID });
     });
     
     // re-tags post

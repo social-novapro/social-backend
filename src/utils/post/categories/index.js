@@ -14,21 +14,23 @@ const DEFAULT_CAT_VALUE = 5;
 var categoryRuntimeInfo = null;
 
 // check out feeds/personalized, why is there a repeat of simlar code
-async function categorizePost({ postID }) {
+async function categorizePost({ postID, userID }) {
+    if (!postID) return searchErrorV2("B009", { userID: "Unknown" });
+    if (!userID) return searchErrorV2("D006", { userID: "Unknown" });
     if (!categoryRuntimeInfo) {
         const tempCategoryRuntimeInfo = await getCategoryRuntimeInfo();
-        if (!tempCategoryRuntimeInfo || tempCategoryRuntimeInfo.error) return tempCategoryRuntimeInfo || { error: true, msg: "No categories found" };
+        if (!tempCategoryRuntimeInfo || tempCategoryRuntimeInfo.error) return tempCategoryRuntimeInfo || searchErrorV2("Q018", { userID: userID });
         categoryRuntimeInfo = tempCategoryRuntimeInfo;
     }
 
     // get post 
     const post = await interactPostSchema.findOne({_id: postID});
-    if (!post) return searchError("B002");
+    if (!post) return searchError("Q003", { userID: userID });
 
     // Get the embedding for the post, already stored
     const foundEmbedding = await getPostEmbedding({ postID });
-    if (!foundEmbedding) return { error: true, msg: "No embedding found for post" };
-    if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) return { error: true, msg: "Missing Embedding data for post" };
+    if (!foundEmbedding) return searchErrorV2("Q019", {userID: userID });
+    if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) return searchErrorV2("Q019", {userID: userID });
     // compare entire post embeding to each category example (5), then average the similarity
 
 
@@ -105,7 +107,7 @@ async function categorizePost({ postID }) {
 
     // filter out
     const categoriesFoundFinal = filterOutDuplicates(categoriesFoundSentences, 0.5, 6);
-    if (!categoriesFoundFinal || !categoriesFoundFinal[0]) return { error: true, msg: "No categories found" };
+    if (!categoriesFoundFinal || !categoriesFoundFinal[0]) return searchErrorV2("Q017", {userID: userID })
 
     const topCategory = categoriesFoundFinal[0];
     const subCategories = categoriesFoundFinal.slice(1, 6);
@@ -157,9 +159,9 @@ async function saveCategoryData({ postID, category, subCats }) {
     return updatedPost;
 }
 
-async function categorizeEditedPost({ postID }) {
+async function categorizeEditedPost({ postID, userID }) {
     await removeCategoryData({ postID });
-    const categorizedPost = await categorizePost({ postID });
+    const categorizedPost = await categorizePost({ postID, userID });
     return categorizedPost;
 }
 
@@ -178,7 +180,7 @@ async function removeCategoryData({ postID }) {
 }
 
 function formatCategory(category) {
-    if (!category) return { error: true, msg: "No category found" };
+    if (!category) return searchErrorV2("Q006", { userID: "system"})
     return {
         id: category.id,
         name: category.name,
@@ -192,7 +194,7 @@ function formatCategory(category) {
 }
 
 function sortCategories() {
-    if (!categories || !categories[0]) return { error: true, msg: "No categories found" };
+    if (!categories || !categories[0]) return searchErrorV2("Q007", { userID: "system" });
     // need, id, name, version, isSubCategory, parentCategoryName
     const foundCategories = [];
     const foundSubcategories = [];
@@ -226,7 +228,7 @@ async function getCategories({userID}) {
 async function getUserCategories({ userID }) {
     const sortedCategoriesFound = await getCategories({ userID });
     const foundUserCategories = await interactCategoryUser.find({ userID: userID });
-    if (!foundUserCategories) return { error: true, msg: "No user categories found" };
+    if (!foundUserCategories) return searchErrorV2("Q008", { userID: userID });
 
     for (const category of sortedCategoriesFound) {
         if (!category) continue;
@@ -236,13 +238,15 @@ async function getUserCategories({ userID }) {
             category.value = foundCategory.userScore;
         }
     }
+
+    if (!sortedCategoriesFound || !sortedCategoriesFound[0]) return searchErrorV2("Q008", { userID: userID });
     return sortedCategoriesFound;
 }
 
 async function updateUserCategory({ userID, categoryID, value }) {
-    if (!userID) return { error: true, msg: "No user ID found" };
-    if (!categoryID) return { error: true, msg: "No category ID found" };
-    if (!value && value!=0) return { error: true, msg: "No value found to update to" };
+    if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
+    if (!categoryID) return searchErrorV2("Q010", { userID: userID });
+    if (!value && value!=0) return searchErrorV2("Q011", { userID: userID });
 
     const foundCategory = await interactCategoryUser.findOne({ userID, categoryID: categoryID });
     if (!foundCategory) {
@@ -261,21 +265,25 @@ async function updateUserCategory({ userID, categoryID, value }) {
 
 
     const updatedUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
-    if (!updatedUserCategory) return { error: true, msg: "No category found" };
-    if (!updatedUserCategory.userScore && updatedUserCategory.userScore != 0) return { error: true, msg: "No user score found" };
-    if (updatedUserCategory.userScore != value) return { error: true, msg: "User score not updated" };
+    if (!updatedUserCategory) return searchErrorV2("Q012", { userID: userID });
+    if (!updatedUserCategory.userScore && updatedUserCategory.userScore != 0) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]}); // return { error: true, msg: "No user score found" };
+    if (updatedUserCategory.userScore != value) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]});// { error: true, msg: "User score not updated" };
     return updatedUserCategory;
 }
 
 async function createUserCategory({ userID, categoryID, value }) {
-    if (!userID) return { error: true, msg: "No user ID found" };
-    if (!categoryID) return { error: true, msg: "No category ID found" };
-    
+    if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
+    if (!categoryID) return searchErrorV2("Q010", { userID: userID });
+    if (!value && value!=0) return searchErrorV2("Q011", { userID: userID });
+
     const foundCategory = await interactCategory.findOne({ id: categoryID });
-    if (!foundCategory) return { error: true, msg: "No category found" };
+    if (!foundCategory) return searchErrorV2("Q012", { userID: userID });
 
     const foundUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
-    if (foundUserCategory) return { error: true, msg: "Category already exists" };
+    if (foundUserCategory) return searchErrorV2("Q013", { userID: userID, options:  [{
+        name: "categoryID",
+        data: categoryID,
+    }] });
     
     const newCategory = await interactCategoryUser.create({
         _id: uuidv4(),
@@ -289,10 +297,10 @@ async function createUserCategory({ userID, categoryID, value }) {
 }
 
 async function resetUserCategories({ userID }) {
-    if (!userID) return { error: true, msg: "No user ID found" };
+    if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
 
     const foundUserCategories = await interactCategoryUser.find({ userID: userID });
-    if (!foundUserCategories) return { error: true, msg: "No user categories found" };
+    if (!foundUserCategories) return searchErrorV2("Q008", { userID: userID });
 
     for (const category of foundUserCategories) {
         await interactCategoryUser.findOneAndDelete({
@@ -309,19 +317,18 @@ async function resetUserCategories({ userID }) {
 }
 
 async function restoreUserCategories({ userID, body }) {
-    if (!userID) return { error: true, msg: "No user ID found" };
+    if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
 
     for (const category of body) {
         if (!category) continue;
-        if (!category.id) return { error: true, msg: "No category ID found" };
-        if (!category.value) return { error: true, msg: "No value found" };
+        if (!category.id) return searchErrorV2("Q015", { userID: userID });
+        if (!category.value) return searchErrorV2("Q016", { userID: userID });
 
         await updateUserCategory({ userID, categoryID: category.categoryID, value: category.value });
     }
 
     const updatedUserCategories = await getUserCategories({ userID });
-    if (!updatedUserCategories) return { error: true, msg: "No user categories found" };
-    return updatedUserCategories;
+    return updatedUserCategories; // if error will return error
 }
 
 module.exports = { 

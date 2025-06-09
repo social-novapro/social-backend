@@ -8,6 +8,7 @@ const fs = require('fs');
 const { checktime } = require('../../../checktime');
 const interactCategoryEmbed = require('../../../../schemas/categories/interactCategoryEmbed');
 const { cosineSimilarity } = require('../../../search/searchV2');
+const { searchErrorV2 } = require('../../../searchError');
 // parse categories, then subcategories
 
 var exampleCategoriesVersion = -1;
@@ -106,6 +107,11 @@ async function startupCategories() {
         });
 
         const res = await result.json();
+        if (!res || res.error) {
+            console.error("Error getting example categories version", res);
+            searchErrorV2("Q004", { userID: "system"})
+            return;
+        }
         exampleCategoriesVersion = res.version;
     }
 
@@ -263,6 +269,7 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     const generatedExamples = await generateExample({ categoryName: categoryName, categoryID: id });
     if (!generatedExamples || generatedExamples.error || generatedExamples.length <= 0) {
         console.error("Error generating examples for category", categoryName, generatedExamples);
+        searchErrorV2("Q005", { userID: "system", options: [ {name: "categoryName", data: categoryName}, {name: "categoryID", data: id} ] })
         return newCategory;
     }
 
@@ -271,7 +278,10 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     // make "categoryExamples" and "categorySentences" array
     for (const example of generatedExamples) {
         const exampleID = uuidv4();
-        if (!example || !example.response) return console.error("Error generating example for category", categoryName, example);
+        if (!example || !example.response) {
+            searchErrorV2("Q005", { userID: "system", options: [ {name: "categoryName", data: categoryName}, {name: "categoryID", data: id} ] })
+            return console.error("Error generating example for category", categoryName, example);
+        }
         const exampleContent = example.response.toLowerCase();
         const example_embedding = await embedSearch({ content: exampleContent });
         categoryExamples.push({
