@@ -343,8 +343,8 @@ async function quickTest() {
     console.log("Category Embeddings:", catRunTime.catEmbeddings.length);
     console.log("Category Names:", catRunTime.catNames.length);
 }
-// quickTest();
 
+// Get runtime information about categories, including embeddings and examples
 async function getCategoryRuntimeInfo() {
     const categories = await getCategoriesFromDB();
     const categoryEmbeddings = await getCategoriesEmbeddingsFromDB();

@@ -159,6 +159,7 @@ async function saveCategoryData({ postID, category, subCats }) {
     return updatedPost;
 }
 
+// Categorize a post that has been edited
 async function categorizeEditedPost({ postID, userID }) {
     await removeCategoryData({ postID });
     const categorizedPost = await categorizePost({ postID, userID });
@@ -179,6 +180,7 @@ async function removeCategoryData({ postID }) {
     return updatedPost;
 }
 
+// Format a category object to be returned
 function formatCategory(category) {
     if (!category) return searchErrorV2("Q006", { userID: "system"})
     return {
@@ -193,6 +195,7 @@ function formatCategory(category) {
     }
 }
 
+// Sort categories into main categories and subcategories
 function sortCategories() {
     if (!categories || !categories[0]) return searchErrorV2("Q007", { userID: "system" });
     // need, id, name, version, isSubCategory, parentCategoryName
@@ -216,6 +219,7 @@ function sortCategories() {
     return foundCategories;
 }
 
+// Get categories from the database, if not already loaded
 async function getCategories({userID}) {
     if (!categories || !categories[0]) {
         categories = await getCategoriesFromDB();
@@ -225,6 +229,7 @@ async function getCategories({userID}) {
     return sortedCategories;
 }
 
+// Get user categories from database
 async function getUserCategories({ userID }) {
     const sortedCategoriesFound = await getCategories({ userID });
     const foundUserCategories = await interactCategoryUser.find({ userID: userID });
@@ -243,6 +248,7 @@ async function getUserCategories({ userID }) {
     return sortedCategoriesFound;
 }
 
+// Update user category, if not exists create it
 async function updateUserCategory({ userID, categoryID, value }) {
     if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
     if (!categoryID) return searchErrorV2("Q010", { userID: userID });
@@ -271,6 +277,7 @@ async function updateUserCategory({ userID, categoryID, value }) {
     return updatedUserCategory;
 }
 
+// Create a user category, if not exists
 async function createUserCategory({ userID, categoryID, value }) {
     if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
     if (!categoryID) return searchErrorV2("Q010", { userID: userID });
@@ -296,6 +303,7 @@ async function createUserCategory({ userID, categoryID, value }) {
     return newCategory;
 }
 
+// unused, but will reimplement later
 async function resetUserCategories({ userID }) {
     if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
 
@@ -316,6 +324,7 @@ async function resetUserCategories({ userID }) {
     };
 }
 
+// unused, but will reimplement later
 async function restoreUserCategories({ userID, body }) {
     if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
 
