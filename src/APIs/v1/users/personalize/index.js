@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { getCategories, createUserCategory, updateUserCategory, getUserCategories, restoreUserCategories, resetUserCategories } = require('../../../../utils/post/categories');
+const { updateUserCategory, getUserCategories } = require('../../../../utils/post/categories');
 
 router.get('/', async (req, res) => {
     const categoriesFound = await getUserCategories({ userID: req.headers.userid });
@@ -19,7 +19,8 @@ router.post('/', async (req, res) => {
     return res.status(200).send(updated);
 });
 
-// untested
+/*
+// unused, but will reimplement later
 router.post('/restore', async (req, res) => {
     const { userid: userID } = req.headers;
     
@@ -28,6 +29,7 @@ router.post('/restore', async (req, res) => {
     return res.status(200).send(restoreCategories)
 });
 
+// unused, but will reimplement later
 router.delete('/reset', async (req, res) => {
     const { userid: userID } = req.headers;
     
@@ -35,5 +37,6 @@ router.delete('/reset', async (req, res) => {
     if (removedCategories.error) return res.status(400).send(removedCategories);
     return res.status(200).send(removedCategories);
 });
+*/
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const { removeCategoryData, categorizePost } = require("../");
 const interactPostSchema = require("../../../../schemas/interactPostSchema");
 
+// Categorize all posts in the database, this is used for initial categorization
 async function categorizeAllPosts() {
     const posts = await interactPostSchema.find();
     for (const post of posts) {
@@ -9,6 +10,7 @@ async function categorizeAllPosts() {
     return { done: true }
 }
 
+// Undo all categorization of posts, removing category data
 async function undoAllCategorizePosts() {
     const posts = await interactPostSchema.find();
     for (const post of posts) {
