@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 const { reqNum, reqString, reqBool, nonreqString } = require('../../types');
 
-const interactCategorySchema = mongoose.Schema({
-    _id: reqNum, // uuid
+const interactCategoryUserSchema = mongoose.Schema({
+    _id: reqString, // uuid
     userID: reqString,
+    categoryID: reqNum, // ID of the category
+    userScore: reqNum,
     timestamp: reqNum, // last edited
-    categoryID: reqString, // ID of the category
-    isSubCategory: reqBool, 
-    parentCategoryID: nonreqString, // ID of the parent category
 });
 
-module.exports = mongoose.model('interact-category', interactCategorySchema);
+module.exports = mongoose.model('interact-category-user', interactCategoryUserSchema);

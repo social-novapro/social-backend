@@ -40,6 +40,11 @@
             "label" : "Ollama Backend",
             "onAutoForward" : "notify",
             "requireLocalPort": true
+        },
+        "27017" : {
+            "label" : "MongoDB",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
         }
     },
 }

@@ -133,4 +133,26 @@ router.get("/undoCategorizePosts", async (req, res) => {
     return res.status(200).send(foundIssue);
 });
 
+// http://localhost:5002/v1/admin/updateActions/categorizePosts2
+router.get("/categorizePosts2", async (req, res) => {
+    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+    const foundIssue1 = await updatePostEmbeddings({ adminID: req.headers.userid, version: "3" });
+    if (foundIssue1.error) return res.status(400).send(foundIssue1);
+
+    const foundIssue = await updateCategorizePosts({ adminID: req.headers.userid, version: "2" });
+    if (foundIssue.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
+// http://localhost:5002/v1/admin/updateActions/undoCategorizePosts2
+router.get("/undoCategorizePosts2", async (req, res) => {
+    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+    const foundIssue1 = await undoPostEmbeddings({ adminID: req.headers.userid, version: "3" });
+    if (foundIssue1.error) return res.status(400).send(foundIssue1);
+
+    const foundIssue = await undoCategorizePosts({ adminID: req.headers.userid, version: "2" });
+    if (foundIssue.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
 module.exports = router;

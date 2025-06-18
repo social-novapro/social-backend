@@ -10,6 +10,7 @@ const { editTags } = require("./tags");
 const { getPostWithData } = require("./getPost");
 const interactUserSchema = require("../../schemas/interactUserSchema");
 const { editAttachments } = require("./attachments");
+const { categorizeEditedPost } = require("./categories");
 
 async function getPostReplies({ postID, userID }) {
     const postData = await interactPostSchema.findOne({_id: postID});
@@ -103,7 +104,12 @@ async function editPost({ postID, userID, content}) {
     )
 
     // re-embeds post
-    embedEditedPost({ postID, userID, timestamp: postCheck.timestamp, content });
+    embedEditedPost({ postID, userID, timestamp: postCheck.timestamp, content }).then((embedResult) => {
+        if (embedResult.error) return console.error("Error embedding edited post:", embedResult);
+        // re-categorizes post
+        categorizeEditedPost({ postID, userID });
+    });
+    
     // re-tags post
     editTags({ userID, postID, newContent: content, postedTimestamp: postCheck.timestamp });
 

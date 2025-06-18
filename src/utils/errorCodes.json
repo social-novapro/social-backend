@@ -1168,6 +1168,96 @@
                     "msg" : "There was no found post data"
                 },
                 {
+                    "code" : "Q004",
+                    "msg" : "Error getting example categories version at runtime."
+                },
+                {
+                    "code" : "Q005",
+                    "msg" : "Error generating example for category %cat (ID: %catID) at runtime.",
+                    "options" : [
+                        {
+                            "name" : "categoryName",
+                            "replacement" : "%cat",
+                            "default" : "(Unknown)"
+                        },
+                        {
+                            "name" : "categoryID",
+                            "replacement" : "%catID",
+                            "default" : "(Unknown)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "Q006",
+                    "msg" : "No category found to format."
+                },
+                {
+                    "code" : "Q007",
+                    "msg" : "No categories found to sort."
+                },
+                {
+                    "code" : "Q008",
+                    "msg" : "No user categories found to get."
+                },
+                {
+                    "code" : "Q009", 
+                    "msg" : "No userID found to update category."
+                },
+                {
+                    "code" : "Q010",
+                    "msg" : "No category ID found."
+                },
+                {
+                    "code" : "Q011",
+                    "msg" : "No new category value to update to."
+                },
+                {
+                    "code" : "Q012",
+                    "msg" : "No category found with provided ID"
+                },
+                {
+                    "code" : "Q013",
+                    "msg" : "User category already exists for provided categoryID, %catID",
+                    "options" : [
+                        {
+                            "name" : "categoryID",
+                            "replacement" : "%catID",
+                            "default" : "(Unknown)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "Q014",
+                    "msg" : "User category was not updated for categoryID, %catID",
+                    "options" : [
+                        {
+                            "name" : "categoryID",
+                            "replacement" : "%catID",
+                            "default" : "(Unknown)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "Q015",
+                    "msg" : "No categoryID found to restore."
+                },
+                {
+                    "code" : "Q016",
+                    "msg" : "No value found for category to restore."
+                },
+                {
+                    "code" : "Q017",
+                    "msg" : "No categories found to filter out when categorizing."
+                },
+                {
+                    "code" : "Q018",
+                    "msg" : "No categories found at runtime when categorizing."
+                },
+                {
+                    "code" : "Q019",
+                    "msg" : "Missing Embedding data for post."
+                },
+                {
                     "code" : "R001",
                     "msg" : "No errorID was provided."
                 },
