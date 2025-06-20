@@ -23,19 +23,29 @@ async function postIsLiked({ postID, userID }) {
 // Get like index for a post or user
 // uuid: postID or userID
 // type: 0 for post, 1 for user
-async function getLikeIndex({ uuid, type, createIfNeed }) {
+async function getLikeIndex({ uuid, type, indexID=null, createIfNeed }) {
     // Find Post Schema
-    const postLikeIndexFound = await interactPostLikeIndex.findOne({
-        uuid,
-        type,
-        current: true
-    });
-    if (postLikeIndexFound || postLikeIndexFound.count < 20) {
+    var postLikeIndexFound = null;
+    if (indexID) {
+        postLikeIndexFound = await interactPostLikeIndex.findOne({
+            _id: indexID,
+            uuid: uuid,
+            type: type,
+            current: true
+        });
+    } else {
+        const postLikeIndexFound = await interactPostLikeIndex.findOne({
+            uuid,
+            type,
+            current: true
+        });
+    }
+    if (postLikeIndexFound && postLikeIndexFound.count < 20) {
         return postLikeIndexFound;
     }
 
     if (!createIfNeed) {
-        if (!postLikeIndexFound) return searchErrorV2("D016", { uuid: uuid, type: type });
+        if (!postLikeIndexFound) return searchErrorV2("D027", { uuid: uuid, type: type });
         return postLikeIndexFound;
     }
 
@@ -61,16 +71,21 @@ async function getLikeIndex({ uuid, type, createIfNeed }) {
             { upsert: true }
         );
     }
+
+    // return the new index
+    const newIndex = await interactPostLikeIndex.findOne({ _id: newIndexID });
+    if (!newIndex) return searchErrorV2("D028", { uuid: uuid, type: type });
+    return newIndex;
 }
 
-async function getPostAndUserLikeIndex({ postID, userID, createIfNeed = true }) {
+async function getPostAndUserLikeIndex({ postID, userID, indexID=null, createIfNeed = true }) {
     // Get post like index
-    const postLikeIndex = await getLikeIndex({ uuid: postID, type: 0, createIfNeed });
-    if (!postLikeIndex) return searchErrorV2("D016", { userID: userID });
+    const postLikeIndex = await getLikeIndex({ uuid: postID, type: 0, indexID, createIfNeed });
+    if (!postLikeIndex) return searchErrorV2("D028", { userID: userID });
 
     // Get user like index
-    const userLikeIndex = await getLikeIndex({ uuid: userID, type: 1, createIfNeed });
-    if (!userLikeIndex) return searchErrorV2("D017", { userID: userID });
+    const userLikeIndex = await getLikeIndex({ uuid: userID, type: 1, indexID, createIfNeed });
+    if (!userLikeIndex) return searchErrorV2("D029", { userID: userID });
 
     return {
         postLikeIndex,
@@ -82,42 +97,52 @@ async function getPostAndUserLikeIndex({ postID, userID, createIfNeed = true }) 
 async function unlikePost({postID, userID}) {
     // Check if post exists
     const postFound = await interactPostSchema.findOne({ _id: postID});
-    if (!postFound || postFound.error) return searchErrorV2("K002", { userID: userID});
+    if (!postFound || postFound.error) return searchErrorV2("D030", { userID: userID});
     
     const foundLiked = await postIsLiked({ postID, userID });
-    if (!foundLiked || postFound.error) return searchErrorV2("D014", { userID: userID });
+    if (!foundLiked || postFound.error) return searchErrorV2("D031", { userID: userID });
 
     // Undo like
     await interactPostLike.findOneAndUpdate(
-        { postID: postID, userID: userID }, 
+        { _id: foundLiked._id },
+        // { postID: postID, userID: userID, active: true }, 
         { active: false },
+        { upsert: true }
     );
 
+    // get index holding the like
     // Get indexes
     const postAndUserLikeIndex = await getPostAndUserLikeIndex({ postID, userID, createIfNeed: false });
-    if (postAndUserLikeIndex.error) return postAndUserLikeIndex || searchErrorV2("D017", {userID}); // return error if any
+    // if theres an error i should probably inactive the like , wait no i do undo it 
+    if (postAndUserLikeIndex.error) return postAndUserLikeIndex || searchErrorV2("D027", {userID}); // return error if any
     const { postLikeIndex, userLikeIndex } = postAndUserLikeIndex;
 
     // Remove likeID from post like index
     await interactPostLikeIndex.findOneAndUpdate(
         { _id: postLikeIndex._id },
-        { $pull: { likes: foundLiked._id } },
-        { count: postLikeIndex.count>=1 ? postLikeIndex.count-1 : 0 }, 
+        { 
+            $pull: { likes: foundLiked._id } ,
+            $set: { count: postLikeIndex.count>=1 ? postLikeIndex.count-1 : 0 }
+        }, 
         { upsert: true }
     );
 
     // Remove likeID from user like index
     await interactPostLikeIndex.findOneAndUpdate(
         { _id: userLikeIndex._id },
-        { $pull: { likes: foundLiked._id } },
-        { count: userLikeIndex.count>=1 ? postLikeIndex.count-1 : 0 }, 
+        { 
+            $pull: { likes: foundLiked._id },
+            $set: { count: userLikeIndex.count>=1 ? postLikeIndex.count-1 : 0 }
+        },
         { upsert: true }
     );
     
-    // // Update total likes
-    // var newTotalLikes = 0
-    // if (!postFound.totalLikes) newTotalLikes = 0 // if no likes, set to 0, shouldnt hit
-    // else newTotalLikes = postFound.totalLikes - 1;
+    // Update total likes
+    var newTotalLikes = 0
+    if (!postFound.totalLikes) newTotalLikes = 0 // if no likes, set to 0, shouldnt hit
+    else newTotalLikes = postFound.totalLikes - 1;
+
+    await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
 
     // Update user like count
     const foundUser = await interactUserSchema.findOne({ _id: userID});
@@ -155,8 +180,8 @@ async function likePost({ postID, userID }) {
     const foundUser = await interactUserSchema.findOne({ _id: userID});
 
     // Get indexes
-    const postAndUserLikeIndex = await getPostAndUserLikeIndex({ postID, userID, createIfNeed: false });
-    if (postAndUserLikeIndex.error) return postAndUserLikeIndex || searchErrorV2("D017", {userID}); // return error if any
+    const postAndUserLikeIndex = await getPostAndUserLikeIndex({ postID, userID, createIfNeed: true });
+    if (postAndUserLikeIndex.error) return postAndUserLikeIndex || searchErrorV2("D027", {userID}); // return error if any
     const { postLikeIndex, userLikeIndex } = postAndUserLikeIndex;
 
     const likeID = uuidv4();
@@ -174,38 +199,42 @@ async function likePost({ postID, userID }) {
     // Add likeID to post like index
     await interactPostLikeIndex.findOneAndUpdate(
         { _id: postLikeIndex._id },
-        { $pull: { likes: foundLiked._id } },
-        { count: postLikeIndex.count ? postLikeIndex.count+1 : 1 }, 
+        { 
+            $push: { likes: likeID },
+            $set: { count: postLikeIndex.count ? postLikeIndex.count + 1 : 1 }
+        },
         { upsert: true }
     );
 
     // Add likeID to user like index
     await interactPostLikeIndex.findOneAndUpdate(
         { _id: userLikeIndex._id },
-        { $pull: { likes: foundLiked._id } },
-        { count: userLikeIndex.count ? postLikeIndex.count+1 : 1 }, 
+        { 
+            $push: { likes: likeID },
+            $set: { count: userLikeIndex.count ? userLikeIndex.count + 1 : 1 }
+        },
         { upsert: true }
     );
 
-    // var newTotalLikes = 0
-    // if (!postFound.totalLikes) newTotalLikes = 1
-    // else newTotalLikes = postFound.totalLikes + 1;
-    // await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
-    
-    const postFoundNew = await interactPostSchema.findOne({ _id: postID});
-   
     // update like counts
+    var newTotalLikes = 0
+    if (!postFound.totalLikes) newTotalLikes = 1
+    else newTotalLikes = postFound.totalLikes + 1;
+
+    await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
+   
+    const postFoundNew = await interactPostSchema.findOne({ _id: postID});
+
+    // Update like count for user liking
     const foundUserLikedCount = foundUser.likedCount ? foundUser.likedCount + 1 : 1;
     await interactUserSchema.findOneAndUpdate({ _id: userID }, { likedCount: foundUserLikedCount }, { upsert: true });
 
+    // Update original poster's like count
     const userFoundOgPost = await interactUserSchema.findOne({ _id: postFound.userID });
     const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount + 1 : 1;
     await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
 
-    // check if had liked previously, and only notify if not
-    const postFoundLike = await interactPostLike.find({ postID, userID});
-    if (postFoundLike && postFoundLike.length <= 1) pushLikeNotifications({username: foundUser.username, postData: postFoundNew});
-
+    // update coposters' like counts
     if (postFound.coposters && postFound.coposters.length > 0) {
         for (const coposter of postFound.coposters) {
             // like on profile
@@ -214,6 +243,10 @@ async function likePost({ postID, userID }) {
             await interactUserSchema.findOneAndUpdate({ _id: coposter }, { likeCount: foundUserLikeCount }, { upsert: true });
         }
     }
+
+    // check if had liked previously, and only notify if not
+    const postFoundLike = await interactPostLike.find({ postID, userID});
+    if (postFoundLike && postFoundLike.length <= 1) pushLikeNotifications({username: foundUser.username, postData: postFoundNew});
 
     return postFoundNew;
 }
@@ -226,7 +259,7 @@ async function getPostLikes({ postID, indexID=null }) {
         // Get the latest index for the post
         indexFound = await interactPostLikeIndex.findOne({ uuid: postID, type: 0, current: true }).sort({ timestamp: -1 });
     }
-    if (!indexFound) return searchErrorV2("D016", { uuid: postID, type: 0 });
+    if (!indexFound) return searchErrorV2("D028", { uuid: postID, type: 0 });
     
     // format the response 
     var returnData = {
@@ -235,13 +268,16 @@ async function getPostLikes({ postID, indexID=null }) {
     };
 
     const foundLikeData = [];
+    console.log("indexFound.likes", indexFound);
     for (const likeID of indexFound.likes) {
         const likeData = await interactPostLike.findOne({ _id: likeID, postID: postID, active: true });
+        console.log("likeData", likeData);
         if (likeData) {
             foundLikeData.push(likeData);
 
             // get user data
             const foundUser = await interactUserSchema.findOne({ _id: likeData.userID });
+            console.log("foundUser", foundUser);
             if (!foundUser) continue; // skip if user not found
             if (foundUser) {
                 returnData.peopleLiked.push({
@@ -258,7 +294,7 @@ async function getPostLikes({ postID, indexID=null }) {
     return returnData;
 }
 
-async function getUserLikes({ userID, indexID=null }) {
+async function getUserLikes({ userID, indexID=null, userData = null }) {
     var indexFound = null;
     if (indexID) {
         indexFound = await interactPostLikeIndex.findOne({ _id: indexID, uuid: userID, type: 1, current: true });
@@ -266,16 +302,17 @@ async function getUserLikes({ userID, indexID=null }) {
         // Get the latest index for the post
         indexFound = await interactPostLikeIndex.findOne({ uuid: userID, type: 0, current: true }).sort({ timestamp: -1 });
     }
-    if (!indexFound) return searchErrorV2("D016", { uuid: userID, type: 0 });
+    if (!indexFound) return searchErrorV2("D029", { uuid: userID, type: 0 });
     
     // format the response 
     var returnData = {
         ...indexFound._doc, // include index data
-        peopleLiked: []
+        postsLiked: []
     };
 
-    const foundUser = await interactUserSchema.findOne({ _id: likeData.userID });
-    if (!foundUser) return searchErrorV2("D018", { userID: userID });
+    var foundUser = userData;
+    if (!foundUser) foundUser = await interactUserSchema.findOne({ _id: likeData.userID });
+    if (!foundUser) return searchErrorV2("D032", { userID: userID });
 
     // get all posts liked by the user
     const foundLikeData = [];
@@ -291,7 +328,7 @@ async function getUserLikes({ userID, indexID=null }) {
         }
     }
 
-    returnData.peopleLiked.sort((a, b) => b.timestamp - a.timestamp); // sort by timestamp descending
+    returnData.postsLiked.sort((a, b) => b.timestamp - a.timestamp); // sort by timestamp descending
     return returnData;
 }
 

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqString, reqNum, reqBool } = require('../../types');
+const { reqString, reqNum, reqBool, nonreqString } = require('../../types');
 
 const likeSchema = mongoose.Schema({
     // userID of person who liked
@@ -12,8 +12,8 @@ const interactPostLikeIndex = mongoose.Schema({
     timestamp: reqNum,
     uuid: reqString, // postID OR userID
     type: reqNum, // 0 = post, 1 = user
-    nextIndexID: reqString, 
-    prevIndexID: reqString,
+    nextIndexID: nonreqString, 
+    prevIndexID: nonreqString,
     current: reqBool,
     count: reqNum,
     likes: [ reqString] // likeIDs 

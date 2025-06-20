@@ -7,7 +7,7 @@ const { searchErrorV2 } = require("../../searchError");
 const { v4: uuidv4 } = require("uuid");
 
 // update admin action 
-async function actionUpdateLikePostsIndexes({ adminID }) {
+async function actionUpdateLikePostsIndexes() {
     const allPosts = await interactPostLikeSchema.find();
     for (const post of allPosts) {
         await convertOldPostLikeSchema({ postID: post._id });
@@ -19,12 +19,12 @@ async function actionUpdateLikePostsIndexes({ adminID }) {
 // Convert old post like schema to new one
 async function convertOldPostLikeSchema({ postID }) {
     const oldPostLikes = await interactPostLikeSchema.findOne({ _id: postID });
-    if (!oldPostLikes) return searchErrorV2("D016", { postID: postID });
+    if (!oldPostLikes) return searchErrorV2("D033", { postID: postID });
 
     for (const like of oldPostLikes.peopleLiked) {
         const userID = like._id;
         // Get indexes
-        const postAndUserLikeIndex = await getPostAndUserLikeIndex({ postID, userID, createIfNeed: false });
+        const postAndUserLikeIndex = await getPostAndUserLikeIndex({ postID, userID, createIfNeed: true });
         if (postAndUserLikeIndex.error) return postAndUserLikeIndex || searchErrorV2("D017", {userID}); // return error if any
         const { postLikeIndex, userLikeIndex } = postAndUserLikeIndex;
 
@@ -37,22 +37,26 @@ async function convertOldPostLikeSchema({ postID }) {
             userIndexID: userLikeIndex._id,
             postIndexID: postLikeIndex._id,
             active: true,
-            timestamp: checktime()
+            timestamp: like.timeStamp || checktime(),
         });
 
         // Add likeID to post like index
         await interactPostLikeIndex.findOneAndUpdate(
             { _id: postLikeIndex._id },
-            { $pull: { likes: foundLiked._id } },
-            { count: postLikeIndex.count ? postLikeIndex.count+1 : 1 }, 
+            { 
+                $push: { likes: likeID },
+                $set: { count: postLikeIndex.count ? postLikeIndex.count + 1 : 1 }
+            },
             { upsert: true }
         );
 
         // Add likeID to user like index
         await interactPostLikeIndex.findOneAndUpdate(
             { _id: userLikeIndex._id },
-            { $pull: { likes: foundLiked._id } },
-            { count: userLikeIndex.count ? postLikeIndex.count+1 : 1 }, 
+            { 
+                $push: { likes: likeID },
+                $set: { count: userLikeIndex.count ? userLikeIndex.count + 1 : 1 }
+            },
             { upsert: true }
         );
     }
@@ -60,7 +64,7 @@ async function convertOldPostLikeSchema({ postID }) {
     return { done: true, message: "Converted old post like schema to new one." };
 }
 
-async function actionUndoLikePostsIndexes({ adminID }) {
+async function actionUndoLikePostsIndexes() {
     // just delete all interactPostLike and interactPostLikeIndex data
     await interactPostLike.deleteMany({});
     await interactPostLikeIndex.deleteMany({});

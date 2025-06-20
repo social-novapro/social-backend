@@ -491,6 +491,35 @@
                     "ignoreError" : true
                 },
                 {
+                    "code" : "D027",
+                    "msg" : "Like Index was not found, and will not create a new one.",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "D028",
+                    "msg" : "Post Like index was not found."
+                },
+                {
+                    "code" : "D029",
+                    "msg" : "User like index was not found."
+                },
+                {
+                    "code" : "D030",
+                    "msg" : "Post was not found while unliking."
+                },
+                {
+                    "code" : "D031",
+                    "msg" : "Post was not previously liked by user."
+                },
+                {
+                    "code" : "D032",
+                    "msg" : "User was not found while trying to get user likes."
+                },
+                {
+                    "code" : "D033",
+                    "msg" : "No old post likes were found."
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
