@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { likePost } = require('../../../../utils/post/likeUtil');
+const { likePost } = require('../../../../utils/post/likeUtilV2');
 
 router.put('/:postID', async (req, res) => {
     const { postID } = req.params;
