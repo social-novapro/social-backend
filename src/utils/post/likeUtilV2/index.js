@@ -7,18 +7,19 @@ const { pushLikeNotifications } = require("../../pushNotifications/postActionNot
 const { searchErrorV2 } = require("../../searchError");
 const { v4: uuidv4 } = require("uuid");
 const { getPostWithData } = require("../getPost");
+const { postIsLiked } = require("./isPostLiked");
 
-// Check if post is liked by user
-async function postIsLiked({ postID, userID }) {
-    const postLiked = await interactPostLike.findOne({
-        postID: postID,
-        userID: userID,
-        active: true
-    });
+// // Check if post is liked by user
+// async function postIsLiked({ postID, userID }) {
+//     const postLiked = await interactPostLike.findOne({
+//         postID: postID,
+//         userID: userID,
+//         active: true
+//     });
 
-    if (postLiked != null) return postLiked;
-    else return false;
-}
+//     if (postLiked != null) return postLiked;
+//     else return false;
+// }
 
 // Get like index for a post or user
 // uuid: postID or userID
@@ -34,12 +35,13 @@ async function getLikeIndex({ uuid, type, indexID=null, createIfNeed }) {
             current: true
         });
     } else {
-        const postLikeIndexFound = await interactPostLikeIndex.findOne({
+        postLikeIndexFound = await interactPostLikeIndex.findOne({
             uuid,
             type,
             current: true
         });
     }
+    console.log("Post Like Index Found:", postLikeIndexFound);
     if (postLikeIndexFound && postLikeIndexFound.count < 20) {
         return postLikeIndexFound;
     }
@@ -268,16 +270,13 @@ async function getPostLikes({ postID, indexID=null }) {
     };
 
     const foundLikeData = [];
-    console.log("indexFound.likes", indexFound);
     for (const likeID of indexFound.likes) {
         const likeData = await interactPostLike.findOne({ _id: likeID, postID: postID, active: true });
-        console.log("likeData", likeData);
         if (likeData) {
             foundLikeData.push(likeData);
 
             // get user data
             const foundUser = await interactUserSchema.findOne({ _id: likeData.userID });
-            console.log("foundUser", foundUser);
             if (!foundUser) continue; // skip if user not found
             if (foundUser) {
                 returnData.peopleLiked.push({
@@ -299,8 +298,8 @@ async function getUserLikes({ userID, indexID=null, userData = null }) {
     if (indexID) {
         indexFound = await interactPostLikeIndex.findOne({ _id: indexID, uuid: userID, type: 1, current: true });
     } else {
-        // Get the latest index for the post
-        indexFound = await interactPostLikeIndex.findOne({ uuid: userID, type: 0, current: true }).sort({ timestamp: -1 });
+        // Get the latest index for the user
+        indexFound = await interactPostLikeIndex.findOne({ uuid: userID, type: 1, current: true }).sort({ timestamp: -1 });
     }
     if (!indexFound) return searchErrorV2("D029", { uuid: userID, type: 0 });
     
@@ -311,7 +310,7 @@ async function getUserLikes({ userID, indexID=null, userData = null }) {
     };
 
     var foundUser = userData;
-    if (!foundUser) foundUser = await interactUserSchema.findOne({ _id: likeData.userID });
+    if (!foundUser) foundUser = await interactUserSchema.findOne({ _id: userID });
     if (!foundUser) return searchErrorV2("D032", { userID: userID });
 
     // get all posts liked by the user
