@@ -1,5 +1,6 @@
 const interactFollowSchema = require("../../../schemas/user/interactFollowSchema");
 const { checktime } = require("../../checktime");
+const { getPrivacySetting } = require("../../privacy");
 const { areUserFriends, areUsersFriendsOfFriends } = require("../follows");
 
 const storedRelations = { }; // cache for relations
@@ -22,61 +23,69 @@ async function getUserRelation({ userID, otherUserID }) {
     return relationData;
 }
 
+// userID = user requesting relation
+// otherUserID = user to check relation with
 async function getUserRelationSubFunc({ userID, otherUserID }) {
+    const foundRelations = new Set([]);;
+
+    // User requesting is following user
+    const userIsFollowing = await interactFollowSchema.findOne({ userID, followedUserID: otherUserID });
+    if (userIsFollowing) foundRelations.add(6); //return { relation: "Following", privacyCode: 5, userID, otherUserID, msg: "User is following other user."}
+    
+    // User requesting is followed by user
+    const userIsFollowed = await interactFollowSchema.findOne({ otherUserID, followedUserID: userID });
+    if (userIsFollowed) foundRelations.add(5); //return { relation: "Followed", privacyCode: 6, userID, otherUserID, msg: "User is followed by other user."}
 
     // is user themself
-    if (userID == otherUserID) return { relation: "Private", privacyCode: 4, userID, otherUserID, msg: "Relation is private level."}
+    if (userID == otherUserID) foundRelations.add(4); //return { relation: "Private", privacyCode: 4, userID, otherUserID, msg: "Relation is private level."}
 
     // is friends
     const userFriends = await areUserFriends({ userID, otherUserID });
-    if (userFriends) return { relation: "Friends", privacyCode: 3, userID, otherUserID, msg: "Users are friends."}
+    if (userFriends) foundRelations.add(3); //return { relation: "Friends", privacyCode: 3, userID, otherUserID, msg: "Users are friends."}
 
     // is friend of friends
     const userFriendsOfFriends = await areUsersFriendsOfFriends({ userID, otherUserID });
-    if (userFriendsOfFriends) return { relation: "Friends of friends", privacyCode: 2, userID, otherUserID, msg: "Users are friends of friends."}
-
-    // is followed by user
-    const userIsFollowing = await interactFollowSchema.findOne({ user: userID, following: otherUserID });
-    if (userIsFollowing) return { relation: "Following", privacyCode: 5, userID, otherUserID, msg: "User is following other user."}
-
-    // is following user
-    const userIsFollowed = await interactFollowSchema.findOne({ user: otherUserID, following: userID });
-    if (userIsFollowed) return { relation: "Followed", privacyCode: 6, userID, otherUserID, msg: "User is followed by other user."}
+    if (userFriendsOfFriends) foundRelations.add(2); // return { relation: "Friends of friends", privacyCode: 2, userID, otherUserID, msg: "Users are friends of friends."}
 
     // else 
-    return { relation: "Public", privacyCode: 1, userID, otherUserID, msg: "Users have no relation."}
+    foundRelations.add(1); //return { relation: "Public", privacyCode: 1, userID, otherUserID, msg: "Users have no relation."}
+    return {relations: foundRelations};
 }
 
-async function canView({ userID, otherUserID, privacyNum, userIDFollowOther }) {
-    if (userID == otherUserID) return true;
-    const userRelation = await getUserRelation({ userID, otherUserID });
+// async function canView({ userID, otherUserID, privacyNum, userIDFollowOther }) {
+//     if (userID == otherUserID) return true;
+//     const userRelation = await getUserRelation({ userID, otherUserID });
 
+//     if (userRelation.blocked) return false;
+//     if (privacyNum == 1) return true;
+
+//     console.log("Checking privacy for user relation", userRelation, privacyNum, userIDFollowOther);
+//     // if (privacyNum == userRelation.privacyCode) return true;
+
+//     if (userRelation.relations.has(privacyNum)) return true;
+
+//     return false;
+// }
+
+async function checkUserRelationForPrivacy({ userID, otherUserID, privacyName, privacyOverride }) {
+    if (!userID || !otherUserID || !privacyName) return false;
+    
+    if (userID == otherUserID) return true;
+
+
+    const userRelation = await getUserRelation({ userID, otherUserID });
+    if (userRelation.error) return userRelation;
     if (userRelation.blocked) return false;
+
+    const foundPrivacy = await getPrivacySetting({ userID, privacy: privacyName });
+    const privacyNum = privacyOverride ? privacyOverride : foundPrivacy;
+    
+    if (privacyNum == 4 && userID != postData.userID) return searchErrorV2("T013", { userID });
     if (privacyNum == 1) return true;
 
-    console.log("Checking privacy for user relation", userRelation, privacyNum, userIDFollowOther);
-    if (privacyNum == userRelation.privacyCode) return true;
-
-    // if (privacyNum == 2) {
-    //     if (userRelation.privacyCode == 2) return true;
-    //     else return false;
-    // };
-
-    // if (privacyNum == 3) {
-    //     if (userRelation.privacyCode == 3) return true;
-    //     else return false;
-    // };
-    
-    // if (privacyNum == 4) {
-    //     if (userRelation.privacyCode == 4) return true;
-    //     else return false;
-    // };
-
-    // if (privacyNum == 5) {
-    //     if (userRelation.privacyCode == 5) return true
-
+    if (userRelation.relations.has(privacyNum)) return true;
     return false;
 }
 
 // async function getPrivacySettingRelation({ userID, userData, ownUserID, ownUserData, privacyName, })
-module.exports = { getUserRelation, canView }
+module.exports = { getUserRelation, checkUserRelationForPrivacy }
