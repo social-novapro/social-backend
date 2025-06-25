@@ -285,11 +285,11 @@ async function getPostLikes({ postID, indexID=null }) {
 }
 
 async function getUserLikesRouteFace({ userID, indexID=null, ownUserID }) {
-    if (!userID && !indexID) return { error: true, message: "User ID or indexID is required" };
-    if (!ownUserID) return { error: true, message: "Own user ID is required" };
+    if (!userID && !indexID) return searchErrorV2("D034", { userID: "unknown" });
+    if (!ownUserID) return searchErrorV2("D035", { userID: userID });
 
     const ownUserData = await interactUserSchema.findOne({ _id: ownUserID });
-    if (!ownUserData) return { error: true, message: "Own user data not found" };
+    if (!ownUserData) return searchErrorV2("D036", { userID: ownUserID });
 
     // get likes
     const userLikes = await getUserLikes({ userID, indexID, ownUserID, ownUserData });
@@ -297,8 +297,8 @@ async function getUserLikesRouteFace({ userID, indexID=null, ownUserID }) {
 }
 
 async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = null }) {
-    if (!userID && !indexID) return { error: true, message: "User ID is required" };
-    if (!ownUserID && !ownUserData) return { error: true, message: "Own user ID or data is required" };
+    if (!userID && !indexID) return searchErrorV2("D034", { userID: "unknown" });
+    if (!ownUserID && !ownUserData) return searchErrorV2("D035", { userID: userID });
 
     // get index data
     var indexFound = null;
@@ -306,7 +306,7 @@ async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = n
     if (indexID) {
         indexFound = await interactPostLikeIndex.findOne({ _id: indexID, type: 1 });
     } else {
-        if (!userID) return { error: true, message: "User ID is required" };
+        if (!userID) return searchErrorV2("D034", { userID: "unknown" });
         // Get the latest index for the user
         indexFound = await interactPostLikeIndex.findOne({ uuid: userID, type: 1, current: true });
     }
@@ -317,7 +317,7 @@ async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = n
 
     // check if user is valid
     const userData = await interactUserSchema.findOne({ _id: userID ? userID : indexFound.uuid });
-    if (!userData) return { error: true, message: "User not found" };
+    if (!userData) return searchErrorV2("D036", { userID: userID });
 
     // find own user data if not provided
     var foundOwnUser = ownUserData;
@@ -332,7 +332,7 @@ async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = n
         privacyOverride: userData.privacyOverride
     });
 
-    if (!canViewLikes || canViewLikes.error) return { error : true, message: "You do not have permission to view this user's likes." };
+    if (!canViewLikes || canViewLikes.error) return searchErrorV2("D037", {userID: ownUserID});
     
     // format the response 
     var returnData = {

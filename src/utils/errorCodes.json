@@ -520,6 +520,22 @@
                     "msg" : "No old post likes were found."
                 },
                 {
+                    "code" : "D034",
+                    "msg" : "UserID or indexID is required to get likes for user."
+                },
+                {
+                    "code" : "D035",
+                    "msg" : "Own userID is required to get likes for user."
+                },
+                {
+                    "code" : "D036",
+                    "msg" : "UserData was not found while getting likes for user."
+                },
+                {
+                    "code" : "D037",
+                    "msg" : "You do not have permission to view this user's likes."
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
