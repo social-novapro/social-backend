@@ -1,15 +1,15 @@
 const router = require('express').Router();
-const { getUserLikes } = require('../../../../utils/post/likeUtilV2');
+const { getUserLikesRouteFace } = require('../../../../utils/post/likeUtilV2');
 
 router.get('/:userID', async (req, res) => {
-    const likeData = await getUserLikes({ userID: req.params.userID });
+    const likeData = await getUserLikesRouteFace({ userID: req.params.userID, ownUserID: req.headers.userid });
     if (likeData.error) return res.status(403).send(likeData);
     return res.status(200).send(likeData);
 });
 
-router.get('/:userID/:indexID', async (req, res) => {
-    const { userID, indexID } = req.params;
-    const likeData = await getUserLikes({ userID, indexID });
+router.get('/index/:indexID', async (req, res) => {
+    const { indexID } = req.params;
+    const likeData = await getUserLikesRouteFace({ indexID, ownUserID: req.headers.userid });
     if (likeData.error) return res.status(403).send(likeData);
     return res.status(200).send(likeData);
 });

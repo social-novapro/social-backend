@@ -1,12 +1,6 @@
 const mongoose = require('mongoose');
 const { reqString, reqNum, reqBool, nonreqString } = require('../../types');
 
-const likeSchema = mongoose.Schema({
-    // userID of person who liked
-    _id: reqString,
-    timeStamp: reqNum,
-});
-
 const interactPostLikeIndex = mongoose.Schema({
     _id: reqString, // uuid -- indexLikeID
     timestamp: reqNum,

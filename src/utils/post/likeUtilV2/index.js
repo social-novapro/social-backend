@@ -10,18 +10,6 @@ const { getPostWithData } = require("../getPost");
 const { postIsLiked } = require("./isPostLiked");
 const { checkUserRelationForPrivacy } = require("../../user/relations");
 
-// // Check if post is liked by user
-// async function postIsLiked({ postID, userID }) {
-//     const postLiked = await interactPostLike.findOne({
-//         postID: postID,
-//         userID: userID,
-//         active: true
-//     });
-
-//     if (postLiked != null) return postLiked;
-//     else return false;
-// }
-
 // Get like index for a post or user
 // uuid: postID or userID
 // type: 0 for post, 1 for user
@@ -33,7 +21,6 @@ async function getLikeIndex({ uuid, type, indexID=null, createIfNeed }) {
             _id: indexID,
             uuid: uuid,
             type: type,
-            current: true
         });
     } else {
         postLikeIndexFound = await interactPostLikeIndex.findOne({
@@ -42,8 +29,8 @@ async function getLikeIndex({ uuid, type, indexID=null, createIfNeed }) {
             current: true
         });
     }
-    console.log("Post Like Index Found:", postLikeIndexFound);
-    if (postLikeIndexFound && postLikeIndexFound.count < 20) {
+
+    if (postLikeIndexFound && postLikeIndexFound.likes.length < 20) {
         return postLikeIndexFound;
     }
 
@@ -81,13 +68,13 @@ async function getLikeIndex({ uuid, type, indexID=null, createIfNeed }) {
     return newIndex;
 }
 
-async function getPostAndUserLikeIndex({ postID, userID, indexID=null, createIfNeed = true }) {
+async function getPostAndUserLikeIndex({ postID, userID, postIndexID=null, userIndexID=null, createIfNeed = true }) {
     // Get post like index
-    const postLikeIndex = await getLikeIndex({ uuid: postID, type: 0, indexID, createIfNeed });
+    const postLikeIndex = await getLikeIndex({ uuid: postID, type: 0, indexID: postIndexID, createIfNeed });
     if (!postLikeIndex) return searchErrorV2("D028", { userID: userID });
 
     // Get user like index
-    const userLikeIndex = await getLikeIndex({ uuid: userID, type: 1, indexID, createIfNeed });
+    const userLikeIndex = await getLikeIndex({ uuid: userID, type: 1, indexID: userIndexID, createIfNeed });
     if (!userLikeIndex) return searchErrorV2("D029", { userID: userID });
 
     return {
@@ -115,7 +102,7 @@ async function unlikePost({postID, userID}) {
 
     // get index holding the like
     // Get indexes
-    const postAndUserLikeIndex = await getPostAndUserLikeIndex({ postID, userID, createIfNeed: false });
+    const postAndUserLikeIndex = await getPostAndUserLikeIndex({ postID, userID, postIndexID: foundLiked.postIndexID, userIndexID: foundLiked.userIndexID, createIfNeed: false });
     // if theres an error i should probably inactive the like , wait no i do undo it 
     if (postAndUserLikeIndex.error) return postAndUserLikeIndex || searchErrorV2("D027", {userID}); // return error if any
     const { postLikeIndex, userLikeIndex } = postAndUserLikeIndex;
@@ -130,12 +117,15 @@ async function unlikePost({postID, userID}) {
         { upsert: true }
     );
 
+    // console.log("postLikeIndex", postLikeIndex, foundLiked);
+    // console.log("userLikeIndex", userLikeIndex, foundLiked);
+
     // Remove likeID from user like index
     await interactPostLikeIndex.findOneAndUpdate(
         { _id: userLikeIndex._id },
         { 
             $pull: { likes: foundLiked._id },
-            $set: { count: userLikeIndex.count>=1 ? postLikeIndex.count-1 : 0 }
+            $set: { count: userLikeIndex.count>=1 ? userLikeIndex.count-1 : 0 }
         },
         { upsert: true }
     );
@@ -294,13 +284,39 @@ async function getPostLikes({ postID, indexID=null }) {
     return returnData;
 }
 
+async function getUserLikesRouteFace({ userID, indexID=null, ownUserID }) {
+    if (!userID && !indexID) return { error: true, message: "User ID or indexID is required" };
+    if (!ownUserID) return { error: true, message: "Own user ID is required" };
+
+    const ownUserData = await interactUserSchema.findOne({ _id: ownUserID });
+    if (!ownUserData) return { error: true, message: "Own user data not found" };
+
+    // get likes
+    const userLikes = await getUserLikes({ userID, indexID, ownUserID, ownUserData });
+    return userLikes;
+}
+
 async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = null }) {
-    if (!userID) return { error: true, message: "User ID is required" };
+    if (!userID && !indexID) return { error: true, message: "User ID is required" };
     if (!ownUserID && !ownUserData) return { error: true, message: "Own user ID or data is required" };
+
+    // get index data
+    var indexFound = null;
+    var userID = userID ? userID : null;
+    if (indexID) {
+        indexFound = await interactPostLikeIndex.findOne({ _id: indexID, type: 1 });
+    } else {
+        if (!userID) return { error: true, message: "User ID is required" };
+        // Get the latest index for the user
+        indexFound = await interactPostLikeIndex.findOne({ uuid: userID, type: 1, current: true });
+    }
+
+    if (!indexFound) return searchErrorV2("D029", { uuid: userID, type: 0 });
+    if (!userID) userID = indexFound.uuid; 
 
 
     // check if user is valid
-    const userData = await interactUserSchema.findOne({ _id: userID });
+    const userData = await interactUserSchema.findOne({ _id: userID ? userID : indexFound.uuid });
     if (!userData) return { error: true, message: "User not found" };
 
     // find own user data if not provided
@@ -315,17 +331,8 @@ async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = n
         privacyName: "likes",
         privacyOverride: userData.privacyOverride
     });
+
     if (!canViewLikes || canViewLikes.error) return { error : true, message: "You do not have permission to view this user's likes." };
-
-    var indexFound = null;
-    if (indexID) {
-        indexFound = await interactPostLikeIndex.findOne({ _id: indexID, uuid: userID, type: 1, current: true });
-    } else {
-        // Get the latest index for the user
-        indexFound = await interactPostLikeIndex.findOne({ uuid: userID, type: 1, current: true }).sort({ timestamp: -1 });
-    }
-
-    if (!indexFound) return searchErrorV2("D029", { uuid: userID, type: 0 });
     
     // format the response 
     var returnData = {
@@ -335,6 +342,20 @@ async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = n
 
     // get all posts liked by the user
     const foundLikeData = [];
+    indexFound.likes.reverse(); 
+
+    // if less than 5, get previous index
+    if (indexFound.likes.length < 5 && indexFound.prevIndexID) {
+        const prevIndex = await interactPostLikeIndex.findOne({ _id: indexFound.prevIndexID, type: 1 });
+        if (prevIndex && prevIndex.likes) {
+            prevIndex.likes.reverse(); 
+            
+            indexFound.likes.push(...prevIndex.likes);
+        }
+
+        returnData.prevIndexID = prevIndex && prevIndex.prevIndexID ? prevIndex.prevIndexID : null;
+    }
+
     for (const likeID of indexFound.likes) {
         const likeData = await interactPostLike.findOne({ _id: likeID, userID: userID, active: true });
         if (likeData) {
@@ -347,7 +368,6 @@ async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = n
         }
     }
 
-    returnData.postsLiked.sort((a, b) => b.timestamp - a.timestamp); // sort by timestamp descending
     return returnData;
 }
 
@@ -358,4 +378,5 @@ module.exports = {
     getPostLikes,
     getPostAndUserLikeIndex,
     getUserLikes,
+    getUserLikesRouteFace
 };

@@ -68,7 +68,6 @@ async function setPrivacySetting({ userID, newSetting }) {
     }
 
     if (!changed) return searchErrorV2("T005", { userID });
-    console.log("Privacy setting changed:", newSetting.name, "to", newSetting.value, "for user:", userID);
     return true;
 }
 
