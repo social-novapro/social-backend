@@ -2,6 +2,7 @@ const interactUserSchema = require("../../../schemas/interactUserSchema");
 const { getUserLikes } = require("../../post/likeUtilV2");
 const { getUserMentions } = require("../../post/tags");
 const { getUserPosts } = require("../../post/user");
+const { validPrivacyOption } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");
 const { getUserBadges } = require("../badges");
 const { getUserPins } = require("../edit");
@@ -56,8 +57,11 @@ async function getAllUserData({userID, searchTerm }) {
     const userFollowing = await findFollow({ userID: ownUser._id, followedUserID: userData._id });
 
     // TODO - likes (requires update)
+    // const validatedLikePrivacy = validPrivacyOption({ userID })
     const likesData = await getUserLikes({ userID: userData._id });
 
+
+    // get relation
     const sendBack = {
         included: {
             user: "true",
