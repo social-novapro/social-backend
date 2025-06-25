@@ -8,6 +8,7 @@ const { searchErrorV2 } = require("../../searchError");
 const { v4: uuidv4 } = require("uuid");
 const { getPostWithData } = require("../getPost");
 const { postIsLiked } = require("./isPostLiked");
+const { checkUserRelationForPrivacy } = require("../../user/relations");
 
 // // Check if post is liked by user
 // async function postIsLiked({ postID, userID }) {
@@ -293,7 +294,23 @@ async function getPostLikes({ postID, indexID=null }) {
     return returnData;
 }
 
-async function getUserLikes({ userID, indexID=null, userData = null }) {
+async function getUserLikes({ userID, indexID = null, userData = null }) {
+    if (!userID || !userData) return { error: true, message: "User ID and user data are required" };
+    
+    // check privacy
+    const canViewLikes = await checkUserRelationForPrivacy({
+        userID,
+        otherUserID: userData._id,
+        privacyName: "likes",
+        privacyOverride: userData.privacyOverride
+    });
+    if (!canViewLikes || canViewLikes.error) return canViewLikes;
+        
+    // check if user is valid
+    var foundUser = userData;
+    if (!foundUser) foundUser = await interactUserSchema.findOne({ _id: userID });
+    if (!foundUser) return searchErrorV2("D032", { userID: userID });
+
     var indexFound = null;
     if (indexID) {
         indexFound = await interactPostLikeIndex.findOne({ _id: indexID, uuid: userID, type: 1, current: true });
@@ -308,10 +325,6 @@ async function getUserLikes({ userID, indexID=null, userData = null }) {
         ...indexFound._doc, // include index data
         postsLiked: []
     };
-
-    var foundUser = userData;
-    if (!foundUser) foundUser = await interactUserSchema.findOne({ _id: userID });
-    if (!foundUser) return searchErrorV2("D032", { userID: userID });
 
     // get all posts liked by the user
     const foundLikeData = [];
