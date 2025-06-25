@@ -58,8 +58,8 @@ async function getAllUserData({userID, searchTerm }) {
 
     // TODO - likes (requires update)
     // const validatedLikePrivacy = validPrivacyOption({ userID })
-    const likesData = await getUserLikes({ userID: userData._id });
-
+    const likesData = await getUserLikes({ userID: userData._id, ownUserID: ownUser._id, ownUserData: ownUser });
+    const hasLikeData = likesData && !likesData.error && likesData.likes && likesData.likes.length > 0;
 
     // get relation
     const sendBack = {
@@ -70,7 +70,7 @@ async function getAllUserData({userID, searchTerm }) {
             badges: badgeData.length > 0 ? true : false,
             mentions: mentionData.length > 0 ? true : false,
             userPostIndexData: postIndex ? true : false,
-            likes: likesData ? true : false,
+            likes: hasLikeData,
             extraData: true
         },
         userData: userData,
@@ -79,11 +79,13 @@ async function getAllUserData({userID, searchTerm }) {
         pinData: pinData,
         badgeData: badgeData,
         mentionData: mentionData,
-        likesData: !likesData.error ? likesData : null,
+        likesData: hasLikeData ? likesData : null,
         extraData: {
             followed: userFollowing.found ? true : false,
         }
     }
+
+    console.log("Sending back user data:", likesData);
 
     return sendBack;
 }

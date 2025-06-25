@@ -294,9 +294,20 @@ async function getPostLikes({ postID, indexID=null }) {
     return returnData;
 }
 
-async function getUserLikes({ userID, indexID = null, userData = null }) {
-    if (!userID || !userData) return { error: true, message: "User ID and user data are required" };
-    
+async function getUserLikes({ userID, indexID = null, ownUserID, ownUserData = null }) {
+    if (!userID) return { error: true, message: "User ID is required" };
+    if (!ownUserID && !ownUserData) return { error: true, message: "Own user ID or data is required" };
+
+
+    // check if user is valid
+    const userData = await interactUserSchema.findOne({ _id: userID });
+    if (!userData) return { error: true, message: "User not found" };
+
+    // find own user data if not provided
+    var foundOwnUser = ownUserData;
+    if (!ownUserData) foundOwnUser = await interactUserSchema.findOne({ _id: ownUserID });
+    if (!foundOwnUser) return searchErrorV2("D032", { userID: userID });
+
     // check privacy
     const canViewLikes = await checkUserRelationForPrivacy({
         userID,
@@ -304,12 +315,7 @@ async function getUserLikes({ userID, indexID = null, userData = null }) {
         privacyName: "likes",
         privacyOverride: userData.privacyOverride
     });
-    if (!canViewLikes || canViewLikes.error) return canViewLikes;
-        
-    // check if user is valid
-    var foundUser = userData;
-    if (!foundUser) foundUser = await interactUserSchema.findOne({ _id: userID });
-    if (!foundUser) return searchErrorV2("D032", { userID: userID });
+    if (!canViewLikes || canViewLikes.error) return { error : true, message: "You do not have permission to view this user's likes." };
 
     var indexFound = null;
     if (indexID) {
@@ -318,6 +324,7 @@ async function getUserLikes({ userID, indexID = null, userData = null }) {
         // Get the latest index for the user
         indexFound = await interactPostLikeIndex.findOne({ uuid: userID, type: 1, current: true }).sort({ timestamp: -1 });
     }
+
     if (!indexFound) return searchErrorV2("D029", { uuid: userID, type: 0 });
     
     // format the response 
@@ -334,7 +341,7 @@ async function getUserLikes({ userID, indexID = null, userData = null }) {
             foundLikeData.push(likeData);
 
             // get post data
-            const fullPostData = await getPostWithData({ postID: likeData.postID, userID: userID, ownUser: foundUser });
+            const fullPostData = await getPostWithData({ postID: likeData.postID, userID: ownUserID, ownUser: foundOwnUser });
             if (!fullPostData) continue; // skip if post not found
             returnData.postsLiked.push({...fullPostData, likeID: likeData._id, timestamp: likeData.timestamp });
         }
