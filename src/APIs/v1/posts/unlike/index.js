@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { unlikePost } = require('../../../../utils/post/likeUtil');
+const { unlikePost } = require('../../../../utils/post/likeUtilV2');
 
 router.delete('/:postID', async (req, res) => {
     const { postID } = req.params;

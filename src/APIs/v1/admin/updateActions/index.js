@@ -8,7 +8,9 @@ const {
     updateUserPostIndexes,
     undoUserPostIndexes,
     updateCategorizePosts,
-    undoCategorizePosts
+    undoCategorizePosts,
+    updateLikePostsIndexes,
+    undoLikePostsIndexes
 } = require('../../../../utils/admin/actions');
 
 const { searchErrorV2 } = require('../../../../utils/searchError');
@@ -151,6 +153,22 @@ router.get("/undoCategorizePosts2", async (req, res) => {
     if (foundIssue1.error) return res.status(400).send(foundIssue1);
 
     const foundIssue = await undoCategorizePosts({ adminID: req.headers.userid, version: "2" });
+    if (foundIssue.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
+// http://localhost:5002/v1/admin/updateActions/likePostsIndexes
+router.get("/likePostsIndexes", async (req, res) => {
+    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+    const foundIssue = await updateLikePostsIndexes({ adminID: req.headers.userid });
+    if (foundIssue.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
+// http://localhost:5002/v1/admin/updateActions/undoLikePostsIndexes
+router.get("/undoLikePostsIndexes", async (req, res) => {
+    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+    const foundIssue = await undoLikePostsIndexes({ adminID: req.headers.userid });
     if (foundIssue.error) return res.status(400).send(foundIssue);
     return res.status(200).send(foundIssue);
 });

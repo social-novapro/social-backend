@@ -234,13 +234,55 @@ async function unfollowUser({userID, unfollowUserID }) {
 // Get mutual followers
 // GET /mutual/followers
 async function getMutualFollowers() {
-
 }
 
 // Get mutual following
 // GET /mutual/following
 async function getMutualFollowing() {
+}
 
+// is friends of friends 
+async function areUsersFriendsOfFriends({ userID, otherUserID }) {
+    const foundUserFriends = await getFriendsList({ userID });
+    if (!foundUserFriends.found) return { found: false, friends: [] };
+    const foundOtherUserFriends = await getFriendsList({ userID: otherUserID });
+    if (!foundOtherUserFriends.found) return { found: false, friends: [] };
+    const mutualFriends = [];
+    for (const friend of foundUserFriends.friends) {
+        if (foundOtherUserFriends.friends.includes(friend)) {
+            mutualFriends.push(friend);
+        }
+    }
+    if (mutualFriends.length == 0) return { found: false, friends: [] };
+    return { found: true, friends: mutualFriends };
+}
+
+// find if friends
+async function areUserFriends({ userID, otherUserID }) {
+    const foundFollow = await findFollow({ userID, followedUserID: otherUserID });
+    if (!foundFollow.found) return false;
+    const foundFollowOther = await findFollow({ userID: otherUserID, followedUserID: userID });
+    if (!foundFollowOther.found) return false;
+    return true;
+}
+
+// get list of friends
+async function getFriendsList({ userID }) {
+    // const
+    const allFollowing = await interactFollowSchema.find({
+        userID,
+        current: true
+    });
+    const friendsList = [];
+    for (const follow of allFollowing) {
+        const foundFollowOther = await findFollow({ userID: follow.followedUserID, followedUserID: userID });
+        if (foundFollowOther.found) {
+            friendsList.push(follow.followedUserID);
+        }
+    }
+
+    if (friendsList.length == 0) return { found: false, friends: [] };
+    return { found: true, friends: friendsList };
 }
 
 // find if user is following another user
@@ -432,5 +474,7 @@ module.exports = {
     unfollowUser,
     getMutualFollowers,
     getMutualFollowing,
-    findFollow
+    findFollow,
+    areUserFriends,
+    areUsersFriendsOfFriends
 }

@@ -1,6 +1,7 @@
 const interactAdminUpdateActionsSchema = require("../../../schemas/admin/interactAdminUpdateActionsSchema");
 const { checktime } = require("../../checktime");
 const { categorizeAllPosts, undoAllCategorizePosts } = require("../../post/categories/updateAction");
+const { actionUpdateLikePostsIndexes, actionUndoLikePostsIndexes } = require("../../post/likeUtilV2/updateActionsLikes");
 const { updateAllPostEmbeddings, undoAllPostEmbeddings } = require("../../search/embed/firstRun");
 const { searchErrorV2 } = require("../../searchError");
 const { updateUserBadges, undoUserBadges } = require("../../user/badges/firstRun");
@@ -158,6 +159,27 @@ async function undoCategorizePosts({ adminID, version=null }) {
     return { done: true }
 }
 
+// June 2025 - 1.8
+async function updateLikePostsIndexes({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "likePostsIndexes" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await actionUpdateLikePostsIndexes();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "likePostsIndexes",
+        done: true,
+        timestamp: checktime(),
+    });
+    
+    return result;
+}
+
+async function undoLikePostsIndexes({ adminID }) {
+    await actionUndoLikePostsIndexes();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "likePostsIndexes" })
+    return { done: true };
+}
+
 module.exports = { 
     updateUsernameLc,
     undoUsernameLc,
@@ -172,6 +194,8 @@ module.exports = {
     updateUserPostIndexes,
     undoUserPostIndexes,
     updateCategorizePosts,
-    undoCategorizePosts
+    undoCategorizePosts,
+    updateLikePostsIndexes,
+    undoLikePostsIndexes,
 }
 
