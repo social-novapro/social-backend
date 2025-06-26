@@ -52,10 +52,10 @@ function getPossiblePreferences(full) {
         name: "subscriptionFeed",
         niceName: "Subscriptions",
         description: "All posts from users you are subscribed to",
-    }, {
-        name: "personal",
-        niceName: "Personalized",
-        description: "Personalized feed based on your interactions",
+    // }, {
+    //     name: "personal",
+    //     niceName: "Personalized",
+    //     description: "Personalized feed based on your interactions",
     }];
 
     if (full) return possible;
