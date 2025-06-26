@@ -3,6 +3,7 @@ const { embedSearch, EMBEDING_VERSION } = require('../../../search/embed');
 const categories = require('./categories.json');
 const { v4: uuidv4 } = require('uuid');
 // get all categories, get embeddings for each category
+require('dotenv').config({ path: whichEnv()})
 
 const fs = require('fs');
 const { checktime } = require('../../../checktime');
@@ -12,7 +13,7 @@ const { searchErrorV2 } = require('../../../searchError');
 // parse categories, then subcategories
 
 var exampleCategoriesVersion = -1;
-
+const targetService = `${process.env.AI_INTERFACE_SERVICE}/v1`; // AI service
 /* Assign ids to categories and subcategories */
 function assignIds() {
     var currentId = 0;
@@ -87,7 +88,7 @@ async function quickUpdateScriptCategory() {
 }
 
 async function generateExample({ categoryName, categoryID }) {
-    const result = await fetch('http://localhost:5004/v1/categoryExample/'+encodeURIComponent(categoryName), {
+    const result = await fetch(targetService+'/categoryExample/'+encodeURIComponent(categoryName), {
         method: 'POST',
     });
 
@@ -102,7 +103,7 @@ async function startupCategories() {
     // assignExamplesFromOllama();
     // assignIds();
     if (exampleCategoriesVersion == -1) {
-        const result = await fetch('http://localhost:5004/v1/categoryExample/version', {
+        const result = await fetch(targetService+'/categoryExample/version', {
             method: 'GET',
         });
 
