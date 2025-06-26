@@ -491,6 +491,51 @@
                     "ignoreError" : true
                 },
                 {
+                    "code" : "D027",
+                    "msg" : "Like Index was not found, and will not create a new one.",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "D028",
+                    "msg" : "Post Like index was not found."
+                },
+                {
+                    "code" : "D029",
+                    "msg" : "User like index was not found."
+                },
+                {
+                    "code" : "D030",
+                    "msg" : "Post was not found while unliking."
+                },
+                {
+                    "code" : "D031",
+                    "msg" : "Post was not previously liked by user."
+                },
+                {
+                    "code" : "D032",
+                    "msg" : "User was not found while trying to get user likes."
+                },
+                {
+                    "code" : "D033",
+                    "msg" : "No old post likes were found."
+                },
+                {
+                    "code" : "D034",
+                    "msg" : "UserID or indexID is required to get likes for user."
+                },
+                {
+                    "code" : "D035",
+                    "msg" : "Own userID is required to get likes for user."
+                },
+                {
+                    "code" : "D036",
+                    "msg" : "UserData was not found while getting likes for user."
+                },
+                {
+                    "code" : "D037",
+                    "msg" : "You do not have permission to view this user's likes."
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
@@ -1166,6 +1211,96 @@
                 {
                     "code" : "Q003",
                     "msg" : "There was no found post data"
+                },
+                {
+                    "code" : "Q004",
+                    "msg" : "Error getting example categories version at runtime."
+                },
+                {
+                    "code" : "Q005",
+                    "msg" : "Error generating example for category %cat (ID: %catID) at runtime.",
+                    "options" : [
+                        {
+                            "name" : "categoryName",
+                            "replacement" : "%cat",
+                            "default" : "(Unknown)"
+                        },
+                        {
+                            "name" : "categoryID",
+                            "replacement" : "%catID",
+                            "default" : "(Unknown)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "Q006",
+                    "msg" : "No category found to format."
+                },
+                {
+                    "code" : "Q007",
+                    "msg" : "No categories found to sort."
+                },
+                {
+                    "code" : "Q008",
+                    "msg" : "No user categories found to get."
+                },
+                {
+                    "code" : "Q009", 
+                    "msg" : "No userID found to update category."
+                },
+                {
+                    "code" : "Q010",
+                    "msg" : "No category ID found."
+                },
+                {
+                    "code" : "Q011",
+                    "msg" : "No new category value to update to."
+                },
+                {
+                    "code" : "Q012",
+                    "msg" : "No category found with provided ID"
+                },
+                {
+                    "code" : "Q013",
+                    "msg" : "User category already exists for provided categoryID, %catID",
+                    "options" : [
+                        {
+                            "name" : "categoryID",
+                            "replacement" : "%catID",
+                            "default" : "(Unknown)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "Q014",
+                    "msg" : "User category was not updated for categoryID, %catID",
+                    "options" : [
+                        {
+                            "name" : "categoryID",
+                            "replacement" : "%catID",
+                            "default" : "(Unknown)"
+                        }
+                    ]
+                },
+                {
+                    "code" : "Q015",
+                    "msg" : "No categoryID found to restore."
+                },
+                {
+                    "code" : "Q016",
+                    "msg" : "No value found for category to restore."
+                },
+                {
+                    "code" : "Q017",
+                    "msg" : "No categories found to filter out when categorizing."
+                },
+                {
+                    "code" : "Q018",
+                    "msg" : "No categories found at runtime when categorizing."
+                },
+                {
+                    "code" : "Q019",
+                    "msg" : "Missing Embedding data for post."
                 },
                 {
                     "code" : "R001",

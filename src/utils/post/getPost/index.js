@@ -5,9 +5,9 @@ const { getPrivacySetting } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");
 const { checkIfPinned } = require("../../user/edit/checkIfPinned");
 const { findFollow } = require("../../user/follows");
-const { getUserRelation, canView } = require("../../user/relations");
+const { getUserRelation, canView, checkUserRelationForPrivacy } = require("../../user/relations");
 const { getBookmarkSave } = require("../bookmarks");
-const { postIsLiked } = require("../likeUtil");
+const { postIsLiked } = require("../likeUtilV2/isPostLiked");
 const { getPostTags } = require("../tags/getPostTags");
 
 async function getPostWithData({ userID, postID, post, ownUser }) {
@@ -38,21 +38,18 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
     if (!postData) return searchErrorV2("Q003", { userID });
     if (postData.deleted) return searchErrorV2("D026", { userID });
     
-    // privacy settings check
-    const userPrivacy = await getPrivacySetting({ userID: postData.userID, privacy: "post" });
-    if (userPrivacy == 4 && userID != postData.userID) return searchErrorV2("T013", { userID });
-
     // check if user is following poster
     const userFollowing = await findFollow({ userID, followedUserID: postData.userID });
     if (userFollowing.found) extraData.followed = true;
 
-    // can user view post
-    const canViewPost = await canView({ 
+    // privacy settings check
+    const canViewPost = await checkUserRelationForPrivacy({
         userID,
-        otherUserID: postData.userID, 
-        privacyNum: postData.privacyOverride ? postData.privacyOverride : userPrivacy,
-        userIDFollowOther: userFollowing.found
+        otherUserID: postData.userID,
+        privacyName: "post",
+        privacyOverride: postData.privacyOverride ? postData.privacyOverride : null
     });
+    // console.log("Can view post:", canViewPost, "UserID:", userID, "PostID:", postID, "PostData:", postData);
     if (!canViewPost || canViewPost.error) return searchErrorV2("T013", { userID });
 
     if (postData.content) {

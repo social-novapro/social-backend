@@ -1,5 +1,5 @@
 {
-  "version": "1.7",
+  "version": "1.81",
   "categories": [
     {
       "name": "art",
@@ -367,6 +367,10 @@
         {
           "name": "parenting",
           "id": 711
+        },
+        {
+          "name": "weather",
+          "id": 712
         }
       ],
       "id": 700
