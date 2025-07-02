@@ -173,4 +173,27 @@ router.get("/undoLikePostsIndexes", async (req, res) => {
     return res.status(200).send(foundIssue);
 });
 
+// http://localhost:5002/v1/admin/updateActions/categorizePosts3
+router.get("/categorizePosts3", async (req, res) => {
+ //   if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+    const foundIssue1 = await updatePostEmbeddings({ adminID: req.headers.userid, version: "4" });
+    if (foundIssue1.error) return res.status(400).send(foundIssue1);
+
+    const foundIssue = await updateCategorizePosts({ adminID: req.headers.userid, version: "3" });
+    if (foundIssue.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
+// http://localhost:5002/v1/admin/updateActions/undoCategorizePosts3
+router.get("/undoCategorizePosts2", async (req, res) => {
+    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+    const foundIssue1 = await undoPostEmbeddings({ adminID: req.headers.userid, version: "4" });
+    if (foundIssue1.error) return res.status(400).send(foundIssue1);
+
+    const foundIssue = await undoCategorizePosts({ adminID: req.headers.userid, version: "3" });
+    if (foundIssue.error) return res.status(400).send(foundIssue);
+    return res.status(200).send(foundIssue);
+});
+
+
 module.exports = router;
