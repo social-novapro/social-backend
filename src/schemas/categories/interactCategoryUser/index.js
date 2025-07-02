@@ -6,6 +6,7 @@ const interactCategoryUserSchema = mongoose.Schema({
     userID: reqString,
     categoryID: reqNum, // ID of the category
     userScore: reqNum,
+    autoScore: reqNum, // auto score
     timestamp: reqNum, // last edited
 });
 
