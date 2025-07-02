@@ -3,6 +3,7 @@ const { embedSearch, EMBEDING_VERSION } = require('../../../search/embed');
 const categories = require('./categories.json');
 const { v4: uuidv4 } = require('uuid');
 // get all categories, get embeddings for each category
+const { whichEnv } = require('../../../../../runMode/whichEnv');
 require('dotenv').config({ path: whichEnv()})
 
 const fs = require('fs');
@@ -157,7 +158,7 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     // might not have subcategory if its main category (e.g. "Technology")
     const foundCategory = await interactCategory.findOne({ id: id });
     const foundExamples = await interactCategoryEmbed.find({ categoryID: id });
-    var toUpdateExamples = false;
+    var toUpdateExamples = true;
 
     const foundExample = (foundExamples && foundExamples.length > 0) ? foundExamples[0] : null;
     if (!foundExample) toUpdateExamples = true;
@@ -284,7 +285,11 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
             return console.error("Error generating example for category", categoryName, example);
         }
         const exampleContent = example.response.toLowerCase();
+        console.log(exampleContent)
+
+        // PROBLEM IS HERE SOMEWHERE
         const example_embedding = await embedSearch({ content: exampleContent });
+        console.log("--- EMBEDING EXAMPLE", exampleContent);
         categoryExamples.push({
             _id: exampleID,
             categoryEmbedID: newCategory.id,
@@ -321,7 +326,36 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
 
     return newCategory;
 }
+// quickTest2();
+async function quickTest2() {
+    const mypost = "software optimization ensures smooth functionality and efficient resource allocation for enhanced user satisfaction. they’re vital for modern technological systems."
+    const myCont = "software optimization ensures smooth functionality and efficient resource allocation for enhanced user satisfaction. they’re vital for modern technological systems."
+    const mypostEmbedding = await embedSearch({ content: mypost });
+    // console.log("Embedding:", mypostEmbedding.embedding.embedding);
+    const foundExample = await interactCategoryEmbed.findOne({ _id: "501f7c66-8bf1-40c5-81ac-afb33f250e59"})
 
+    if (!foundExample) {
+        console.error("No example found");
+        return;
+    }
+
+    const myExample = foundExample.categoryExamples[9];
+    if (!myExample || !myExample.embedding) {
+        console.error("No example found in category", foundExample.content);
+        return;
+    }
+
+    console.log("compare embedding", myExample.content, "with", mypost);
+    // console.log(myExample.embedding, mypostEmbedding.embedding.embedding);
+    console.log("same embedding: ", JSON.parse(myExample.embedding) == mypostEmbedding.embedding.embedding);
+    const similarity = cosineSimilarity(
+        JSON.parse(myExample.embedding),
+        [mypostEmbedding.embedding.embedding],
+        [mypost],
+        [foundExample.content],
+    );
+    console.log("Cosine Similarity:", similarity);
+}
 // Run a quick test to see if cosine simlarity is working correctly
 async function quickTest() {
     const catRunTime = await getCategoryRuntimeInfo();
@@ -337,6 +371,7 @@ async function quickTest() {
             cat,
             catRunTime.catEmbeddings,
             catRunTime.catExampleSentences,
+            catRunTime.catNames,
         );
         console.log("Found Similarity:", foundSimilarityPost, catRunTime.catNames[i], catRunTime.catExampleSentences[i] + "\n---");
     }
@@ -346,12 +381,15 @@ async function quickTest() {
 }
 
 // Get runtime information about categories, including embeddings and examples
+// quickTest()
+// "6d6a2acd-bc9b-4272-bf46-c8a904315f08"
 async function getCategoryRuntimeInfo() {
     const categories = await getCategoriesFromDB();
     const categoryEmbeddings = await getCategoriesEmbeddingsFromDB();
     const catEmbeddings = [];
     const catExamples = [];
     const catExampleSentences = {};
+    const catExampleContent = [];
     const catNames = [];
     const exampleIDs = [];
 
@@ -363,6 +401,7 @@ async function getCategoryRuntimeInfo() {
 
             catEmbeddings.push(JSON.parse(example.embedding ?? "[]"));
             catNames.push(cat.content);
+            catExampleContent.push(example.content);
             exampleIDs.push(example._id);
             catExampleSentences[example._id] = [];
             
@@ -379,6 +418,7 @@ async function getCategoryRuntimeInfo() {
         catNames: catNames,
         categoryEmbeddings: categoryEmbeddings,
         catExamples: catExamples,
+        catExampleContent: catExampleContent,
         exampleIDs: exampleIDs,
         catExampleSentences: catExampleSentences,
     }

@@ -137,7 +137,7 @@ router.get("/undoCategorizePosts", async (req, res) => {
 
 // http://localhost:5002/v1/admin/updateActions/categorizePosts2
 router.get("/categorizePosts2", async (req, res) => {
-    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+ //   if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
     const foundIssue1 = await updatePostEmbeddings({ adminID: req.headers.userid, version: "3" });
     if (foundIssue1.error) return res.status(400).send(foundIssue1);
 
@@ -159,7 +159,7 @@ router.get("/undoCategorizePosts2", async (req, res) => {
 
 // http://localhost:5002/v1/admin/updateActions/likePostsIndexes
 router.get("/likePostsIndexes", async (req, res) => {
-    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
+//    if (!canUndo()) return res.status(400).send(searchErrorV2("R014", { userID: req.headers.userid }));
     const foundIssue = await updateLikePostsIndexes({ adminID: req.headers.userid });
     if (foundIssue.error) return res.status(400).send(foundIssue);
     return res.status(200).send(foundIssue);
