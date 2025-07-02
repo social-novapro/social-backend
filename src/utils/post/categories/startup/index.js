@@ -14,6 +14,7 @@ const { searchErrorV2 } = require('../../../searchError');
 // parse categories, then subcategories
 
 var exampleCategoriesVersion = -1;
+
 const targetService = `${process.env.AI_INTERFACE_SERVICE}/v1`; // AI service
 /* Assign ids to categories and subcategories */
 function assignIds() {
@@ -161,12 +162,11 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     var toUpdateExamples = true;
 
     const foundExample = (foundExamples && foundExamples.length > 0) ? foundExamples[0] : null;
-    if (!foundExample) toUpdateExamples = true;
+    if (!foundExample) toUpdateExamples = false;
 
     if (foundCategory) {
         var updatedCategory = false;
         var reason = null;
-
 
         // make sure name is correct
         if (foundCategory.name != categoryName) {
@@ -178,6 +178,10 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         if (foundCategory.version != categories.version) {
             updatedCategory = true;
             reason = `Version is incorrect. Found: ${foundCategory.version}, Expected: ${categories.version}`;
+            if (categories.version < categories.exampleUpdateVer) {
+                // if version is less than certian version, need to redo examples
+                toUpdateExamples = true;
+            }
         }
         // make sure has examples entry, and not to many
         else if (!foundExamples || foundExamples.length <= 0 || foundExamples.length > 1) {

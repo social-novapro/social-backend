@@ -7,7 +7,7 @@ const { getCategoriesFromDB, getCategoriesEmbeddingsFromDB, getCategoryRuntimeIn
 const { v4: uuidv4 } = require("uuid");
 const { searchError, searchErrorV2 } = require("../../searchError");
 const interactCategory = require("../../../schemas/categories/interactCategory");
-const { createPoll } = require("../../polls");
+
 var categories = null;
 var sortedCategories = [];
 const DEFAULT_CAT_VALUE = 5;
@@ -46,7 +46,6 @@ async function categorizePost({ postID, userID }) {
 
     // filter out categories 
     const filteredCategories = filterOutDuplicates(categoriesFound, 0.80, 10);
-    console.log(`Filtered Categories`, filteredCategories);
 
     // sentences
     const exampleSentences = {
@@ -68,7 +67,6 @@ async function categorizePost({ postID, userID }) {
     }
 
     // get example sentences for category
-    console.log(foundEmbedding.sentences.length)
     const finalScores = {}; 
     for (const sentence of foundEmbedding.sentences ?? []) {
         if (!sentence || !sentence.embedding) continue;
@@ -80,7 +78,6 @@ async function categorizePost({ postID, userID }) {
             exampleSentences.ids
         );
 
-        console.log(`Similarities`, similarities);
         // similarities.sort((a, b) => a.similarity - b.similarity);
         // similarities.reverse();
 
@@ -94,7 +91,6 @@ async function categorizePost({ postID, userID }) {
         }
     }
 
-    console.log(`Final Scores`, finalScores);
     const categoriesFoundSentences = [];
     for (const category in finalScores) {
         if (!finalScores[category] || !finalScores[category].similarity || !finalScores[category].count) continue;
@@ -125,179 +121,6 @@ async function categorizePost({ postID, userID }) {
     }
     pushToArr.categorySaved = await saveCategoryData({
         postID: postData._id,
-        category: pushToArr.category,
-        subCats: pushToArr.subCats
-    });
-    console.log("final pushToArr", pushToArr);
-    console.log("categoriesFoundFiltered", categoriesFoundFiltered)
-    return pushToArr;
-    // const categoriesFoundSentences = [];
-    // for (const category in finalScores) {
-    //     if (!finalScores[category] || !finalScores[category].similarity || !finalScores[category].count) continue;
-    //     const avgSimilarity = finalScores[category].similarity / finalScores[category].count;
-
-    //     categoriesFoundSentences.push({
-    //         content: category,
-    //         similarity: avgSimilarity,
-    //         index: finalScores[category].index,
-    //     });
-    // }
-    
-}
-
-async function categorizePostNOTWORKING({ postID, userID }) {
-    if (!postID) return searchErrorV2("B009", { userID: "Unknown" });
-    if (!userID) return searchErrorV2("D006", { userID: "Unknown" });
-    if (!categoryRuntimeInfo) {
-        const tempCategoryRuntimeInfo = await getCategoryRuntimeInfo();
-        if (!tempCategoryRuntimeInfo || tempCategoryRuntimeInfo.error) return tempCategoryRuntimeInfo || searchErrorV2("Q018", { userID: userID });
-        categoryRuntimeInfo = tempCategoryRuntimeInfo;
-    }
-
-    // get post 
-    const post = await interactPostSchema.findOne({_id: postID});
-    if (!post) return searchError("Q003", { userID: userID });
-
-    // Get the embedding for the post, already stored
-    const foundEmbedding = await getPostEmbedding({ postID });
-    if (!foundEmbedding) return searchErrorV2("Q019", {userID: userID });
-    if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) return searchErrorV2("Q019", {userID: userID });
-    // compare entire post embeding to each category example (5), then average the similarity
-
-
-    // compare  embeddings (which are 5 examples each categories)
-    // compare each sentence to each example of category
-    // compare the entire post
-
-
-    // compares entire post embedding to each category example
-    // full examples vs full post embedding
-    const categoriesFound = cosineSimilarity(
-        JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"),
-        categoryRuntimeInfo.catEmbeddings,
-        categoryRuntimeInfo.catNames,
-        categoryRuntimeInfo.exampleIDs
-    );
-    categoriesFound.sort((a, b) => a.similarity - b.similarity);
-    categoriesFound.reverse();
-
-    console.log(`Categories Found`, categoriesFound);
-    //const topCategories = categoriesFound.slice(0, 9); // top 10 categories found
-    // filter out categories that are the same
-    const filteredCategories = filterOutDuplicates(categoriesFound, 0.80, 10)
-    console.log(`Filtered Categories`, filteredCategories);
-    // compare each sentence in post with each category example sentences
-    const exampleSentencesEmbeddings = [];
-    const exampleSentencesIDs = [];
-    const exampleSentencesCategories = [];
-    for (const example of filteredCategories) {
-        console.log(`Example`, example);
-        if (!example || !example.content || !example.similarity || !example.id) continue;
-
-        // can get ID from category.id
-        // exampleSentences = [...exampleSentences, ...categoryRuntimeInfo.catExampleSentences[example.id]];
-        if (!categoryRuntimeInfo.catExampleSentences[example.id]) {console.log('no examples for ', example.id); continue;}; // no example sentences for this category
-        for (const sentence of categoryRuntimeInfo.catExampleSentences[example.id] ?? []) {
-            exampleSentencesEmbeddings.push(JSON.parse(sentence.embedding));
-            exampleSentencesIDs.push(sentence._id);
-            exampleSentencesCategories.push(example.content);
-        }
-    }
-    console.log("catEmbeddings length:", categoryRuntimeInfo.catEmbeddings[0].length);
-    console.log("Example embedding shape:", exampleSentencesEmbeddings[0]?.length);
-    console.log("Post embedding shape:", JSON.parse(foundEmbedding.embeddingPost.embedding)?.length);
-
-    console.log("Norm of post embedding:", Math.sqrt(JSON.parse(foundEmbedding.embeddingPost.embedding)?.reduce((sum, x) => sum + x*x, 0)));
-console.log("Norm of category embedding:", Math.sqrt(categoryRuntimeInfo.catEmbeddings[0].reduce((sum, x) => sum + x*x, 0)));
-console.log("quick cosine similarity check:", cosineSimilarity(
-        JSON.parse(foundEmbedding.embeddingPost.embedding),
-        [categoryRuntimeInfo.catEmbeddings[0]],
-        [categoryRuntimeInfo.catNames[0]],
-        [categoryRuntimeInfo.exampleIDs[0]]
-    ));
-    console.log("example content", categoryRuntimeInfo.catExampleContent[0]);
-    console.log("post content", post.content);
-    console.log("is-same embed", JSON.stringify(JSON.parse(foundEmbedding.embeddingPost.embedding)) === JSON.stringify(categoryRuntimeInfo.catEmbeddings[0]));
-    if ((JSON.stringify(JSON.parse(foundEmbedding.embeddingPost.embedding)) === JSON.stringify(categoryRuntimeInfo.catEmbeddings[0]))) {
-        console.log("Post embedding is the same as the first category embedding");
-    } else {
-        console.log("Post embedding is NOT the same as the first category embedding");
-        console.log(JSON.parse(foundEmbedding.embeddingPost.embedding));
-        console.log(categoryRuntimeInfo.catEmbeddings[0]);
-
-        const example_embedding = await embedSearch({ content:  categoryRuntimeInfo.catExampleContent[0] });
-        // console.log("Example embedding", example_embedding.embedding.embedding);
-        console.log("Is same example embedding", JSON.stringify(example_embedding.embedding.embedding) === JSON.stringify(categoryRuntimeInfo.catEmbeddings[0]));
-
-        const post_embedding = await embedSearch({ content: post.content });
-        // console.log("Post embedding", post_embedding.embedding.embedding);
-        console.log("Is same post embedding", JSON.stringify(post_embedding.embedding.embedding) === JSON.stringify(JSON.parse(foundEmbedding.embeddingPost.embedding)));
-
-
-    }
-
-    const emb1 = await embedSearch({ content: "text" });
-const emb2 = await embedSearch({ content: "text" });
-const same = JSON.stringify(emb1.embedding.embedding) === JSON.stringify(emb2.embedding.embedding);
-console.log("Same embed twice:", same);
-        console.log(`Example Sentences`, "Example Categories", exampleSentencesCategories, "Example IDs", exampleSentencesIDs);
-    // get the example sentences for the category
-    // compare each sentence in post with each category example sentences
-    const finalScores = {}; // { category: { similarity: 0, count: 0 } }
-    for (const sentence of foundEmbedding.sentences ?? []) {
-        if (!sentence || !sentence.embedding) continue;
-        const sentenceEmbedding = JSON.parse(sentence.embedding);
-        const similarities = cosineSimilarity(
-            sentenceEmbedding,
-            exampleSentencesEmbeddings,
-            exampleSentencesCategories,
-            exampleSentencesIDs
-        );
-
-        for (const similarity of similarities) {
-            if (!similarity || !similarity.similarity || !similarity.content) continue;
-            if (!finalScores[similarity.content]) finalScores[similarity.content] = { similarity: 0, count: 0, index: [] };
-            finalScores[similarity.content].count += 1;
-            finalScores[similarity.content].similarity += (similarity.similarity);
-            console.log(similarity.content, similarity.similarity, "Index", similarity.index);
-            // if (similarity.content == "testing") console.log(`Similarity for ${similarity.content}`, similarity.similarity, "Index", similarity.index);
-            finalScores[similarity.content].index.push(similarity.index);
-        }
-    }
-
-    const categoriesFoundSentences = [];
-    for (const category in finalScores) {
-        if (!finalScores[category] || !finalScores[category].similarity || !finalScores[category].count) continue;
-        const avgSimilarity = finalScores[category].similarity / finalScores[category].count;
-
-        categoriesFoundSentences.push({
-            content: category,
-            similarity: avgSimilarity,
-            index: finalScores[category].index,
-        });
-    }
-
-    console.log(`Found Categories`, categoriesFoundSentences, "Example Categories", filteredCategories);
-    console.log(finalScores) // this is showing combinnned score for each categor: { art: { similarity: 3.9860977494200514, count: 4, index: [ 0, 1, 1, 0 ] } }
-    // filter out
-    const categoriesFoundFinal = filterOutDuplicates(categoriesFoundSentences, 0.5, 6);
-    if (!categoriesFoundFinal || !categoriesFoundFinal[0]) return searchErrorV2("Q017", {userID: userID })
-
-    const topCategory = categoriesFoundFinal[0];
-    const subCategories = categoriesFoundFinal.slice(1, 6);
-    // console.log(`Sentence Comparision`, categoriesFoundFinal, "Example Comparision", filteredCategories);
-    
-    const pushToArr = {
-        _id: post._id,
-        category: topCategory.content,
-        subCats: subCategories.map((sub) => sub.content),
-        content: post.content,
-        simliarityScore: topCategory.similarity,
-        categorySaved: null
-    }
-
-    pushToArr.categorySaved = await saveCategoryData({ 
-        postID: post._id,
         category: pushToArr.category,
         subCats: pushToArr.subCats
     });
