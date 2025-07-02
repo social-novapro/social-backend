@@ -1,5 +1,7 @@
 {
-  "version": "1.81",
+  "version": "1.82",
+  "exampleUpdateVer" : "1.82",
+  "lastUpdate": "2025-07-01",
   "categories": [
     {
       "name": "art",

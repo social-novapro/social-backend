@@ -10,7 +10,7 @@ const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
 const { updateAllUserPostIndexes, undoAllUserPostIndexes } = require("./userPostIndexes");
 
-// APR 2024 - 1.4, MAR 2025 - 1.7, JUN 2025 - 1.8
+// APR 2024 - 1.4, MAR 2025 - 1.7, JUN 2025 - 1.8, 1.8.2
 async function updatePostEmbeddings({ adminID, version=null }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: `postEmbeddings${version?version:""}` });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
