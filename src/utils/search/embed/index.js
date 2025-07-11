@@ -136,8 +136,9 @@ async function embedPost({ postID, userID, timestamp, content }) {
         });
         return { success: false, error: "Missing data" };
     }
-    const contentLc = content.toLowerCase();
-    const embeddings = await embedContent({ content: contentLc });
+    // const contentLc = content.toLowerCase();
+    // const embeddings = await embedContent({ content: contentLc });
+    const embeddings = await embedSearch({ content });
     if (!embeddings.success){
         // save that post failed to embed, with reason
         await interactEmbedPostFailSchema.create({
@@ -150,7 +151,7 @@ async function embedPost({ postID, userID, timestamp, content }) {
         });
     };
 
-    await savePostEmbeddings({ postID, userID, timestamp, content: contentLc, embeddings: embeddings })
+    await savePostEmbeddings({ postID, userID, timestamp, content: content.toLowerCase(), embeddings: embeddings })
 
     return { success: true, postID: postID };
 }

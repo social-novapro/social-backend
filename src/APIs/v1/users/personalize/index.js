@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
     const { categoryID, value } = req.body;
     if (!categoryID || !value) return res.status(400).send({ error: true, msg: "Missing categoryID or value" });
    
-    const updated = await updateUserCategory({ userID, categoryID, value });
+    const updated = await updateUserCategory({ userID, categoryID, value, type: "userScore" });
     if (updated.error) return res.status(400).send(updated);
 
     return res.status(200).send(updated);
