@@ -13,7 +13,7 @@ const {
 
 const EMBED_API_ROUTE = productionMode == true ? EMBED_API_PROD_ROUTE : EMBED_API_DEV_ROUTE;
 console.log(`---\nEmbedding API: ${EMBED_API_ROUTE}`)
-const EMBEDING_VERSION = 2;
+const EMBEDING_VERSION = 3;
 
 async function embedContent({ content }) {
     const result = await fetch(EMBED_API_ROUTE, {
@@ -105,6 +105,18 @@ async function savePostEmbeddings({ postID, userID, timestamp, content, embeddin
                 postID,
                 sentenceID: sentenceFound._id,
             });
+            // check if sentenceFound embedding_version matches
+            if (sentenceFound.version != EMBEDING_VERSION) {
+                console.warn(`Warning--Updating: Sentence ${sentence.sentence} has outdated embedding version ${sentenceFound.version}, expected ${EMBEDING_VERSION}`);
+                await interactEmbedSentenceSchema.findOneAndUpdate(
+                    { _id: sentenceFound._id },
+                    { $set: { 
+                        version: EMBEDING_VERSION,
+                        timestamp: checktime(),
+                        embedding: JSON.stringify(sentence.embedding)
+                    } }
+                );
+            }
         } else {
             const sentenceID = uuidv4();
             await interactEmbedSentenceSchema.create({

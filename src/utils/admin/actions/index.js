@@ -138,7 +138,7 @@ async function undoUserPostIndexes({ adminID }) {
     return { done: true }
 }
 
-// MAR 2025 - 1.7, JUN 2025 - 1.8
+// MAR 2025 - 1.7, JUN 2025 - 1.8, JUL 2025 - 1.8.2
 async function updateCategorizePosts({ adminID, version=null }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts"+(version?version:"") });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });

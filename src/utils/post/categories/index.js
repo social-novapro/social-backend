@@ -35,19 +35,19 @@ async function categorizePost({ postID, userID }) {
     
 
 
-    // compare to a new embed
-    const newEmbed = await embedSearch({ content: postData.content, userID: userID });
-    console.log("newEmbed: ", newEmbed);
-    console.log(newEmbed.embedding.embedding == JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"));
-    console.log("foundEmbedding.embeddingPost.embedding: ", JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"));
-    console.log("newEmbed.embedding.embedding: ", newEmbed.embedding.embedding);
+    // // compare to a new embed
+    // const newEmbed = await embedSearch({ content: postData.content, userID: userID });
+    // console.log("newEmbed: ", newEmbed);
+    // console.log(newEmbed.embedding.embedding == JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"));
+    // // console.log("foundEmbedding.embeddingPost.embedding: ", JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"));
+    // // console.log("newEmbed.embedding.embedding: ", newEmbed.embedding.embedding);
 
-    let difference = newEmbed.embedding.embedding.filter(x => !JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]").includes(x));
-    let difference2 = JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]").filter(x => !newEmbed.embedding.embedding.includes(x));
-    console.log("differences: ", difference, difference2);
+    // let difference = newEmbed.embedding.embedding.filter(x => !JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]").includes(x));
+    // let difference2 = JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]").filter(x => !newEmbed.embedding.embedding.includes(x));
+    // console.log("differences: ", difference, difference2);
 
-    console.log("compare", foundEmbedding.embeddingPost.embedding == JSON.stringify(newEmbed.embedding.embedding));
-    console.log("compare2", JSON.parse(foundEmbedding.embeddingPost.embedding) == JSON.parse(JSON.stringify(newEmbed.embedding.embedding)));
+    // console.log("compare", foundEmbedding.embeddingPost.embedding == JSON.stringify(newEmbed.embedding.embedding));
+    // console.log("compare2", JSON.parse(foundEmbedding.embeddingPost.embedding) == JSON.parse(JSON.stringify(newEmbed.embedding.embedding)));
     // compare entire post embedding to each category example
     // full examples vs full post embedding
     const categoriesFound = cosineSimilarity(
@@ -56,11 +56,12 @@ async function categorizePost({ postID, userID }) {
         categoryRuntimeInfo.catNames,
         categoryRuntimeInfo.exampleIDs
     );
+
     categoriesFound.sort((a, b) => a.similarity - b.similarity);
     categoriesFound.reverse();
 
     // filter out categories 
-    const filteredCategories = filterOutDuplicates(categoriesFound, 0.80, 10);
+    const filteredCategories = filterOutDuplicates(categoriesFound, 0.50, 10);
     console.log("categoriesFound: ", categoriesFound);
 
     // sentences
@@ -81,10 +82,10 @@ async function categorizePost({ postID, userID }) {
             exampleSentences.categories.push(findExample.content);
         }
     }
-    console.log("filteredCategories: ", filteredCategories);
+    // console.log("filteredCategories: ", filteredCategories);
 
     // get example sentences for category
-    console.log("foundEmbedding.sentences ", foundEmbedding.sentences);
+    // console.log("foundEmbedding.sentences ", foundEmbedding.sentences);
 
     const finalScores = {}; 
     for (const sentence of foundEmbedding.sentences ?? []) {
@@ -97,8 +98,8 @@ async function categorizePost({ postID, userID }) {
             exampleSentences.ids
         );
 
-        console.log("similarities: ", similarities);
-        console.log("exampleSentence", exampleSentences)
+        // console.log("similarsities: ", similarities);
+        // console.log("exampleSentence", exampleSentences)
         // similarities.sort((a, b) => a.similarity - b.similarity);
         // similarities.reverse();
 
@@ -128,7 +129,7 @@ async function categorizePost({ postID, userID }) {
     categoriesFoundSentences.reverse();
 
     const categoriesFoundFiltered = filterOutDuplicates(categoriesFoundSentences, 0.5, 6);
-    console.log(categoriesFoundFiltered);
+    // console.log(categoriesFoundFiltered);
     if (!categoriesFoundFiltered || !categoriesFoundFiltered[0]) return searchErrorV2("Q017", {userID: userID });
 
     const topCategory = categoriesFoundFiltered[0];

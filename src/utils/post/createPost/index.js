@@ -57,6 +57,10 @@ async function createNewPost({
 
     await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
     pushNewPost(userID, postID)
+
+    // const myPostEmbed = await embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content })//.then((embedData) => {
+    // await categorizePost({ postID, userID: postData.userID })/*.then((catData) => {
+
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content }).then((embedData) => {
         // console.log("Embed data: ", embedData)
         categorizePost({ postID, userID: postData.userID })/*.then((catData) => {
