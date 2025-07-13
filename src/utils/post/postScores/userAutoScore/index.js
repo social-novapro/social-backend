@@ -66,91 +66,74 @@ async function adjustWeight({
 // get category score
 async function getUserCategoryScores({ userID }) {
     if (!userID) return { error : true, msg: "No userID provided to create category scores" };
+
     var categories = await interactCategoryUser.find({ userID }); 
+    console.log("Categories found for user:", categories);
     // any other categories will not be considered, since no interaction with user
     // and user didnt interact with them
 
+    const rawScores = [];
+    let totalAutoInteractions = 0;
 
-    console.log("Categories found for user:", categories);
-    var totalAddedUserScore = 0;
-    var totalAddedInteractions = 0; // total added likes
-    var totalAddedAutoScore = 0;
-    // Calculate totals before filtering
-    categories.forEach(category => {
-        if (category.userScore !== null && category.userScore !== undefined) {
-            totalAddedUserScore += category.userScore;
-        }
-        if (category.autoScore !== null && category.autoScore !== undefined) {
-            totalAddedInteractions += category.autoScore;
-        }
-    });
-
-    console.log("Total added user score:", totalAddedUserScore);
-    console.log("Total added auto score:", totalAddedInteractions);
-
-    categories = categories.filter(category => {
-        // filter out categories with no scores
-        if (category.userScore === null && category.autoScore === null) return false;
-
-        const userScoreValue = category.userScore ?? 0;
-        const autoScoreValue = category.autoScore ?? 0;
-        if (userScoreValue + autoScoreValue < 2) return false;
-
-        // category.autoScorePercentage = 0;
-        if (autoScoreValue > 0) {
-            console.log('is reaching, ', category.autoScore, totalAddedInteractions);
-            category.autoScore = (category.autoScore / totalAddedInteractions) * 100;
-            totalAddedAutoScore += category.autoScore; // total added auto score
-        }
-        if (userScoreValue > 0) {
-            category.userScore = (category.userScore) * 10; // 0-10 -> 0-100
-
-        }
-
-        return true;
-    });
-
-    console.log(categories)
-    // calc #
-
-
-    const sumScores = (totalAddedAutoScore + (totalAddedUserScore*10)) || 0; // total added auto score + total added user score * 10
-    const scoreBias = 100 / (sumScores ?? 100); // bias score to 100
-
-    var totalScore = 0;
-    const finalScores = [];
+    // First calculate total autoScore to convert them to percentages
     for (const category of categories) {
-        const categoryScore = calculateCategoryScore({
-            userScore: category.userScore,
-            autoScore: category.autoScore,
-            scoreBias,
-            totalAddedScore: sumScores
+        if (category.autoScore != null) {
+            totalAutoInteractions += category.autoScore;
+        }
+    }
+
+     // Compute raw blended scores
+    for (const category of categories) {
+        const userScore = (category.userScore ?? 0) * 10; // scale 0-10 to 0-100
+        let autoScore = 0;
+
+        if (category.autoScore != null && totalAutoInteractions > 0) {
+            autoScore = (category.autoScore / totalAutoInteractions) * 100;
+        }
+
+        const rawScore = calculateCategoryScore({
+            userScore,
+            autoScore,
+            userWeight: 0.6,
         });
-        totalScore += categoryScore;
-        console.log(`Category ${category.categoryID} score:`, categoryScore);
-        finalScores.push({
+
+        rawScores.push({
             categoryID: category.categoryID,
-            score: Math.round(categoryScore) // normalize to 0-100
+            rawScore,
         });
     }
 
-    console.log("Final total score:", totalScore);
-    if (finalScores.length === 0) return { error: true, msg: "No categories found for user" };
+    const totalRawScore = rawScores.reduce((sum, c) => sum + c.rawScore, 0);
+
+    if (totalRawScore === 0) {
+        return { error: true, msg: "No meaningful category scores found for user." };
+    }
+
+    const finalScores = rawScores.map(c => {
+        const normalizedScore = (c.rawScore / totalRawScore) * 100;
+        return {
+            categoryID: c.categoryID,
+            score: Math.round(normalizedScore),
+        };
+    });
+
+    console.log("Final normalized scores:", finalScores);
+
     return finalScores;
 }
 
 // calculate category score, based on user score and auto score
-function calculateCategoryScore({ userScore, autoScore, scoreBias }) {
+
+function calculateCategoryScore({ userScore, autoScore, userWeight = 0.6 }) {
     console.log("Calculating category score with userScore:", userScore, "autoScore:", autoScore, "scoreBias:", scoreBias);
-    if (userScore===null || userScore===undefined) return autoScore * scoreBias;
-    if (autoScore===null || autoScore===undefined) return userScore * scoreBias;
-    if (scoreBias === 0) return 0;
+    userScore = userScore ?? 0;
+    autoScore = autoScore ?? 0;
 
-    const combinedScore = userScore + autoScore;
-    if (combinedScore == 0) return 0;
+    const autoWeight = 1 - userWeight;
 
-    // normalize score 
-    return (combinedScore) * scoreBias;
+    if (userScore === 0 && autoScore === 0) return 0;
+
+    return userScore * userWeight + autoScore * autoWeight;
 }
 
 
