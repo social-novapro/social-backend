@@ -65,9 +65,9 @@ async function createNewPost({
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content }).then((embedData) => {
         // console.log("Embed data: ", embedData)
         categorizePost({ postID, userID: postData.userID }).then((catData) => {
-            adjustWeight({ userID: postData.userID, action: "POST.CREATED", postID, postData: catData /* will not share full post but works. */ }).then((weightData) => {
+            adjustWeight({ userID: postData.userID, action: "POST.CREATED", postID, postData: catData /* will not share full post but works. */ })/*.then((weightData) => {
                 if (weightData.error) console.error("Error adjusting weight: ", weightData.msg);
-            });
+            });*/
         });
     });
     

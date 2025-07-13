@@ -1335,6 +1335,14 @@
                     "msg" : "Missing categoryID or value"
                 },
                 {
+                    "code": "Q028",
+                    "msg" : "Requires type to adjust category weight."
+                },
+                    {
+                    "code": "Q029",
+                    "msg" : "Requires categoryID to adjust category weight"
+                },
+                {
                     "code" : "R001",
                     "msg" : "No errorID was provided."
                 },

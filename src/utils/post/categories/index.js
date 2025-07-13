@@ -255,12 +255,13 @@ async function updateUserCategory({ userID, categoryID, value, type }) {
     if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
     if (!categoryID) return searchErrorV2("Q010", { userID: userID });
     if ((!value && value!=0) && type) return searchErrorV2("Q011", { userID: userID });
-    // allow for no value if no type, will just create a new one
+    // allow for no value if no type, will just create a new one. otherwise will require value and type
 
     const foundCategory = await interactCategoryUser.findOne({ userID, categoryID: categoryID });
     if (!foundCategory) {
         await createUserCategory({ userID, categoryID, value, type });
     } else {
+        if (!type || !value) return searchErrorV2("Q011", { userID: userID });
         await interactCategoryUser.findOneAndUpdate({
             userID: userID,
             categoryID: categoryID,
@@ -268,6 +269,9 @@ async function updateUserCategory({ userID, categoryID, value, type }) {
             userScore: type=== "userScore" ? value : 0,
             autoScore: type === "autoScore" ? value : 0,
             amountLikes: type == "amountLikes" ? value : 0,
+            amountPosts: type == "amountPosts" ? value : 0,
+            amountReplies: type == "amountReplies" ? value : 0,
+            amountQuotes: type == "amountQuotes" ? value : 0,
             timestamp: checktime(),
         }, {
             new: true,
@@ -304,6 +308,10 @@ async function createUserCategory({ userID, categoryID, value, type }) {
         userScore: type=="userScore" ? (value ?? DEFAULT_CAT_VALUE): 0,
         autoScore: type == "autoScore" ? (value ?? 0) : 0,
         amountLikes: type == "amountLikes" ? (value ?? 0) : 0,
+        amountLikes: type == "amountLikes" ? (value ?? 0) : 0,
+        amountPosts: type == "amountPosts" ? (value ?? 0) : 0,
+        amountReplies: type == "amountReplies" ? (value ?? 0) : 0,
+        amountQuotes: type == "amountQuotes" ? (value ?? 0) : 0,
         timestamp: checktime(),
     });
 

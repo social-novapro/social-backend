@@ -8,7 +8,11 @@ const interactCategoryUserSchema = mongoose.Schema({
     userScore: nonreqNum,
     autoScore: nonreqNum, // auto score
     timestamp: reqNum, // last edited
+    
     amountLikes: nonreqNum, // amount of likes
+    amountPosts: nonreqNum, // amount of posts
+    amountReplies: nonreqNum, // amount of replies
+    amountQuotes: nonreqNum, // amount of quotes
 });
 
 module.exports = mongoose.model('interact-category-user', interactCategoryUserSchema);

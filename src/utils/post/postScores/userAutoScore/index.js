@@ -9,6 +9,7 @@
 const interactCategory = require("../../../../schemas/categories/interactCategory");
 const interactCategoryUser = require("../../../../schemas/categories/interactCategoryUser");
 const interactPostSchema = require("../../../../schemas/interactPostSchema");
+const { checktime } = require("../../../checktime");
 const { searchErrorV2 } = require("../../../searchError");
 const { updateUserCategory } = require("../../categories");
 
@@ -61,44 +62,46 @@ async function adjustWeight({
 
     // Liked post
     if (action === "POST.LIKE") {
-        await userLikePostWeight({ userID, postID, postData, foundCategory });
+        await userAdjustCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountLikes" });
     } else if (action === "POST.UNLIKE") {
-        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+        await userRemoveCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountLikes" });
     }
 
     // Replied to post
     if (action === "POST.REPLY_CREATED") {
         // adjust user category score
-        await userLikePostWeight({ userID, postID, postData, foundCategory });
+        await userAdjustCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountReplies" });
     } else if (action === "POST.REPLY_DELETED") {
         // adjust user category score
-        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+        await userRemoveCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountReplies" });
     }
 
     // Quoted post
     if (action === "POST.QUOTE_CREATED") {
         // adjust user category score
-        await userLikePostWeight({ userID, postID, postData, foundCategory });
+        await userAdjustCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountQuotes" });
     } else if (action === "POST.QUOTE_DELETED") {
         // adjust user category score
-        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+        await userRemoveCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountQuotes" });
     }
 
     // Created post
     if (action === "POST.CREATED") {
         // adjust user category score
-        await userLikePostWeight({ userID, postID, postData, foundCategory });
+        await userAdjustCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountPosts" });
     } else if (action === "POST.DELETED") {
         // adjust user category score
-        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+        await userRemoveCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust: "amountPosts" });
     }
 
     // const userScores = await getUserCategoryScores({ userID });
     // console.log("User scores found:", userID, userScores);
-    return userScores; // return user scores, so they can be used to update user category
+    return true; // return user scores, so they can be used to update user category
 }
 
-async function userLikePostWeight({ userID, postID, postData, foundCategory }) {
+async function userAdjustCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust }) {
+    if (!foundCategory) return searchErrorV2("Q028", { userID });
+    if (!toAdjust) return searchErrorV2("Q029", { userID });
     // const currentCategoryInfo
     // adjust user category score
     await interactCategoryUser.findOneAndUpdate({
@@ -107,12 +110,17 @@ async function userLikePostWeight({ userID, postID, postData, foundCategory }) {
     }, {
         $inc: {
             autoScore: +1,
-            amountLikes: +1, // increment amount of likes
+            [toAdjust]: +1, // increment amount of blank
+        },
+        $set: {
+            timestamp: checktime()
         }
     });
 }
 
-async function userUnlikePostWeight({ userID, postID, postData, foundCategory }) {
+async function userRemoveCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust }) {
+    if (!foundCategory) return searchErrorV2("Q028", { userID });
+    if (!toAdjust) return searchErrorV2("Q029", { userID });
     // adjust user category score
     await interactCategoryUser.findOneAndUpdate({
         userID,
@@ -120,7 +128,10 @@ async function userUnlikePostWeight({ userID, postID, postData, foundCategory })
     }, {
         $inc: {
             autoScore: -1,
-            amountLikes: -1,
+            [toAdjust]: -1, // increment amount of blank
+        },
+        $set: {
+            timestamp: checktime()
         }
     });
 }
@@ -161,6 +172,8 @@ async function getUserCategoryScores({ userID }) {
         rawScores.push({
             categoryID: category.categoryID,
             rawScore,
+            userScore,
+            autoScore,
         });
     }
 
@@ -175,6 +188,8 @@ async function getUserCategoryScores({ userID }) {
         return {
             categoryID: c.categoryID,
             score: Math.round(normalizedScore),
+            userScore: c.userScore,
+            autoScore: Math.round(c.autoScore),
         };
     });
 
