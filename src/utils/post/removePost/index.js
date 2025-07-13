@@ -10,6 +10,7 @@ const { removePostFromIndex } = require("../postIndexManagement");
 const { deleteEmbedPost } = require("../../search/embed");
 const { removeTags } = require("../tags");
 const { removePostFromUserPostIndex } = require("../userPostIndexManagement");
+const { adjustWeight } = require("../postScores/userAutoScore");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -50,6 +51,9 @@ async function removePost(postData) {
     // pulls tags
     removeTags({ userID: postData.userID, postID: postData._id });
     
+    // adjust weight
+    adjustWeight({ userID: postData.userID, action: "POST.DELETED", postID: postData._id, postData });
+
     return true;
 };
 
@@ -80,6 +84,7 @@ async function removeFromReplyIndex({_id, replyData}) {
         $pull: { "postIDs" : _id },
     });
 
+    adjustWeight({ userID: replyData.userID, action: "POST.REPLY_DELETED", postID: replyData.postID, postData: foundPost });
     return true;
 };
 
@@ -102,6 +107,7 @@ async function removeFromQuoteIndex({_id, quoteData}) {
         $pull: { "postIDs" : _id },
     });
 
+    adjustWeight({ userID: quoteData.userID, action: "POST.QUOTE_DELETED", postID: quoteData.postID, postData: foundPost });
     return true;
 };
 

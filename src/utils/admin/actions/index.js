@@ -2,6 +2,7 @@ const interactAdminUpdateActionsSchema = require("../../../schemas/admin/interac
 const { checktime } = require("../../checktime");
 const { categorizeAllPosts, undoAllCategorizePosts } = require("../../post/categories/updateAction");
 const { actionUpdateLikePostsIndexes, actionUndoLikePostsIndexes } = require("../../post/likeUtilV2/updateActionsLikes");
+const { actionUpdateUserAutoScore, actionUndoUserAutoScore } = require("../../post/postScores/userAutoScore/updateActionsUser");
 const { updateAllPostEmbeddings, undoAllPostEmbeddings } = require("../../search/embed/firstRun");
 const { searchErrorV2 } = require("../../searchError");
 const { updateUserBadges, undoUserBadges } = require("../../user/badges/firstRun");
@@ -138,7 +139,7 @@ async function undoUserPostIndexes({ adminID }) {
     return { done: true }
 }
 
-// MAR 2025 - 1.7, JUN 2025 - 1.8
+// MAR 2025 - 1.7, JUN 2025 - 1.8, JUL 2025 - 1.8.2
 async function updateCategorizePosts({ adminID, version=null }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts"+(version?version:"") });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
@@ -180,6 +181,27 @@ async function undoLikePostsIndexes({ adminID }) {
     return { done: true };
 }
 
+// July 2025 - 1.8.2
+async function updateUserAutoScore({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userAutoScore" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await actionUpdateUserAutoScore();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "userAutoScore",
+        done: true,
+        timestamp: checktime(),
+    });
+    
+    return result;
+}
+
+async function undoUserAutoScore({ adminID }) {
+    await actionUndoUserAutoScore();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "userAutoScore" })
+    return { done: true };
+}
+
 module.exports = { 
     updateUsernameLc,
     undoUsernameLc,
@@ -197,5 +219,7 @@ module.exports = {
     undoCategorizePosts,
     updateLikePostsIndexes,
     undoLikePostsIndexes,
+    updateUserAutoScore,
+    undoUserAutoScore,
 }
 

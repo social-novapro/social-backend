@@ -1303,6 +1303,46 @@
                     "msg" : "Missing Embedding data for post."
                 },
                 {
+                    "code" : "Q020",
+                    "msg" : "No userID and userData provided to adjust category weight"
+                },
+                {
+                    "code" : "Q021",
+                    "msg" : "No postID or postData provided to adjust category weight"
+                },
+                {
+                    "code" : "Q022",
+                    "msg" : "No action provided to adjust category weight"
+                },
+                {
+                    "code" : "Q023",
+                    "msg" : "No category found for post"
+                },
+                {
+                    "code" : "Q024",
+                    "msg" : "Category found for post was invalid."
+                },
+                {
+                    "code" : "Q025",
+                    "msg" : "No userID provided to create category scores."
+                },
+                {
+                    "code" : "Q026",
+                    "msg" : "No meaningful category scores found for user."
+                },
+                {
+                    "code" : "Q027",
+                    "msg" : "Missing categoryID or value"
+                },
+                {
+                    "code": "Q028",
+                    "msg" : "Requires type to adjust category weight."
+                },
+                    {
+                    "code": "Q029",
+                    "msg" : "Requires categoryID to adjust category weight"
+                },
+                {
                     "code" : "R001",
                     "msg" : "No errorID was provided."
                 },

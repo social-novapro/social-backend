@@ -33,19 +33,20 @@ async function categorizePost({ postID, userID }) {
     if (!foundEmbedding) return searchErrorV2("Q019", {userID: userID });
     if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) return searchErrorV2("Q019", {userID: userID });
     
-    // compare entire post embedding to each category example
-    // full examples vs full post embedding
+
     const categoriesFound = cosineSimilarity(
         JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"),
         categoryRuntimeInfo.catEmbeddings,
         categoryRuntimeInfo.catNames,
         categoryRuntimeInfo.exampleIDs
     );
+
     categoriesFound.sort((a, b) => a.similarity - b.similarity);
     categoriesFound.reverse();
 
     // filter out categories 
-    const filteredCategories = filterOutDuplicates(categoriesFound, 0.80, 10);
+    const filteredCategories = filterOutDuplicates(categoriesFound, 0.50, 10);
+    console.log("categoriesFound: ", categoriesFound);
 
     // sentences
     const exampleSentences = {
@@ -57,7 +58,6 @@ async function categorizePost({ postID, userID }) {
         if (!findExample || !findExample.content || !findExample.similarity || !findExample.id) continue;
 
         // can get ID from category.id
-        // exampleSentences = [...exampleSentences, ...categoryRuntimeInfo.catExampleSentences[example.id]];
         if (!categoryRuntimeInfo.catExampleSentences[findExample.id]) {console.log('no examples for ', findExample.id); continue;}; // no example sentences for this category
         for (const sentence of categoryRuntimeInfo.catExampleSentences[findExample.id] ?? []) {
             exampleSentences.embeddings.push(JSON.parse(sentence.embedding));
@@ -78,9 +78,6 @@ async function categorizePost({ postID, userID }) {
             exampleSentences.ids
         );
 
-        // similarities.sort((a, b) => a.similarity - b.similarity);
-        // similarities.reverse();
-
         for (const similarity of similarities) {
             if (!similarity || !similarity.similarity || !similarity.content) continue;
             if (!finalScores[similarity.content]) finalScores[similarity.content] = { similarity: 0, count: 0, index: [] };
@@ -90,6 +87,7 @@ async function categorizePost({ postID, userID }) {
             finalScores[similarity.content].index.push(similarity.index);
         }
     }
+    console.log("Final scores: ", finalScores);
 
     const categoriesFoundSentences = [];
     for (const category in finalScores) {
@@ -253,39 +251,46 @@ async function getUserCategories({ userID }) {
 }
 
 // Update user category, if not exists create it
-async function updateUserCategory({ userID, categoryID, value }) {
+async function updateUserCategory({ userID, categoryID, value, type }) {
     if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
     if (!categoryID) return searchErrorV2("Q010", { userID: userID });
-    if (!value && value!=0) return searchErrorV2("Q011", { userID: userID });
+    if ((!value && value!=0) && type) return searchErrorV2("Q011", { userID: userID });
+    // allow for no value if no type, will just create a new one. otherwise will require value and type
 
     const foundCategory = await interactCategoryUser.findOne({ userID, categoryID: categoryID });
     if (!foundCategory) {
-        await createUserCategory({ userID, categoryID, value });
+        await createUserCategory({ userID, categoryID, value, type });
     } else {
+        if (!type || !value) return searchErrorV2("Q011", { userID: userID });
         await interactCategoryUser.findOneAndUpdate({
             userID: userID,
             categoryID: categoryID,
         }, {
-            userScore: value,
+            userScore: type=== "userScore" ? value : 0,
+            autoScore: type === "autoScore" ? value : 0,
+            amountLikes: type == "amountLikes" ? value : 0,
+            amountPosts: type == "amountPosts" ? value : 0,
+            amountReplies: type == "amountReplies" ? value : 0,
+            amountQuotes: type == "amountQuotes" ? value : 0,
             timestamp: checktime(),
         }, {
             new: true,
         });
     }
 
-
     const updatedUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
     if (!updatedUserCategory) return searchErrorV2("Q012", { userID: userID });
-    if (!updatedUserCategory.userScore && updatedUserCategory.userScore != 0) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]}); // return { error: true, msg: "No user score found" };
-    if (updatedUserCategory.userScore != value) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]});// { error: true, msg: "User score not updated" };
+    if (type=="userScore" && (!updatedUserCategory.userScore && updatedUserCategory.userScore != 0)) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]});
+    if (type=="userScore" && (updatedUserCategory.userScore != value)) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]});
     return updatedUserCategory;
 }
 
 // Create a user category, if not exists
-async function createUserCategory({ userID, categoryID, value }) {
+async function createUserCategory({ userID, categoryID, value, type }) {
     if (!userID) return searchErrorV2("Q009", { userID: "Unknwon" });
     if (!categoryID) return searchErrorV2("Q010", { userID: userID });
-    if (!value && value!=0) return searchErrorV2("Q011", { userID: userID });
+    if ((!value && value!=0) && type) return searchErrorV2("Q011", { userID: userID });
+    // allow for no value if no type, will just create a new one
 
     const foundCategory = await interactCategory.findOne({ id: categoryID });
     if (!foundCategory) return searchErrorV2("Q012", { userID: userID });
@@ -300,7 +305,13 @@ async function createUserCategory({ userID, categoryID, value }) {
         _id: uuidv4(),
         userID: userID,
         categoryID,
-        userScore: value ?? DEFAULT_CAT_VALUE,
+        userScore: type=="userScore" ? (value ?? DEFAULT_CAT_VALUE): 0,
+        autoScore: type == "autoScore" ? (value ?? 0) : 0,
+        amountLikes: type == "amountLikes" ? (value ?? 0) : 0,
+        amountLikes: type == "amountLikes" ? (value ?? 0) : 0,
+        amountPosts: type == "amountPosts" ? (value ?? 0) : 0,
+        amountReplies: type == "amountReplies" ? (value ?? 0) : 0,
+        amountQuotes: type == "amountQuotes" ? (value ?? 0) : 0,
         timestamp: checktime(),
     });
 
@@ -337,7 +348,7 @@ async function restoreUserCategories({ userID, body }) {
         if (!category.id) return searchErrorV2("Q015", { userID: userID });
         if (!category.value) return searchErrorV2("Q016", { userID: userID });
 
-        await updateUserCategory({ userID, categoryID: category.categoryID, value: category.value });
+        await updateUserCategory({ userID, categoryID: category.categoryID, value: category.value, type: "userScore" });
     }
 
     const updatedUserCategories = await getUserCategories({ userID });
