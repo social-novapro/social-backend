@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require("uuid");
 const { getPostWithData } = require("../getPost");
 const { postIsLiked } = require("./isPostLiked");
 const { checkUserRelationForPrivacy } = require("../../user/relations");
+const { adjustWeight } = require("../postScores/userAutoScore");
 
 // Get like index for a post or user
 // uuid: postID or userID
@@ -117,9 +118,6 @@ async function unlikePost({postID, userID}) {
         { upsert: true }
     );
 
-    // console.log("postLikeIndex", postLikeIndex, foundLiked);
-    // console.log("userLikeIndex", userLikeIndex, foundLiked);
-
     // Remove likeID from user like index
     await interactPostLikeIndex.findOneAndUpdate(
         { _id: userLikeIndex._id },
@@ -157,6 +155,7 @@ async function unlikePost({postID, userID}) {
         }
     }
 
+    adjustWeight({ userID, userData: foundUser, action: "POST.UNLIKE", postID, postData: postFound });
     // Update post total likes
     // await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
@@ -241,6 +240,8 @@ async function likePost({ postID, userID }) {
     const postFoundLike = await interactPostLike.find({ postID, userID});
     if (postFoundLike && postFoundLike.length <= 1) pushLikeNotifications({username: foundUser.username, postData: postFoundNew});
 
+    adjustWeight({ userID, userData: foundUser, action: "POST.LIKE", postID, postData: postFoundNew });
+    
     return postFoundNew;
 }
 

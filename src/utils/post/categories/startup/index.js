@@ -41,29 +41,6 @@ function assignIds() {
     fs.writeFileSync('src/utils/post/categories/startup/categories.json', JSON.stringify(categories, null, 2));
 }
 
-async function assignExamplesFromOllama() {
-    for (const category of categories.categories) {
-        console.log("CHECKING", category.name);
-        // const result = await generateExample({ categoryName: category.name, categoryID: category.id });
-        if (result.error) {
-            console.error("Error generating example for category", category.name, result);
-            continue;
-        }
-        console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
-        // console.log(myCat);
-        for (const subcategory of category.subCategories) {
-            console.log("CHECKING", subcategory.name, category.name);
-            const result = await generateExample({ categoryName: subcategory.name, categoryID: subcategory.id });
-            if (result.error) {
-                console.error("Error generating example for category", category.name, result);
-                continue;
-            }
-
-            console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
-        }
-    }
-}
-
 async function quickUpdateScriptCategory() {
     // update with new category thing
     const alLCategories = await interactCategoryEmbed.find({});
@@ -159,7 +136,8 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     // might not have subcategory if its main category (e.g. "Technology")
     const foundCategory = await interactCategory.findOne({ id: id });
     const foundExamples = await interactCategoryEmbed.find({ categoryID: id });
-    var toUpdateExamples = true;
+    var toUpdateExamples = false;
+    var toUpdateEmbeddings = false;
 
     const foundExample = (foundExamples && foundExamples.length > 0) ? foundExamples[0] : null;
     if (!foundExample) toUpdateExamples = false;
@@ -178,9 +156,16 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         if (foundCategory.version != categories.version) {
             updatedCategory = true;
             reason = `Version is incorrect. Found: ${foundCategory.version}, Expected: ${categories.version}`;
-            if (categories.version < categories.exampleUpdateVer) {
+
+            if (foundCategory.version < categories.exampleUpdateVer) {
                 // if version is less than certian version, need to redo examples
                 toUpdateExamples = true;
+            }
+
+            if (foundCategory.version < categories.embedUpdatedVer) {
+                console.log("should need to update embeddings");
+                // if version is less than certian version, need to redo embeddings
+                toUpdateEmbeddings = true;
             }
         }
         // make sure has examples entry, and not to many
@@ -191,7 +176,7 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         }
         else if (foundExample.embeddingVersion != EMBEDING_VERSION) {
             updatedCategory = true;
-            toUpdateExamples = true;
+            toUpdateEmbeddings = true;
             reason = `Embedding version is incorrect. Found: ${foundExample.embeddingVersion}, Expected: ${EMBEDING_VERSION}`;
         }
         // make sure has sentences and examples needed
@@ -243,9 +228,6 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         console.log("--- DELETED", id, reason);
     }
 
-    const embedding = await embedSearch({ content: categoryName });
-    console.log("--- EMBEDING", categoryName)
-
     const newCategory = await interactCategory.create({
         _id: uuidv4(),
         id: id,
@@ -257,8 +239,13 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         parentCategoryID: parentCategoryID ? parentCategoryID : null,
     });
 
-    if (!toUpdateExamples) {
-        // update the category UUID in the examples
+    if (toUpdateExamples) {
+        console.log("--- Updating Examples for", categoryName, "with ID", id);
+        await updateCategoryExamples({ newCategory, categoryID: id, categoryName: categoryName });
+    } else if (toUpdateEmbeddings) {
+        console.log("--- Updating Embeddings for", categoryName, "with ID", id);
+        await updateCategoryExampleEmbeddings({ newCategory, categoryID: id, categoryName: categoryName });
+    } else {
         await interactCategoryEmbed.findOneAndUpdate(
             { _id: foundExample },
             {
@@ -269,13 +256,17 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
         return newCategory;
     }
 
-    console.log("--- Updating Examples for", categoryName, "with ID", id);
+    return newCategory;
+}
+
+async function updateCategoryExamples({ newCategory, categoryID, categoryName }) {
+    const embedding = await embedSearch({ content: categoryName });
 
     // Category Example Schema
-    const generatedExamples = await generateExample({ categoryName: categoryName, categoryID: id });
+    const generatedExamples = await generateExample({ categoryName, categoryID });
     if (!generatedExamples || generatedExamples.error || generatedExamples.length <= 0) {
         console.error("Error generating examples for category", categoryName, generatedExamples);
-        searchErrorV2("Q005", { userID: "system", options: [ {name: "categoryName", data: categoryName}, {name: "categoryID", data: id} ] })
+        searchErrorV2("Q005", { userID: "system", options: [ {name: "categoryName", data: categoryName}, {name: "categoryID", data: categoryID} ] })
         return newCategory;
     }
 
@@ -283,35 +274,13 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
     const categorySentences = [];
     // make "categoryExamples" and "categorySentences" array
     for (const example of generatedExamples) {
-        const exampleID = uuidv4();
         if (!example || !example.response) {
             searchErrorV2("Q005", { userID: "system", options: [ {name: "categoryName", data: categoryName}, {name: "categoryID", data: id} ] })
             return console.error("Error generating example for category", categoryName, example);
         }
-        const exampleContent = example.response.toLowerCase();
-        console.log(exampleContent)
-
-        // PROBLEM IS HERE SOMEWHERE
-        const example_embedding = await embedSearch({ content: exampleContent });
-        console.log("--- EMBEDING EXAMPLE", exampleContent);
-        categoryExamples.push({
-            _id: exampleID,
-            categoryEmbedID: newCategory.id,
-            content: exampleContent,
-            embeddingVersion: EMBEDING_VERSION,
-            embedding: JSON.stringify(example_embedding.embedding.embedding),
-        });
-
-        for (const sentence of example_embedding.embedding.sentences) {
-            const sentenceID = uuidv4();
-            categorySentences.push({
-                _id: sentenceID,
-                exampleID: exampleID,
-                content: sentence.sentence,
-                embeddingVersion: EMBEDING_VERSION,
-                embedding: JSON.stringify(sentence.embedding),
-            });
-        }
+        const embeddings = await getExampleEmbedding({ newCategory, categoryName, exampleContent: example.response });
+        categoryExamples.push(embeddings.categoryExample);
+        categorySentences.push(...embeddings.categorySentences);
     }
 
     // get and embed examples
@@ -330,58 +299,90 @@ async function saveCategoryToDB({ id, categoryName, parentCategoryID }) {
 
     return newCategory;
 }
-// quickTest2();
-async function quickTest2() {
-    const mypost = "software optimization ensures smooth functionality and efficient resource allocation for enhanced user satisfaction. they’re vital for modern technological systems."
-    const myCont = "software optimization ensures smooth functionality and efficient resource allocation for enhanced user satisfaction. they’re vital for modern technological systems."
-    const mypostEmbedding = await embedSearch({ content: mypost });
-    // console.log("Embedding:", mypostEmbedding.embedding.embedding);
-    const foundExample = await interactCategoryEmbed.findOne({ _id: "501f7c66-8bf1-40c5-81ac-afb33f250e59"})
 
-    if (!foundExample) {
-        console.error("No example found");
-        return;
+async function getExampleEmbedding({ newCategory, categoryName, exampleContent}) {
+    console.log("GETTING EXAMPLE EMBEDDING", categoryName, exampleContent);
+    const exampleID = uuidv4();
+
+    const exampleContentLc = exampleContent.toLowerCase();
+    console.log(exampleContent)
+
+    // PROBLEM IS HERE SOMEWHERE
+    const example_embedding = await embedSearch({ content: exampleContentLc });
+    console.log("--- EMBEDING EXAMPLE", exampleContentLc);
+    const categoryExample = {
+        _id: exampleID,
+        categoryEmbedID: newCategory.id,
+        content: exampleContentLc,
+        embeddingVersion: EMBEDING_VERSION,
+        embedding: JSON.stringify(example_embedding.embedding.embedding),
+    };
+
+    const categorySentences = [];
+
+    for (const sentence of example_embedding.embedding.sentences) {
+        const sentenceID = uuidv4();
+        categorySentences.push({
+            _id: sentenceID,
+            exampleID: exampleID,
+            content: sentence.sentence,
+            embeddingVersion: EMBEDING_VERSION,
+            embedding: JSON.stringify(sentence.embedding),
+        });
     }
-
-    const myExample = foundExample.categoryExamples[9];
-    if (!myExample || !myExample.embedding) {
-        console.error("No example found in category", foundExample.content);
-        return;
+    return {
+        categoryExample: categoryExample,
+        categorySentences: categorySentences,
     }
-
-    console.log("compare embedding", myExample.content, "with", mypost);
-    // console.log(myExample.embedding, mypostEmbedding.embedding.embedding);
-    console.log("same embedding: ", JSON.parse(myExample.embedding) == mypostEmbedding.embedding.embedding);
-    const similarity = cosineSimilarity(
-        JSON.parse(myExample.embedding),
-        [mypostEmbedding.embedding.embedding],
-        [mypost],
-        [foundExample.content],
-    );
-    console.log("Cosine Similarity:", similarity);
 }
-// Run a quick test to see if cosine simlarity is working correctly
-async function quickTest() {
-    const catRunTime = await getCategoryRuntimeInfo();
-    for (const cat of catRunTime.categories) {
-        console.log("Category:", cat.name, "ID:", cat.id);
+async function updateCategoryExampleEmbeddings({ newCategory, categoryID, categoryName }) {
+    const foundExamples = await interactCategoryEmbed.findOne({ categoryID: categoryID });
+    if (!foundExamples) {
+        console.error("No examples found for category", categoryName);
+        searchErrorV2("Q005", { userID: "system", options: [ {name: "categoryName", data: categoryName}, {name: "categoryID", data: categoryID} ] })
+        return;
     }
 
-    var i = 0;
-    for (const cat of catRunTime.catEmbeddings) {
-        i++;
-
-        const foundSimilarityPost = cosineSimilarity(
-            cat,
-            catRunTime.catEmbeddings,
-            catRunTime.catExampleSentences,
-            catRunTime.catNames,
+    // const categoryExamples = [];
+    // for (const example of foundExamples.categoryExamples) {
+    const categoryExamples = [];
+    const categorySentences = [];
+    // make "categoryExamples" and "categorySentences" array
+    for (const example of foundExamples.categoryExamples) { // .content
+        if (!example || !example.content) {
+            searchErrorV2("Q005", { userID: "system", options: [ {name: "categoryName", data: categoryName}, {name: "categoryID", data: categoryID} ] })
+            return console.error("Error generating embedding for category", categoryName, example);
+        }
+        const embeddings = await getExampleEmbedding({ newCategory, categoryName, exampleContent: example.content });
+        categoryExamples.push(embeddings.categoryExample);
+        categorySentences.push(...embeddings.categorySentences);
+        // compare 
+        console.log("COMPARING EMBEDING", example.content, example._id);
+        console.log(example.embedding)
+        console.log(embeddings.categoryExample.embedding)
+        console.log("SAME EMBEDDING:", JSON.parse(example.embedding) == JSON.parse(embeddings.categoryExample.embedding));
+        const similarity = cosineSimilarity(
+            JSON.parse(example.embedding),
+            [JSON.parse(embeddings.categoryExample.embedding)],
+            [example.content],
+            [categoryName],
         );
-        console.log("Found Similarity:", foundSimilarityPost, catRunTime.catNames[i], catRunTime.catExampleSentences[i] + "\n---");
+        console.log("Cosine Similarity:", similarity);
     }
 
-    console.log("Category Embeddings:", catRunTime.catEmbeddings.length);
-    console.log("Category Names:", catRunTime.catNames.length);
+    const embedding = await embedSearch({ content: categoryName });
+    console.log("--- EMBEDING", categoryName)
+
+    await interactCategoryEmbed.findOneAndUpdate({
+        categoryID: categoryID,
+        content: categoryName,
+    }, {
+        categoryExamples: categoryExamples,
+        categorySentences: categorySentences,
+        embedding: JSON.stringify(embedding.embedding.embedding),
+        timestamp: checktime(),
+        embeddingVersion: EMBEDING_VERSION,
+    })
 }
 
 // Get runtime information about categories, including embeddings and examples
