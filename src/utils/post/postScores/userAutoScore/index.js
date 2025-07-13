@@ -1,8 +1,14 @@
 // rank user categories
 // using "autoScore"  in interactCategoryUserSchema
 
+
+// to improve:  should generalize score for each category into subcategories
+// https://chatgpt.com/c/686eed85-b964-8001-a709-a45cd41c0006
+// can also use weights.json to adjust weights for each category, rather than hardcoding interaction count
+
 const interactCategory = require("../../../../schemas/categories/interactCategory");
 const interactCategoryUser = require("../../../../schemas/categories/interactCategoryUser");
+const interactPostSchema = require("../../../../schemas/interactPostSchema");
 const { updateUserCategory } = require("../../categories");
 
 // get user likes
@@ -24,18 +30,25 @@ const { updateUserCategory } = require("../../categories");
 // 7= 'created post'
 // 8= 'deleted post'
 async function adjustWeight({
-    userID, userData,
+    userID, userData,  // dont use userdata, use userID if needed
     action,
     postID, postData, // 1, 2, 5, 6
     userFollowedID, userFollowedData, // 3, 4
 }) {
-    if (!userID || !userData) return { error: true, msg: "No userID or userData provided to adjust weight" };
-    if (!postID || !postData) return { error: true, msg: "No postID or postData provided to adjust weight" };
+    console.log("ADJUSTING WEIGHT");
+
+    if (!userID && !userData) return { error: true, msg: "No userID or userData provided to adjust weight" };
+    if (!postID && !postData) return { error: true, msg: "No postID or postData provided to adjust weight" };
     if (!action) return { error: true, msg: "No action provided to adjust weight" };
     // check if postData category
     
+    // dont need userData, but need postData
+    if(!postData) postData = await interactPostSchema.findOne({ _id: postID });
+
+    if (!postData.category) return { error: true, msg: "No category found for post" };
+
     const foundCategory = await interactCategory.findOne({name: postData.category});
-    if (!foundCategory) return { error: true, msg: "No category found for post" };
+    if (!foundCategory) return { error: true, msg: "Category was invalid" };
     
     const foundInteractCategoryUser = await interactCategoryUser.findOne({ userID, categoryID: foundCategory.id });
     if (!foundInteractCategoryUser) {
@@ -45,7 +58,48 @@ async function adjustWeight({
             categoryID: foundCategory.id,
         });
     }
+    // TODO: ADJUST WEIGHT FOR EACH ACTION
 
+    // Liked post
+    if (action === "POST.LIKE") {
+        await userLikePostWeight({ userID, postID, postData, foundCategory });
+    } else if (action === "POST.UNLIKE") {
+        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+    }
+
+    // Replied to post
+    if (action === "POST.REPLY_CREATED") {
+        // adjust user category score
+        await userLikePostWeight({ userID, postID, postData, foundCategory });
+    } else if (action === "POST.REPLY_DELETED") {
+        // adjust user category score
+        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+    }
+
+    // Quoted post
+    if (action === "POST.QUOTE_CREATED") {
+        // adjust user category score
+        await userLikePostWeight({ userID, postID, postData, foundCategory });
+    } else if (action === "POST.QUOTE_DELETED") {
+        // adjust user category score
+        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+    }
+
+    // Created post
+    if (action === "POST.CREATED") {
+        // adjust user category score
+        await userLikePostWeight({ userID, postID, postData, foundCategory });
+    } else if (action === "POST.DELETED") {
+        // adjust user category score
+        await userUnlikePostWeight({ userID, postID, postData, foundCategory });
+    }
+
+    const userScores = await getUserCategoryScores({ userID });
+    console.log("User scores found:", userScores);
+    return userScores; // return user scores, so they can be used to update user category
+}
+
+async function userLikePostWeight({ userID, postID, postData, foundCategory }) {
     // const currentCategoryInfo
     // adjust user category score
     await interactCategoryUser.findOneAndUpdate({
@@ -53,15 +107,24 @@ async function adjustWeight({
         categoryID: foundCategory.id
     }, {
         $inc: {
-            autoScore: action === "POST.LIKE" ? 1 : -1,
-            amountLikes: action === "POST.LIKE" ? 1 : -1,
+            autoScore: +1,
+            amountLikes: +1, // increment amount of likes
         }
     });
-    console.log("User category score adjusted for user:", userID, "category:", foundCategory.id, "action:", action);
-    const userScores = await getUserCategoryScores({ userID });
-    console.log("User scores found:", userScores);
 }
 
+async function userUnlikePostWeight({ userID, postID, postData, foundCategory }) {
+    // adjust user category score
+    await interactCategoryUser.findOneAndUpdate({
+        userID,
+        categoryID: foundCategory.id
+    }, {
+        $inc: {
+            autoScore: -1,
+            amountLikes: -1,
+        }
+    });
+}
 
 // get category score
 async function getUserCategoryScores({ userID }) {
@@ -82,7 +145,7 @@ async function getUserCategoryScores({ userID }) {
         }
     }
 
-     // Compute raw blended scores
+    // Compute raw blended scores
     for (const category of categories) {
         const userScore = (category.userScore ?? 0) * 10; // scale 0-10 to 0-100
         let autoScore = 0;
@@ -125,14 +188,11 @@ async function getUserCategoryScores({ userID }) {
 // calculate category score, based on user score and auto score
 
 function calculateCategoryScore({ userScore, autoScore, userWeight = 0.6 }) {
-    console.log("Calculating category score with userScore:", userScore, "autoScore:", autoScore, "scoreBias:", scoreBias);
     userScore = userScore ?? 0;
     autoScore = autoScore ?? 0;
 
     const autoWeight = 1 - userWeight;
-
     if (userScore === 0 && autoScore === 0) return 0;
-
     return userScore * userWeight + autoScore * autoWeight;
 }
 

@@ -12,7 +12,7 @@
                 "user_points" : 1.0,
                 "post_points" : 10.0
             },
-            "DELETE" : {
+            "DELETED" : {
                 "category_score" : -0.04,
                 "user_points" : -0.1,
                 "post_points" : 0.0
@@ -37,7 +37,7 @@
                 "user_points" : 0.5,
                 "post_points" : 4.0
             },
-            "DEL_REPLY" : {
+            "REPLY_DELETED" : {
                 "category_score" : 0.95,
                 "user_points" : -0.2,
                 "post_points" : -1.0

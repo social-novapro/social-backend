@@ -20,6 +20,7 @@ const { pushPostToUserPostIndex } = require('../userPostIndexManagement');
 // const { categorizePost } = require('../../feeds/personalized');
 const { categorizePost } = require('../categories')
 const { addAttachments } = require('../attachments');
+const { adjustWeight } = require('../postScores/userAutoScore');
 
 async function createNewPost({
     content,
@@ -63,12 +64,15 @@ async function createNewPost({
 
     embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content }).then((embedData) => {
         // console.log("Embed data: ", embedData)
-        categorizePost({ postID, userID: postData.userID })/*.then((catData) => {
-            console.log("Categorized data: ", catData)
-        });*/
+        categorizePost({ postID, userID: postData.userID }).then((catData) => {
+            adjustWeight({ userID: postData.userID, action: "POST.CREATED", postID, postData: catData /* will not share full post but works. */ }).then((weightData) => {
+                if (weightData.error) console.error("Error adjusting weight: ", weightData.msg);
+            });
+        });
     });
-    console.log("Post created")
-    return postData
+    
+    console.log("Post created");
+    return postData;  // does not provide category data, nor reply/quote data
 }
 
 async function newPostID() {
@@ -246,6 +250,7 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     });
 
     await pushQuotePost(userID, postID, quotingPost.userID);
+    adjustWeight({ userID, action: "POST.QUOTE_CREATED", postID, postData: quotingPost });
 
     return postID;
 }
@@ -292,8 +297,9 @@ async function replyingPostSetup(replyingPost, postID, userID) {
         }
     }, {
         upsert: true
-    })
+    });
 
+    adjustWeight({ userID, action: "POST.REPLY_CREATED", postID, postData: replyingPost });
     return postID;
 }
 

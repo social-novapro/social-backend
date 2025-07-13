@@ -158,6 +158,7 @@ async function unlikePost({postID, userID}) {
         }
     }
 
+    adjustWeight({ userID, userData: foundUser, action: "POST.UNLIKE", postID, postData: postFound });
     // Update post total likes
     // await interactPostSchema.findOneAndUpdate({ _id: postID}, { totalLikes: newTotalLikes}, { upsert: true });
     const postFoundNew = await interactPostSchema.findOne({ _id: postID});
