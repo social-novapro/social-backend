@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { updateUserCategory, getUserCategories } = require('../../../../utils/post/categories');
+const { searchErrorV2 } = require('../../../../utils/searchError');
 
 router.get('/', async (req, res) => {
     const categoriesFound = await getUserCategories({ userID: req.headers.userid });
@@ -11,7 +12,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     const { userid: userID } = req.headers;
     const { categoryID, value } = req.body;
-    if (!categoryID || !value) return res.status(400).send({ error: true, msg: "Missing categoryID or value" });
+    if (!categoryID || !value) return res.status(400).send(searchErrorV2("Q027", { userID }));
    
     const updated = await updateUserCategory({ userID, categoryID, value, type: "userScore" });
     if (updated.error) return res.status(400).send(updated);

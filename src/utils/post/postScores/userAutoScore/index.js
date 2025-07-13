@@ -9,6 +9,7 @@
 const interactCategory = require("../../../../schemas/categories/interactCategory");
 const interactCategoryUser = require("../../../../schemas/categories/interactCategoryUser");
 const interactPostSchema = require("../../../../schemas/interactPostSchema");
+const { searchErrorV2 } = require("../../../searchError");
 const { updateUserCategory } = require("../../categories");
 
 // get user likes
@@ -35,20 +36,18 @@ async function adjustWeight({
     postID, postData, // 1, 2, 5, 6
     userFollowedID, userFollowedData, // 3, 4
 }) {
-    console.log("ADJUSTING WEIGHT");
-
-    if (!userID && !userData) return { error: true, msg: "No userID or userData provided to adjust weight" };
-    if (!postID && !postData) return { error: true, msg: "No postID or postData provided to adjust weight" };
-    if (!action) return { error: true, msg: "No action provided to adjust weight" };
+    if (!userID && !userData) return searchErrorV2("Q020", { userID: "unknown" });
+    if (!postID && !postData) return searchErrorV2("Q021", { userID });
+    if (!action) return searchErrorV2("Q022", {userID });
     // check if postData category
     
     // dont need userData, but need postData
     if(!postData) postData = await interactPostSchema.findOne({ _id: postID });
 
-    if (!postData.category) return { error: true, msg: "No category found for post" };
+    if (!postData.category) return searchErrorV2("Q023", { userID });
 
     const foundCategory = await interactCategory.findOne({name: postData.category});
-    if (!foundCategory) return { error: true, msg: "Category was invalid" };
+    if (!foundCategory) return searchErrorV2("Q024", { userID });
     
     const foundInteractCategoryUser = await interactCategoryUser.findOne({ userID, categoryID: foundCategory.id });
     if (!foundInteractCategoryUser) {
@@ -94,8 +93,8 @@ async function adjustWeight({
         await userUnlikePostWeight({ userID, postID, postData, foundCategory });
     }
 
-    const userScores = await getUserCategoryScores({ userID });
-    console.log("User scores found:", userScores);
+    // const userScores = await getUserCategoryScores({ userID });
+    // console.log("User scores found:", userID, userScores);
     return userScores; // return user scores, so they can be used to update user category
 }
 
@@ -128,10 +127,9 @@ async function userUnlikePostWeight({ userID, postID, postData, foundCategory })
 
 // get category score
 async function getUserCategoryScores({ userID }) {
-    if (!userID) return { error : true, msg: "No userID provided to create category scores" };
+    if (!userID) return searchErrorV2("Q025", { userID: "unknown" });
 
     var categories = await interactCategoryUser.find({ userID }); 
-    console.log("Categories found for user:", categories);
     // any other categories will not be considered, since no interaction with user
     // and user didnt interact with them
 
@@ -169,7 +167,7 @@ async function getUserCategoryScores({ userID }) {
     const totalRawScore = rawScores.reduce((sum, c) => sum + c.rawScore, 0);
 
     if (totalRawScore === 0) {
-        return { error: true, msg: "No meaningful category scores found for user." };
+        return searchErrorV2("Q026", { userID });
     }
 
     const finalScores = rawScores.map(c => {
@@ -180,13 +178,10 @@ async function getUserCategoryScores({ userID }) {
         };
     });
 
-    console.log("Final normalized scores:", finalScores);
-
     return finalScores;
 }
 
 // calculate category score, based on user score and auto score
-
 function calculateCategoryScore({ userScore, autoScore, userWeight = 0.6 }) {
     userScore = userScore ?? 0;
     autoScore = autoScore ?? 0;

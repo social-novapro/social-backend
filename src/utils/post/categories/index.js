@@ -34,22 +34,6 @@ async function categorizePost({ postID, userID }) {
     if (!foundEmbedding || !foundEmbedding.embeddingPost || !foundEmbedding.embeddingPost.embedding) return searchErrorV2("Q019", {userID: userID });
     
 
-
-    // // compare to a new embed
-    // const newEmbed = await embedSearch({ content: postData.content, userID: userID });
-    // console.log("newEmbed: ", newEmbed);
-    // console.log(newEmbed.embedding.embedding == JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"));
-    // // console.log("foundEmbedding.embeddingPost.embedding: ", JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"));
-    // // console.log("newEmbed.embedding.embedding: ", newEmbed.embedding.embedding);
-
-    // let difference = newEmbed.embedding.embedding.filter(x => !JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]").includes(x));
-    // let difference2 = JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]").filter(x => !newEmbed.embedding.embedding.includes(x));
-    // console.log("differences: ", difference, difference2);
-
-    // console.log("compare", foundEmbedding.embeddingPost.embedding == JSON.stringify(newEmbed.embedding.embedding));
-    // console.log("compare2", JSON.parse(foundEmbedding.embeddingPost.embedding) == JSON.parse(JSON.stringify(newEmbed.embedding.embedding)));
-    // compare entire post embedding to each category example
-    // full examples vs full post embedding
     const categoriesFound = cosineSimilarity(
         JSON.parse(foundEmbedding.embeddingPost.embedding ?? "[]"),
         categoryRuntimeInfo.catEmbeddings,
@@ -74,7 +58,6 @@ async function categorizePost({ postID, userID }) {
         if (!findExample || !findExample.content || !findExample.similarity || !findExample.id) continue;
 
         // can get ID from category.id
-        // exampleSentences = [...exampleSentences, ...categoryRuntimeInfo.catExampleSentences[example.id]];
         if (!categoryRuntimeInfo.catExampleSentences[findExample.id]) {console.log('no examples for ', findExample.id); continue;}; // no example sentences for this category
         for (const sentence of categoryRuntimeInfo.catExampleSentences[findExample.id] ?? []) {
             exampleSentences.embeddings.push(JSON.parse(sentence.embedding));
@@ -82,11 +65,8 @@ async function categorizePost({ postID, userID }) {
             exampleSentences.categories.push(findExample.content);
         }
     }
-    // console.log("filteredCategories: ", filteredCategories);
 
     // get example sentences for category
-    // console.log("foundEmbedding.sentences ", foundEmbedding.sentences);
-
     const finalScores = {}; 
     for (const sentence of foundEmbedding.sentences ?? []) {
         if (!sentence || !sentence.embedding) continue;
@@ -97,11 +77,6 @@ async function categorizePost({ postID, userID }) {
             exampleSentences.categories,
             exampleSentences.ids
         );
-
-        // console.log("similarsities: ", similarities);
-        // console.log("exampleSentence", exampleSentences)
-        // similarities.sort((a, b) => a.similarity - b.similarity);
-        // similarities.reverse();
 
         for (const similarity of similarities) {
             if (!similarity || !similarity.similarity || !similarity.content) continue;
@@ -129,7 +104,6 @@ async function categorizePost({ postID, userID }) {
     categoriesFoundSentences.reverse();
 
     const categoriesFoundFiltered = filterOutDuplicates(categoriesFoundSentences, 0.5, 6);
-    // console.log(categoriesFoundFiltered);
     if (!categoriesFoundFiltered || !categoriesFoundFiltered[0]) return searchErrorV2("Q017", {userID: userID });
 
     const topCategory = categoriesFoundFiltered[0];
@@ -302,8 +276,8 @@ async function updateUserCategory({ userID, categoryID, value, type }) {
 
     const updatedUserCategory = await interactCategoryUser.findOne({ userID: userID, categoryID: categoryID });
     if (!updatedUserCategory) return searchErrorV2("Q012", { userID: userID });
-    if (type=="userScore" && (!updatedUserCategory.userScore && updatedUserCategory.userScore != 0)) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]}); // return { error: true, msg: "No user score found" };
-    if (type=="userScore" && (updatedUserCategory.userScore != value)) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]});// { error: true, msg: "User score not updated" };
+    if (type=="userScore" && (!updatedUserCategory.userScore && updatedUserCategory.userScore != 0)) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]});
+    if (type=="userScore" && (updatedUserCategory.userScore != value)) return searchErrorV2("Q014", { userID: userID, options: [{name: categoryID, data: categoryID }]});
     return updatedUserCategory;
 }
 

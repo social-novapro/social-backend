@@ -118,9 +118,6 @@ async function unlikePost({postID, userID}) {
         { upsert: true }
     );
 
-    // console.log("postLikeIndex", postLikeIndex, foundLiked);
-    // console.log("userLikeIndex", userLikeIndex, foundLiked);
-
     // Remove likeID from user like index
     await interactPostLikeIndex.findOneAndUpdate(
         { _id: userLikeIndex._id },

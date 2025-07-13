@@ -41,29 +41,6 @@ function assignIds() {
     fs.writeFileSync('src/utils/post/categories/startup/categories.json', JSON.stringify(categories, null, 2));
 }
 
-async function assignExamplesFromOllama() {
-    for (const category of categories.categories) {
-        console.log("CHECKING", category.name);
-        // const result = await generateExample({ categoryName: category.name, categoryID: category.id });
-        if (result.error) {
-            console.error("Error generating example for category", category.name, result);
-            continue;
-        }
-        console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
-        // console.log(myCat);
-        for (const subcategory of category.subCategories) {
-            console.log("CHECKING", subcategory.name, category.name);
-            const result = await generateExample({ categoryName: subcategory.name, categoryID: subcategory.id });
-            if (result.error) {
-                console.error("Error generating example for category", category.name, result);
-                continue;
-            }
-
-            console.log("Generated example for category", category.name, result.map(function(example) { return `${example.response}`}).join(", "));
-        }
-    }
-}
-
 async function quickUpdateScriptCategory() {
     // update with new category thing
     const alLCategories = await interactCategoryEmbed.find({});
@@ -406,60 +383,6 @@ async function updateCategoryExampleEmbeddings({ newCategory, categoryID, catego
         timestamp: checktime(),
         embeddingVersion: EMBEDING_VERSION,
     })
-}
-
-// quickTest2();
-async function quickTest2() {
-    const mypost = "software optimization ensures smooth functionality and efficient resource allocation for enhanced user satisfaction. they’re vital for modern technological systems."
-    const myCont = "software optimization ensures smooth functionality and efficient resource allocation for enhanced user satisfaction. they’re vital for modern technological systems."
-    const mypostEmbedding = await embedSearch({ content: mypost });
-    // console.log("Embedding:", mypostEmbedding.embedding.embedding);
-    const foundExample = await interactCategoryEmbed.findOne({ _id: "501f7c66-8bf1-40c5-81ac-afb33f250e59"})
-
-    if (!foundExample) {
-        console.error("No example found");
-        return;
-    }
-
-    const myExample = foundExample.categoryExamples[9];
-    if (!myExample || !myExample.embedding) {
-        console.error("No example found in category", foundExample.content);
-        return;
-    }
-
-    console.log("compare embedding", myExample.content, "with", mypost);
-    // console.log(myExample.embedding, mypostEmbedding.embedding.embedding);
-    console.log("same embedding: ", JSON.parse(myExample.embedding) == mypostEmbedding.embedding.embedding);
-    const similarity = cosineSimilarity(
-        JSON.parse(myExample.embedding),
-        [mypostEmbedding.embedding.embedding],
-        [mypost],
-        [foundExample.content],
-    );
-    console.log("Cosine Similarity:", similarity);
-}
-// Run a quick test to see if cosine simlarity is working correctly
-async function quickTest() {
-    const catRunTime = await getCategoryRuntimeInfo();
-    for (const cat of catRunTime.categories) {
-        console.log("Category:", cat.name, "ID:", cat.id);
-    }
-
-    var i = 0;
-    for (const cat of catRunTime.catEmbeddings) {
-        i++;
-
-        const foundSimilarityPost = cosineSimilarity(
-            cat,
-            catRunTime.catEmbeddings,
-            catRunTime.catExampleSentences,
-            catRunTime.catNames,
-        );
-        console.log("Found Similarity:", foundSimilarityPost, catRunTime.catNames[i], catRunTime.catExampleSentences[i] + "\n---");
-    }
-
-    console.log("Category Embeddings:", catRunTime.catEmbeddings.length);
-    console.log("Category Names:", catRunTime.catNames.length);
 }
 
 // Get runtime information about categories, including embeddings and examples
