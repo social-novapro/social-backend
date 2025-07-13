@@ -13,6 +13,8 @@ const { checktime } = require("../../../checktime");
 const { searchErrorV2 } = require("../../../searchError");
 const { updateUserCategory } = require("../../categories");
 
+const CATEGORY_INTERACTION_WEIGHT = 1; // default weight for category interactions, can be adjusted later
+const SUBCATEGORY_INTERACTION_WEIGHT = 0.7; // default weight for subcategory interactions, can be adjusted later
 // get user likes
 
 
@@ -50,6 +52,16 @@ async function adjustWeight({
     const foundCategory = await interactCategory.findOne({name: postData.category});
     if (!foundCategory) return searchErrorV2("Q024", { userID });
     
+    const foundSubCategories = [];
+    if (postData.subCats) {
+        for (const subCat of postData.subCats) {
+            const foundSubCategory = await interactCategory.findOne({ name: subCat });
+            if (foundSubCategory) {
+                foundSubCategories.push(foundSubCategory);
+            }
+        }
+    }
+
     const foundInteractCategoryUser = await interactCategoryUser.findOne({ userID, categoryID: foundCategory.id });
     if (!foundInteractCategoryUser) {
         // create new
@@ -99,9 +111,10 @@ async function adjustWeight({
     return true; // return user scores, so they can be used to update user category
 }
 
-async function userAdjustCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust }) {
+async function userAdjustCategoryInteractions({ userID, postID, postData, foundCategory, foundSubCategories=[], toAdjust, weight }) {
     if (!foundCategory) return searchErrorV2("Q028", { userID });
     if (!toAdjust) return searchErrorV2("Q029", { userID });
+
     // const currentCategoryInfo
     // adjust user category score
     await interactCategoryUser.findOneAndUpdate({
@@ -109,16 +122,27 @@ async function userAdjustCategoryInteractions({ userID, postID, postData, foundC
         categoryID: foundCategory.id
     }, {
         $inc: {
-            autoScore: +1,
-            [toAdjust]: +1, // increment amount of blank
+            autoScore: +(CATEGORY_INTERACTION_WEIGHT*weight || CATEGORY_INTERACTION_WEIGHT),
+            [toAdjust]: +(CATEGORY_INTERACTION_WEIGHT*weight || CATEGORY_INTERACTION_WEIGHT), // increment amount of blank
         },
         $set: {
             timestamp: checktime()
         }
     });
+
+    for (const category of foundSubCategories) {
+        await userAdjustCategoryInteractions({
+            userID,
+            postID,
+            postData,
+            foundCategory: category,
+            toAdjust,
+            weight: SUBCATEGORY_INTERACTION_WEIGHT // subcategories should have less weight
+        })
+    }
 }
 
-async function userRemoveCategoryInteractions({ userID, postID, postData, foundCategory, toAdjust }) {
+async function userRemoveCategoryInteractions({ userID, postID, postData, foundCategory, foundSubCategories=[], toAdjust, weight }) {
     if (!foundCategory) return searchErrorV2("Q028", { userID });
     if (!toAdjust) return searchErrorV2("Q029", { userID });
     // adjust user category score
@@ -127,13 +151,24 @@ async function userRemoveCategoryInteractions({ userID, postID, postData, foundC
         categoryID: foundCategory.id
     }, {
         $inc: {
-            autoScore: -1,
-            [toAdjust]: -1, // increment amount of blank
+            autoScore: -(CATEGORY_INTERACTION_WEIGHT*weight || CATEGORY_INTERACTION_WEIGHT),
+            [toAdjust]: -(CATEGORY_INTERACTION_WEIGHT*weight || CATEGORY_INTERACTION_WEIGHT), // increment amount of blank
         },
         $set: {
             timestamp: checktime()
         }
     });
+
+    for (const category of foundSubCategories) {
+        await userRemoveCategoryInteractions({
+            userID,
+            postID,
+            postData,
+            foundCategory: category,
+            toAdjust,
+            weight: SUBCATEGORY_INTERACTION_WEIGHT // subcategories should have less weight
+        })
+    }
 }
 
 // get category score
