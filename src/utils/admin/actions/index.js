@@ -1,6 +1,8 @@
 const interactAdminUpdateActionsSchema = require("../../../schemas/admin/interactAdminUpdateActionsSchema");
 const { checktime } = require("../../checktime");
 const { categorizeAllPosts, undoAllCategorizePosts } = require("../../post/categories/updateAction");
+const { actionUpdateLikePostsIndexes, actionUndoLikePostsIndexes } = require("../../post/likeUtilV2/updateActionsLikes");
+const { actionUpdateUserAutoScore, actionUndoUserAutoScore } = require("../../post/postScores/userAutoScore/updateActionsUser");
 const { updateAllPostEmbeddings, undoAllPostEmbeddings } = require("../../search/embed/firstRun");
 const { searchErrorV2 } = require("../../searchError");
 const { updateUserBadges, undoUserBadges } = require("../../user/badges/firstRun");
@@ -9,7 +11,7 @@ const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
 const { updateAllUserPostIndexes, undoAllUserPostIndexes } = require("./userPostIndexes");
 
-// APR 2024 - 1.4, MAR 2025 - 1.7, JUN 2025 - 1.8
+// APR 2024 - 1.4, MAR 2025 - 1.7, JUN 2025 - 1.8, 1.8.2
 async function updatePostEmbeddings({ adminID, version=null }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: `postEmbeddings${version?version:""}` });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
@@ -137,7 +139,7 @@ async function undoUserPostIndexes({ adminID }) {
     return { done: true }
 }
 
-// MAR 2025 - 1.7, JUN 2025 - 1.8
+// MAR 2025 - 1.7, JUN 2025 - 1.8, JUL 2025 - 1.8.2
 async function updateCategorizePosts({ adminID, version=null }) {
     const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts"+(version?version:"") });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
@@ -158,6 +160,48 @@ async function undoCategorizePosts({ adminID, version=null }) {
     return { done: true }
 }
 
+// June 2025 - 1.8
+async function updateLikePostsIndexes({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "likePostsIndexes" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await actionUpdateLikePostsIndexes();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "likePostsIndexes",
+        done: true,
+        timestamp: checktime(),
+    });
+    
+    return result;
+}
+
+async function undoLikePostsIndexes({ adminID }) {
+    await actionUndoLikePostsIndexes();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "likePostsIndexes" })
+    return { done: true };
+}
+
+// July 2025 - 1.8.2
+async function updateUserAutoScore({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userAutoScore" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await actionUpdateUserAutoScore();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "userAutoScore",
+        done: true,
+        timestamp: checktime(),
+    });
+    
+    return result;
+}
+
+async function undoUserAutoScore({ adminID }) {
+    await actionUndoUserAutoScore();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "userAutoScore" })
+    return { done: true };
+}
+
 module.exports = { 
     updateUsernameLc,
     undoUsernameLc,
@@ -172,6 +216,10 @@ module.exports = {
     updateUserPostIndexes,
     undoUserPostIndexes,
     updateCategorizePosts,
-    undoCategorizePosts
+    undoCategorizePosts,
+    updateLikePostsIndexes,
+    undoLikePostsIndexes,
+    updateUserAutoScore,
+    undoUserAutoScore,
 }
 

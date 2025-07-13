@@ -491,6 +491,51 @@
                     "ignoreError" : true
                 },
                 {
+                    "code" : "D027",
+                    "msg" : "Like Index was not found, and will not create a new one.",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "D028",
+                    "msg" : "Post Like index was not found."
+                },
+                {
+                    "code" : "D029",
+                    "msg" : "User like index was not found."
+                },
+                {
+                    "code" : "D030",
+                    "msg" : "Post was not found while unliking."
+                },
+                {
+                    "code" : "D031",
+                    "msg" : "Post was not previously liked by user."
+                },
+                {
+                    "code" : "D032",
+                    "msg" : "User was not found while trying to get user likes."
+                },
+                {
+                    "code" : "D033",
+                    "msg" : "No old post likes were found."
+                },
+                {
+                    "code" : "D034",
+                    "msg" : "UserID or indexID is required to get likes for user."
+                },
+                {
+                    "code" : "D035",
+                    "msg" : "Own userID is required to get likes for user."
+                },
+                {
+                    "code" : "D036",
+                    "msg" : "UserData was not found while getting likes for user."
+                },
+                {
+                    "code" : "D037",
+                    "msg" : "You do not have permission to view this user's likes."
+                },
+                {
                     "code" : "E001",
                     "msg" : "You must provide the post content, and a userID in order to submit a post."
                 },
@@ -1256,6 +1301,46 @@
                 {
                     "code" : "Q019",
                     "msg" : "Missing Embedding data for post."
+                },
+                {
+                    "code" : "Q020",
+                    "msg" : "No userID and userData provided to adjust category weight"
+                },
+                {
+                    "code" : "Q021",
+                    "msg" : "No postID or postData provided to adjust category weight"
+                },
+                {
+                    "code" : "Q022",
+                    "msg" : "No action provided to adjust category weight"
+                },
+                {
+                    "code" : "Q023",
+                    "msg" : "No category found for post"
+                },
+                {
+                    "code" : "Q024",
+                    "msg" : "Category found for post was invalid."
+                },
+                {
+                    "code" : "Q025",
+                    "msg" : "No userID provided to create category scores."
+                },
+                {
+                    "code" : "Q026",
+                    "msg" : "No meaningful category scores found for user."
+                },
+                {
+                    "code" : "Q027",
+                    "msg" : "Missing categoryID or value"
+                },
+                {
+                    "code": "Q028",
+                    "msg" : "Requires type to adjust category weight."
+                },
+                    {
+                    "code": "Q029",
+                    "msg" : "Requires categoryID to adjust category weight"
                 },
                 {
                     "code" : "R001",
