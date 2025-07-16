@@ -5,6 +5,7 @@ const { cosineSimilarity } = require("../../search/searchV2");
 
 // var { categories } = require("../../post/categories/startup/categories.json");
 const { getCategoryFromDB } = require("../../post/categories/startup");
+const { getUserCategoryScores } = require("../../post/postScores/userAutoScore");
 // var categories = []
 
 // chatgpt quick closet category
@@ -17,7 +18,7 @@ async function buildPersonalizedFeed({ userID }) {
     if (!userID) return searchError("B009");
 
     const ownUser = await interactUserSchema.findOne({_id: userID});
-    const foundPosts = await interactPostSchema.find({});
+    // const foundPosts = await interactPostSchema.find({});
 
     var sendingData = {
         // nextIndexID: currentIndex.nextIndexID,
@@ -27,32 +28,28 @@ async function buildPersonalizedFeed({ userID }) {
         posts: [ ]
     }
 
+    const foundCategoriesForUser = await getUserCategoryScores({ userID });
+    // console.log("Found categories for user", foundCategoriesForUser);
 
-    for (const post of foundPosts) {
-        if (!post || !post._id) continue;
-        if (!post.category) continue;
-        else console.log("Post category", post.category);
-        const category = post.category;
-        const foundCategory = await getCategoryFromDB({ categoryName: category  });
-        
-        var compareCat = category;
-        if (foundCategory.parentCategoryID) {
-            const parentCategory = await getCategoryFromDB({ categoryID: foundCategory.parentCategoryID  });
-            compareCat = parentCategory.name;
-        }
+    for (const category of foundCategoriesForUser) {
+        // console.log("Category for user", category);
+        if (!category || !category.categoryID || category.score<=0) continue;
 
-        // implement subcategories here too, this is just comparing the main category
+        const foundPosts = await interactPostSchema.find({ category: category.categoryData.name }).limit(category.score)
+        // console.log("Found posts for category", category.categoryData.name, foundPosts);
+        if (!foundPosts || foundPosts.length === 0) continue;
+        // console.log("Found posts for category", category.categoryID, foundPosts)
+        // var amountFound = 0;
 
-        console.log(compareCat, category)
-
-        if (!post || !post._id) continue;
-        if (compareCat != "technology" && compareCat != "development") continue;
-
-        const postData = await getPostWithData({ userID, postID: post._id, ownUser });
-        if (postData && !postData.error) {
-            sendingData.posts.push(postData);
-        } else {
-            console.log("errr");
+        for (const post of foundPosts) {
+            if (!post || !post._id/*|| amountFound>=category.score*/) continue;
+            const postData = await getPostWithData({ userID, postID: post._id, ownUser });
+            if (postData && !postData.error) {
+                sendingData.posts.push(postData);
+                // amountFound++;
+            } else {
+                console.log("Error getting post data for", post._id);
+            }
         }
     }
 

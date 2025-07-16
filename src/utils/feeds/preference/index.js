@@ -2,6 +2,7 @@ const { subscriptionFeed, allPostsFeed, allPostsFeedV2, subscriptionFeedV2 } = r
 const interactUserFeedSchema = require("../../../schemas/user/interactUserFeedSchema")
 const {checktime} = require('../../checktime');
 const { searchError, searchErrorV2 } = require("../../searchError");
+const { buildPersonalizedFeed } = require("../personalized");
 
 const defaultPref = "allPosts";
 
@@ -16,6 +17,9 @@ async function getFeed({ userID }) {
     } else if (prefData == "subscriptionFeed") {
         const feed = await subscriptionFeed({ userID  });
         return feed;
+    } else if (prefData == "personal") {
+        const feed = await buildPersonalizedFeed({ userID, indexID });
+        return feed;
     }
 }
 
@@ -29,6 +33,9 @@ async function getFeedV2({ userID, indexID }) {
         return feed;
     } else if (prefData == "subscriptionFeed") {
         const feed = await subscriptionFeedV2({ userID });
+        return feed;
+    } else if (prefData == "personal") {
+        const feed = await buildPersonalizedFeed({ userID, indexID });
         return feed;
     }
 }
@@ -52,10 +59,10 @@ function getPossiblePreferences(full) {
         name: "subscriptionFeed",
         niceName: "Subscriptions",
         description: "All posts from users you are subscribed to",
-    // }, {
-    //     name: "personal",
-    //     niceName: "Personalized",
-    //     description: "Personalized feed based on your interactions",
+    }, {
+        name: "personal",
+        niceName: "Personalized",
+        description: "Personalized feed based on your interactions",
     }];
 
     if (full) return possible;

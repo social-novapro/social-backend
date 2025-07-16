@@ -197,7 +197,7 @@ async function getUserCategoryScores({ userID }) {
         if (category.autoScore != null && totalAutoInteractions > 0) {
             autoScore = (category.autoScore / totalAutoInteractions) * 100;
         }
-
+        const foundCategory = await interactCategory.findOne({ id: category.categoryID });
         const rawScore = calculateCategoryScore({
             userScore,
             autoScore,
@@ -209,6 +209,7 @@ async function getUserCategoryScores({ userID }) {
             rawScore,
             userScore,
             autoScore,
+            categoryData: foundCategory
         });
     }
 
@@ -225,6 +226,7 @@ async function getUserCategoryScores({ userID }) {
             score: Math.round(normalizedScore),
             userScore: c.userScore,
             autoScore: Math.round(c.autoScore),
+            categoryData: c.categoryData,
         };
     });
 
