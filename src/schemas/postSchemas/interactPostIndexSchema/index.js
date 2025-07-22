@@ -11,6 +11,13 @@ const interactPostIndexSchema = mongoose.Schema({
     nextIndexID: nonreqString, // next id
     prevIndexID: nonreqString, // prev id
     amount: reqNum, // amount of themes
+
+    // this is for user specific indexes
+    current: nonreqString,
+    shown: nonreqString, // if shown in feed
+    expired: nonreqString, // if expired
+    userID: nonreqString, // userID
+    
     postIDs: [postIndexSchema]
 });
 
