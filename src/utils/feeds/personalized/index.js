@@ -12,30 +12,33 @@ const { searchErrorV2 } = require("../../searchError");
 
 // Add feature that will adjust weights if no posts were found --- temporarily, just so theres always posts 
 // for now auto default to allposts
-async function wipeUserIndexes() {
-    const foundIndexes = await interactPostIndexSchema.find({ userID : { $ne: null } });
+async function wipeUserIndexes({userID}) {
+    if (!userID) return searchErrorV2("B009", { userID });
+
+    const foundIndexes = await interactPostIndexSchema.find({ userID : userID });
     for (const index of foundIndexes) {
-        if (!index) continue;
         if (index.userID) {
-            const foundAndDel = await interactPostIndexSchema.findOneAndDelete({ _id: index._id });
-            if (foundAndDel) {
-                console.log(`Deleted index: ${foundAndDel._id} for user: ${foundAndDel.userID}`);
-            }
+            await interactPostIndexSchema.findOneAndDelete({ _id: index._id });
+            // if (foundAndDel) {
+            //     console.log(`Deleted index: ${foundAndDel._id} for user: ${foundAndDel.userID}`);
+            // }
         }
     }
 
-    const foundSeenPosts = await interactPostSeenSchema.find({});
+    const foundSeenPosts = await interactPostSeenSchema.find({userID: userID});
     for (const seenPost of foundSeenPosts) {
-        const foundAndDel = await interactPostSeenSchema.findOneAndDelete({ _id: seenPost._id });
-        if (foundAndDel) {
-            console.log(`Deleted seen post: ${foundAndDel._id}`);
-        }
+        await interactPostSeenSchema.findOneAndDelete({ _id: seenPost._id });
+        // if (foundAndDel) {
+        //     console.log(`Deleted seen post: ${foundAndDel._id}`);
+        // }
     }
+
+    return { success: true, msg: "User indexes wiped successfully" };
 }
 
 async function buildPersonalizedFeed({ userID, indexID=null }) {
     // await wipeUserIndexes();
-    if (!userID) return searchErrorV2("B009");
+    if (!userID) return searchErrorV2("B009", {userID: "unknown"});
 
     const ownUser = await interactUserSchema.findOne({_id: userID});
     // const foundPosts = await interactPostSchema.find({});
@@ -62,7 +65,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
 
     // Index is to old, reset it
     if (!indexID && currentUserIndex?.timestamp < checktime()-(1000*60*60)) {
-        console.log("Current user index is too old, generating new one");
+        searchErrorV2("D030", { userID });
         const foundIndexes = await interactPostIndexSchema.find({ userID, isUserSpecific: true, shown: false });
         for (const index of foundIndexes) {
             index.current = false;
@@ -77,7 +80,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
         // generate new indexes
         const foundCategoriesForUser = await getUserCategoryScores({ userID });
         if (!foundCategoriesForUser || foundCategoriesForUser.length === 0) {
-            return { error: "No categories found for user" };
+            return searchErrorV2("Q033")
         }
         
         const seenPosts = await interactPostSeenSchema.find({ userID });
@@ -149,7 +152,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
         for (let i = 0; i < foundPosts.length; i++) {
             if (indexCount < postsPerIndex) {
                 if (foundPosts[i]._id) currentIndex.push({_id: foundPosts[i]._id});
-                else console.log("Post without ID found, skipping", foundPosts[i]);
+                else searchErrorV2("Q031", { userID, options: [{name: "postData", data: JSON.toString(foundPosts[i])}]});
                 indexCount++;
             } else {
                 // save current index
@@ -192,10 +195,9 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
 
     if (!currentUserIndex || !currentUserIndex.postIDs || currentUserIndex.postIDs.length === 0) {
         // default to allposts
-        searchErrorV2("D000", { userID });
+        searchErrorV2("Q032", { userID });
         const allPostsFeed = await allPostsFeedV2({ userID });
         return allPostsFeed;
-        return { error: "No posts found in current user index" };
     }
     // set current index to shown true, current false
     await interactPostIndexSchema.findOneAndUpdate({ _id: currentUserIndex._id}, { current: false, shown: true })
@@ -237,5 +239,6 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
 // then as user scrolls, load next posts, with shown=true, current=false, and nextIndexID will be changned to current=true
 
 module.exports = {
-    buildPersonalizedFeed
+    buildPersonalizedFeed,
+    wipeUserIndexes
 }
