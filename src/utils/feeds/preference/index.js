@@ -84,12 +84,9 @@ function checkIfValidPreference({ pref }) {
 async function getPreference({ userID }) {
     if (!userID) return searchError("B009")
     const foundPref = await interactUserFeedSchema.findOne({ _id: userID });
-    console.log("Found pref", foundPref);
 
     if (!foundPref || (!foundPref.isUserSet && foundPref.preferredFeed=="allPosts")) {
         const newPref = await setDefaultPreference({ userID, currentPrefData: foundPref });
-        console.log("updated pref", newPref);
-
         return newPref;
     }
 

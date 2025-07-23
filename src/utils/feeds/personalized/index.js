@@ -79,12 +79,9 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
     if (!currentUserIndex) {
         // generate new indexes
         const foundCategoriesForUser = await getUserCategoryScores({ userID });
-        console.log(`Found ${foundCategoriesForUser.length} categories for user: ${userID}`);
-        console.log(foundCategoriesForUser)
-        if (!foundCategoriesForUser || foundCategoriesForUser.length === 0) {
+        if (!foundCategoriesForUser || foundCategoriesForUser.length === 0 || foundCategoriesForUser.error) {
             return searchErrorV2("Q033")
         }
-        
         const seenPosts = await interactPostSeenSchema.find({ userID, current: true});
         const seenPostIDs = seenPosts.map(post => post.postID);
         

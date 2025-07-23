@@ -11,7 +11,7 @@ const interactCategoryUser = require("../../../../schemas/categories/interactCat
 const interactPostSchema = require("../../../../schemas/interactPostSchema");
 const { checktime } = require("../../../checktime");
 const { searchErrorV2 } = require("../../../searchError");
-const { updateUserCategory } = require("../../categories");
+const { updateUserCategory, getUserCategories } = require("../../categories");
 
 const CATEGORY_INTERACTION_WEIGHT = 1; // default weight for category interactions, can be adjusted later
 const SUBCATEGORY_INTERACTION_WEIGHT = 0.7; // default weight for subcategory interactions, can be adjusted later
@@ -176,6 +176,10 @@ async function getUserCategoryScores({ userID }) {
     if (!userID) return searchErrorV2("Q025", { userID: "unknown" });
 
     var categories = await interactCategoryUser.find({ userID }); 
+    if (!categories || categories.length === 0) {
+        await getUserCategories({ userID }); // will create default if not exists
+        categories = await interactCategoryUser.find({ userID }); // fetch again after creating default categories
+    }
     // any other categories will not be considered, since no interaction with user
     // and user didnt interact with them
 
