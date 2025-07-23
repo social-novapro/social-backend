@@ -239,10 +239,26 @@ async function getUserCategories({ userID }) {
 
     for (const category of sortedCategoriesFound) {
         if (!category) continue;
-
         const foundCategory = foundUserCategories.find((cat) => cat.categoryID === category.id);
         if (foundCategory) {
+            if (!foundCategory.isUserSet && !category.isSubCategory) {
+                foundCategory.isUserSet = false; // if not set by user, set to false
+                foundCategory.userScore = DEFAULT_CAT_VALUE; // set to default value
+                foundCategory.save();
+            }
             category.value = foundCategory.userScore;
+        } else if (!category.isSubCategory) {
+            // create a new user category with default value
+            console.log("Creating new user category for ", category.id);
+            const newCategory = await interactCategoryUser.create({
+                _id: uuidv4(),
+                userID: userID,
+                categoryID: category.id,
+                isUserSet: false,
+                userScore:DEFAULT_CAT_VALUE,
+                timestamp: checktime(),
+            });
+            category.value = newCategory.userScore;
         }
     }
 

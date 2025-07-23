@@ -27,7 +27,7 @@ async function wipeUserIndexes({userID}) {
 
     const foundSeenPosts = await interactPostSeenSchema.find( {userID: userID, current: true });
     for (const seenPost of foundSeenPosts) {
-        await interactPostSeenSchema.findOneAndUpdate({ _id: seenPost._id, current: false });
+        await interactPostSeenSchema.findOneAndUpdate({ _id: seenPost._id},{ current: false });
         // if (foundAndDel) {
         //     console.log(`Deleted seen post: ${foundAndDel._id}`);
         // }
@@ -79,6 +79,8 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
     if (!currentUserIndex) {
         // generate new indexes
         const foundCategoriesForUser = await getUserCategoryScores({ userID });
+        console.log(`Found ${foundCategoriesForUser.length} categories for user: ${userID}`);
+        console.log(foundCategoriesForUser)
         if (!foundCategoriesForUser || foundCategoriesForUser.length === 0) {
             return searchErrorV2("Q033")
         }
@@ -152,7 +154,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
         for (let i = 0; i < foundPosts.length; i++) {
             if (indexCount < postsPerIndex) {
                 if (foundPosts[i]._id) currentIndex.push({_id: foundPosts[i]._id});
-                else searchErrorV2("Q031", { userID, options: [{name: "postData", data: JSON.toString(foundPosts[i])}]});
+                else searchErrorV2("Q031", { userID, options: [{name: "postData", data: JSON.stringify(foundPosts[i])}]});
                 indexCount++;
             } else {
                 // save current index
@@ -232,6 +234,12 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
     }
 
     sendingData.amount = sendingData.posts.length;
+
+    if (sendingData.amount <=0 && sendingData.prevIndexID ) {
+        console.log(`No posts found for user: ${userID} in index: ${currentUserIndex._id}, trying to get next index...`);
+        const gettingFeedAgain = await buildPersonalizedFeed({ userID });
+        return gettingFeedAgain;
+    }
     return sendingData;
 }
 

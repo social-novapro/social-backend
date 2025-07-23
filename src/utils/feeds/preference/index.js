@@ -4,7 +4,7 @@ const {checktime} = require('../../checktime');
 const { searchError, searchErrorV2 } = require("../../searchError");
 const { buildPersonalizedFeed } = require("../personalized");
 
-const defaultPref = "allPosts";
+const defaultPref = "personal";
 
 async function getFeed({ userID }) {
     if (!userID) return searchError("B009")
@@ -84,45 +84,64 @@ function checkIfValidPreference({ pref }) {
 async function getPreference({ userID }) {
     if (!userID) return searchError("B009")
     const foundPref = await interactUserFeedSchema.findOne({ _id: userID });
-    
-    if (!foundPref) {
-        const newPref = await setPreference({ newPref: true, userID, pref: "default" });
+    console.log("Found pref", foundPref);
+
+    if (!foundPref || (!foundPref.isUserSet && foundPref.preferredFeed=="allPosts")) {
+        const newPref = await setDefaultPreference({ userID, currentPrefData: foundPref });
+        console.log("updated pref", newPref);
+
         return newPref;
     }
-    else return foundPref;
+
+    return foundPref;
 }
 
-async function setPreference({ newPref, userID, pref }) {
-    if (!userID) return searchError("B009")
-    if (!pref) return searchErrorV2("Q001", { userID });
-    
-    if (newPref) {
+async function setDefaultPreference({ userID, currentPrefData }) {
+    if (!userID) return searchError("B009");
+
+    if (!currentPrefData) {
         const newPref = await interactUserFeedSchema.create({
             _id: userID,
             timestamp: checktime(),
             preferredFeed: defaultPref,
+            isUserSet: false
         });
-
         return newPref;
     } else {
-        // just to make sure there is a preference set
-        await getPreference({ userID });
-        
-        const valid = checkIfValidPreference({pref});
-        if (!valid || valid.error) return valid;
-
-        await interactUserFeedSchema.findOneAndUpdate({
-            _id: userID 
+        const updatedPref = await interactUserFeedSchema.findOneAndUpdate({
+            _id: userID
         }, {
             timestamp: checktime(),
-            preferredFeed: pref,
+            preferredFeed: defaultPref,
+            isUserSet: false
         }, {
             new: true,
         });
-        const foundNewPref = await getPreference({ userID });
 
-        return foundNewPref;
+        return updatedPref;
     }
+}
+
+async function updateUserPreference({ userID, pref }) {
+    if (!userID) return searchError("B009")
+    if (!pref) return searchErrorV2("Q001", { userID });
+    
+    await getPreference({ userID }); // will create default if not exists
+
+    const valid = checkIfValidPreference({pref});
+    if (!valid || valid.error) return valid;
+
+    const updatedPref = await interactUserFeedSchema.findOneAndUpdate({
+        _id: userID 
+    }, {
+        timestamp: checktime(),
+        preferredFeed: pref,
+        isUserSet: true
+    }, {
+        new: true,
+    });
+
+    return updatedPref;
 }
 
 /**
@@ -142,6 +161,6 @@ module.exports = {
     getFeedV2,
     getPossiblePreferences,
     getPreference,
-    setPreference,
-    deleteFeedPreference
+    deleteFeedPreference,
+    updateUserPreference
 }
