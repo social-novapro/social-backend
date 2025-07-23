@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqString, reqNum } = require('../../types');
+const { reqString, reqNum, reqBool } = require('../../types');
 
 const interactPostSeenSchema = mongoose.Schema({
     _id: reqString, // uuid
@@ -7,6 +7,7 @@ const interactPostSeenSchema = mongoose.Schema({
     userID: reqString,
     userPostIndexID: reqString, // userIndexID
     timestamp: reqNum,
+    current: reqBool
 });
 
 module.exports = mongoose.model('interact-post-seen', interactPostSeenSchema);

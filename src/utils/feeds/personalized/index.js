@@ -25,9 +25,9 @@ async function wipeUserIndexes({userID}) {
         }
     }
 
-    const foundSeenPosts = await interactPostSeenSchema.find({userID: userID});
+    const foundSeenPosts = await interactPostSeenSchema.find( {userID: userID, current: true });
     for (const seenPost of foundSeenPosts) {
-        await interactPostSeenSchema.findOneAndDelete({ _id: seenPost._id });
+        await interactPostSeenSchema.findOneAndUpdate({ _id: seenPost._id, current: false });
         // if (foundAndDel) {
         //     console.log(`Deleted seen post: ${foundAndDel._id}`);
         // }
@@ -83,7 +83,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
             return searchErrorV2("Q033")
         }
         
-        const seenPosts = await interactPostSeenSchema.find({ userID });
+        const seenPosts = await interactPostSeenSchema.find({ userID, current: true});
         const seenPostIDs = seenPosts.map(post => post.postID);
         
         // const categoryNames = foundCategoriesForUser.map(category => category.categoryData.name);
@@ -212,7 +212,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
         // add to seen, even if error
         if (postData) {
             // check if seen
-            const seenPost = await interactPostSeenSchema.findOne({ postID: post._id, userID });
+            const seenPost = await interactPostSeenSchema.findOne({ postID: post._id, userID, current: true });
             if (!seenPost) {
                 // create seen post
                 await interactPostSeenSchema.create({
@@ -221,6 +221,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
                     userID,
                     userPostIndexID: currentUserIndex._id,
                     timestamp: checktime(),
+                    current: true
                 });
             }
 
