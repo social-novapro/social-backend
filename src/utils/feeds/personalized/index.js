@@ -1,3 +1,4 @@
+const { allPostsFeedV2 } = require("..");
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactPostIndexSchema = require("../../../schemas/postSchemas/interactPostIndexSchema");
@@ -7,7 +8,10 @@ const { checktime } = require("../../checktime");
 const { getPostWithData } = require("../../post/getPost");
 const { getUserCategoryScores } = require("../../post/postScores/userAutoScore");
 const { v4: uuidv4 } = require("uuid");
+const { searchErrorV2 } = require("../../searchError");
 
+// Add feature that will adjust weights if no posts were found --- temporarily, just so theres always posts 
+// for now auto default to allposts
 async function wipeUserIndexes() {
     const foundIndexes = await interactPostIndexSchema.find({ userID : { $ne: null } });
     for (const index of foundIndexes) {
@@ -31,7 +35,7 @@ async function wipeUserIndexes() {
 
 async function buildPersonalizedFeed({ userID, indexID=null }) {
     // await wipeUserIndexes();
-    if (!userID) return searchError("B009");
+    if (!userID) return searchErrorV2("B009");
 
     const ownUser = await interactUserSchema.findOne({_id: userID});
     // const foundPosts = await interactPostSchema.find({});
@@ -47,7 +51,13 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
     // look for post index
     var currentUserIndex = await interactPostIndexSchema.findOne({ userID, isUserSpecific: true, current: true, shown: false, expired: false });
     if (indexID) {
-        currentUserIndex = await interactPostIndexSchema.findOne({ _id: indexID, userID, isUserSpecific: true });
+        // commented later so allPosts will still work if running out of posts
+        currentUserIndex = await interactPostIndexSchema.findOne({ _id: indexID})//, userID, isUserSpecific: true });
+
+        if (currentUserIndex && currentUserIndex.isUserSpecific === false) {
+            const allPostsReturn = await allPostsFeedV2({ userID });
+            return allPostsReturn;
+        }
     }
 
     // Index is to old, reset it
@@ -172,19 +182,19 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
 
 
         currentUserIndex = createdIndexes[amountIndexesCreated-1];
-        if (!currentUserIndex) {
-            return { error: "No posts found for user" };
+        if (currentUserIndex) {
+            currentUserIndex.current = true;
+            await currentUserIndex.save();
+            // return { error: "No posts found for user" };
+            // removed this so will proceed to next steps, and return allPostsFeedV2 if no posts found
         }
-
-        currentUserIndex.current = true;
-        await currentUserIndex.save();
-        
-        console.log(currentUserIndex)
-    } else {
-        console.log("Current user index found, using it");
     }
 
     if (!currentUserIndex || !currentUserIndex.postIDs || currentUserIndex.postIDs.length === 0) {
+        // default to allposts
+        searchErrorV2("D000", { userID });
+        const allPostsFeed = await allPostsFeedV2({ userID });
+        return allPostsFeed;
         return { error: "No posts found in current user index" };
     }
     // set current index to shown true, current false
@@ -221,9 +231,6 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
     sendingData.amount = sendingData.posts.length;
     return sendingData;
 }
-
-// async function getPostsUserFollowingIndex({})
-
 
 // build all, do first 10-20 posots
 // then put next into an arrais with shown=false, current=false
