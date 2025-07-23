@@ -2,12 +2,35 @@ const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
 const interactPostIndexSchema = require("../../../schemas/postSchemas/interactPostIndexSchema");
 const interactPostSeenSchema = require("../../../schemas/postSchemas/interactPostSeenSchema");
+const interactFollowIndexSchema = require("../../../schemas/user/interactFollowIndexSchema");
 const { checktime } = require("../../checktime");
 const { getPostWithData } = require("../../post/getPost");
 const { getUserCategoryScores } = require("../../post/postScores/userAutoScore");
 const { v4: uuidv4 } = require("uuid");
 
-async function buildPersonalizedFeed({ userID }) {
+async function wipeUserIndexes() {
+    const foundIndexes = await interactPostIndexSchema.find({ userID : { $ne: null } });
+    for (const index of foundIndexes) {
+        if (!index) continue;
+        if (index.userID) {
+            const foundAndDel = await interactPostIndexSchema.findOneAndDelete({ _id: index._id });
+            if (foundAndDel) {
+                console.log(`Deleted index: ${foundAndDel._id} for user: ${foundAndDel.userID}`);
+            }
+        }
+    }
+
+    const foundSeenPosts = await interactPostSeenSchema.find({});
+    for (const seenPost of foundSeenPosts) {
+        const foundAndDel = await interactPostSeenSchema.findOneAndDelete({ _id: seenPost._id });
+        if (foundAndDel) {
+            console.log(`Deleted seen post: ${foundAndDel._id}`);
+        }
+    }
+}
+
+async function buildPersonalizedFeed({ userID, indexID=null }) {
+    // await wipeUserIndexes();
     if (!userID) return searchError("B009");
 
     const ownUser = await interactUserSchema.findOne({_id: userID});
@@ -22,11 +45,15 @@ async function buildPersonalizedFeed({ userID }) {
     }
 
     // look for post index
-    var currentUserIndex = await interactPostIndexSchema.findOne({ userID, current: true, shown: false, expired: false });
+    var currentUserIndex = await interactPostIndexSchema.findOne({ userID, isUserSpecific: true, current: true, shown: false, expired: false });
+    if (indexID) {
+        currentUserIndex = await interactPostIndexSchema.findOne({ _id: indexID, userID, isUserSpecific: true });
+    }
+
     // Index is to old, reset it
-    if (currentUserIndex?.timestamp < checktime()-(1000*60*60)) {
+    if (!indexID && currentUserIndex?.timestamp < checktime()-(1000*60*60)) {
         console.log("Current user index is too old, generating new one");
-        const foundIndexes = await interactPostIndexSchema.find({ userID, shown: false });
+        const foundIndexes = await interactPostIndexSchema.find({ userID, isUserSpecific: true, shown: false });
         for (const index of foundIndexes) {
             index.current = false;
             index.expired = true;
@@ -37,7 +64,6 @@ async function buildPersonalizedFeed({ userID }) {
 
     // generate new index if not found
     if (!currentUserIndex) {
-        console.log("No current user index found, generating new one");
         // generate new indexes
         const foundCategoriesForUser = await getUserCategoryScores({ userID });
         if (!foundCategoriesForUser || foundCategoriesForUser.length === 0) {
@@ -50,6 +76,7 @@ async function buildPersonalizedFeed({ userID }) {
         // const categoryNames = foundCategoriesForUser.map(category => category.categoryData.name);
         const foundPosts = [];
 
+        // Getting posts from categories and subcategories
         for (const category of foundCategoriesForUser) {
             const categoryName = category.categoryData.name;
             const score = category.score;
@@ -64,19 +91,55 @@ async function buildPersonalizedFeed({ userID }) {
 
             foundPosts.push(...posts);
         }
+
+        // Posts who replied or quoted the user
+        const postsRepliesQuotes = await interactPostSchema.find({
+            _id: { $nin: seenPostIDs },
+            $or: [
+                { "replyData.userID": userID },
+                { "quoteData.userID": userID }
+            ]
+        }).limit(20).sort({ timestamp: +1 });
+        foundPosts.push(...postsRepliesQuotes);
+
+        // Add posts from user following
+        const userFollowingPosts = [];
+        var endReached = false;
+        
+        var userFollowingIndex = await interactFollowIndexSchema.findOne({ userID: userID, type: 0, current: true });
+        if (!userFollowingIndex) endReached = true;
+        while (userFollowingPosts.length <= 0 && endReached == false) {
+            for (const follow of userFollowingIndex.follows) {
+                const userPosts = await interactPostSchema.find({ _id: { $nin: seenPostIDs }, userID: follow._id }).limit(20).sort({ timestamp: +1 });
+                userFollowingPosts.push(...userPosts);
+            }
+            if (userFollowingPosts.length <= 0) {
+                if (!userFollowingIndex || !userFollowingIndex.nextIndexID){
+                    endReached = true;
+                } else {
+                    userFollowingIndex = await interactFollowIndexSchema.findOne({ _id: userFollowingIndex.nextIndexID, userID, type: 0 });
+                }
+            }
+        }
+        foundPosts.push(...userFollowingPosts);
+
+        // console.log(`Found ${foundPosts.length} posts for user: ${userID}`);
+        // console.log(`Found ${userFollowingPosts.length} posts from user following`);
+        // console.log(`Found ${postsRepliesQuotes.length} posts who replied or quoted the user`);
         foundPosts.sort((a, b) => a.timestamp - b.timestamp);
 
         // organize into indexes
         // split into indexes of 20 posts
         const createdIndexes = [];
-        const amountIndexesCreated = 0;
         const postsPerIndex = 20;
+        let amountIndexesCreated = 0;
         let currentIndex = [];
         let indexCount = 0;
 
         for (let i = 0; i < foundPosts.length; i++) {
             if (indexCount < postsPerIndex) {
-                currentIndex.push(foundPosts[i]);
+                if (foundPosts[i]._id) currentIndex.push({_id: foundPosts[i]._id});
+                else console.log("Post without ID found, skipping", foundPosts[i]);
                 indexCount++;
             } else {
                 // save current index
@@ -86,34 +149,46 @@ async function buildPersonalizedFeed({ userID }) {
                     nextIndexID: null,
                     prevIndexID: amountIndexesCreated > 0 ? createdIndexes[amountIndexesCreated - 1]._id : null ,
                     amount: currentIndex.length,
-                    current: amountIndexesCreated === 0 ? true : false,
+                    isUserSpecific: true,
+                    current: false, //amountIndexesCreated === 0 ? true : false,
                     shown: false,
                     expired: false,
                     userID,
-                    postIDs: currentIndex.map(post => ({ _id: post._id }))
+                    postIDs: [...currentIndex] //.map(post => ({ _id: post._id }))
                 });
-                
+
                 createdIndexes.push(newIndex);
+
                 if (amountIndexesCreated > 0) {
                     const prevIndex = createdIndexes[amountIndexesCreated - 1];
                     prevIndex.nextIndexID = newIndex._id;
                     await prevIndex.save();
                 }
-
                 currentIndex = [];
                 indexCount = 0;
+                amountIndexesCreated++;
             }
         }
 
-        currentUserIndex = createdIndexes[0];
+
+        currentUserIndex = createdIndexes[amountIndexesCreated-1];
+        if (!currentUserIndex) {
+            return { error: "No posts found for user" };
+        }
+
+        currentUserIndex.current = true;
+        await currentUserIndex.save();
+        
+        console.log(currentUserIndex)
     } else {
         console.log("Current user index found, using it");
     }
 
+    if (!currentUserIndex || !currentUserIndex.postIDs || currentUserIndex.postIDs.length === 0) {
+        return { error: "No posts found in current user index" };
+    }
     // set current index to shown true, current false
-    currentUserIndex.shown = true;
-    currentUserIndex.current = false;
-    await currentUserIndex.save();
+    await interactPostIndexSchema.findOneAndUpdate({ _id: currentUserIndex._id}, { current: false, shown: true })
     await interactPostIndexSchema.findOneAndUpdate({ _id: currentUserIndex.nextIndexID }, { current: true });
 
     sendingData.nextIndexID = currentUserIndex.nextIndexID;
@@ -124,13 +199,18 @@ async function buildPersonalizedFeed({ userID }) {
         const postData = await getPostWithData({ userID, postID: post._id, ownUser });
         // add to seen, even if error
         if (postData) {
-            await interactPostSeenSchema.create({
-                _id: uuidv4(),
-                postID: post._id,
-                userID,
-                usuerPostIndexID: currentUserIndex._id,
-                timestamp: checktime(),
-            });
+            // check if seen
+            const seenPost = await interactPostSeenSchema.findOne({ postID: post._id, userID });
+            if (!seenPost) {
+                // create seen post
+                await interactPostSeenSchema.create({
+                    _id: uuidv4(),
+                    postID: post._id,
+                    userID,
+                    userPostIndexID: currentUserIndex._id,
+                    timestamp: checktime(),
+                });
+            }
 
             if (!postData.error) {
                 sendingData.posts.push(postData);
@@ -139,15 +219,15 @@ async function buildPersonalizedFeed({ userID }) {
     }
 
     sendingData.amount = sendingData.posts.length;
-    // sendingData.posts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
     return sendingData;
 }
+
+// async function getPostsUserFollowingIndex({})
+
 
 // build all, do first 10-20 posots
 // then put next into an arrais with shown=false, current=false
 // then as user scrolls, load next posts, with shown=true, current=false, and nextIndexID will be changned to current=true
-
-
 
 module.exports = {
     buildPersonalizedFeed

@@ -191,7 +191,18 @@ async function getUserCategoryScores({ userID }) {
 
     // Compute raw blended scores
     for (const category of categories) {
-        const userScore = (category.userScore ?? 0) * 10; // scale 0-10 to 0-100
+        var userScore = (category.userScore ?? 0) * 10; // scale 0-10 to 0-100
+
+        // is a subcategory, so fetch parent
+        if (category.categoryID % 100 === 0) {
+            if (category.userScore == null) {
+                const parentCategory = categories.find(c => c.categoryID === Math.floor(category.categoryID / 100) * 100);
+                if (parentCategory && (parentCategory.userScore != null && parentCategory.isUserSet)) {
+                    userScore = parentCategory.userScore * 10; // scale 0-10 to 0-100
+                }
+            }
+        }
+
         let autoScore = 0;
 
         if (category.autoScore != null && totalAutoInteractions > 0) {

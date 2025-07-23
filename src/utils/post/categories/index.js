@@ -268,6 +268,7 @@ async function updateUserCategory({ userID, categoryID, value, type }) {
         }, {
             userScore: type=== "userScore" ? value : 0,
             autoScore: type === "autoScore" ? value : 0,
+            isUserSet: type == "userScore" ? true : false,
             amountLikes: type == "amountLikes" ? value : 0,
             amountPosts: type == "amountPosts" ? value : 0,
             amountReplies: type == "amountReplies" ? value : 0,
@@ -305,7 +306,8 @@ async function createUserCategory({ userID, categoryID, value, type }) {
         _id: uuidv4(),
         userID: userID,
         categoryID,
-        userScore: type=="userScore" ? (value ?? DEFAULT_CAT_VALUE): 0,
+        isUserSet: type == "userScore" ? true : false,
+        userScore: type == "userScore" ? (value ?? DEFAULT_CAT_VALUE): 0,
         autoScore: type == "autoScore" ? (value ?? 0) : 0,
         amountLikes: type == "amountLikes" ? (value ?? 0) : 0,
         amountLikes: type == "amountLikes" ? (value ?? 0) : 0,

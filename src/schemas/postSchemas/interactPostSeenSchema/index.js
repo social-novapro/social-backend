@@ -5,7 +5,7 @@ const interactPostSeenSchema = mongoose.Schema({
     _id: reqString, // uuid
     postID: reqString,
     userID: reqString,
-    usuerPostIndexID: reqString, // userIndexID
+    userPostIndexID: reqString, // userIndexID
     timestamp: reqNum,
 });
 
