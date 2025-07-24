@@ -3,11 +3,44 @@ const interactEmbedSentenceSchema = require('../../schemas/embeddings/interactEm
 const interactEmbedSentencePostSchema = require('../../schemas/embeddings/interactEmbedSentencePost');
 const interactPostSchema = require('../../schemas/interactPostSchema');
 const interactUserSchema = require('../../schemas/interactUserSchema');
+const interactPostTagIndexSchema = require('../../schemas/posts/interactPostTagIndexSchema');
 const { checktime } = require('../checktime');
 const { getPostWithData } = require('../post/getPost');
 const { embedSearch } = require('./embed');
 const { searchPostTags, searchHashTags } = require('./searchPostTags');
 const { lookupUsers } = require('./searchUserTag');
+
+async function explorePage({ userID }) {
+    const returnData = {
+        hashtagsFound: [],
+        usersFound: [],
+        postsFound: [],
+    }
+
+    // hashtagsFound -> newest 5 hashtags
+    const foundHashtags = await interactPostTagIndexSchema.find({ current: true, tagType: 1 }).sort({timestamp: -1, count: -1 }).limit(5);
+    for (const tag of foundHashtags.sort((a, b) => a.timestamp - b.timestamp)) {
+        returnData.hashtagsFound.push(tag._doc);
+    }
+
+    // usersFound -> newest 5 users
+    const foundUsers = await interactUserSchema.find().sort({ creationTimestamp: -1 }).limit(5);
+    for (const user of foundUsers.sort((a, b) => a.creationTimestamp - b.creationTimestamp)) {
+        // const foundUser
+        returnData.usersFound.push(user._doc);
+    }
+
+    // postsFound -> newest 5 posts
+    const foundPosts = await interactPostSchema.find().sort({ timestamp: -1 }).limit(5);
+    for (const post of foundPosts.sort((a, b) => a.timestamp - b.timestamp)) {
+        const fullPost = await getPostWithData({ userID: userID, post });
+        if (fullPost && !fullPost.error) {
+            returnData.postsFound.push(fullPost);
+        }
+    }
+
+    return returnData;
+}
 
 async function searchV2({ lookUpKey, userID }) {
     const start = checktime();
@@ -143,4 +176,4 @@ function cosineSimilarity(inputSearch, similarEmbeddings, contents, id=null) {
     return similarities;
 }
 
-module.exports = { searchV2, cosineSimilarity };
+module.exports = { searchV2, cosineSimilarity, explorePage };
