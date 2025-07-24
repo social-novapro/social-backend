@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString, reqBool, nonreqString, nonreqNum } = require('../../types');
+const { reqNum, reqString, reqBool, nonreqString, nonreqNum, nonreqBool } = require('../../types');
 
 const interactCategoryUserSchema = mongoose.Schema({
     _id: reqString, // uuid
     userID: reqString,
     categoryID: reqNum, // ID of the category
     userScore: nonreqNum,
+    isUserSet: nonreqBool, // did the user set a score for this category, or not
     autoScore: nonreqNum, // auto score
     timestamp: reqNum, // last edited
     

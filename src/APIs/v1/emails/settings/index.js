@@ -16,7 +16,7 @@ router.put('/', async (req, res) => {
     const { userid: userID } = req.headers;
 
     const foundOptions = [];
-    for (const option of req.body) {
+    for (const option of req.body.newSettings) { // has not been working for a while, this fixes it -- due to change on the frontend unexpectedly
         foundOptions.push(option);
     };
     
