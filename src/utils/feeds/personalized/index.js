@@ -140,11 +140,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
             }
         }
         foundPosts.push(...userFollowingPosts);
-        // addedPostIDs.push(...userFollowingPosts.map(post => post._id));
 
-        // console.log(`Found ${foundPosts.length} posts for user: ${userID}`);
-        // console.log(`Found ${userFollowingPosts.length} posts from user following`);
-        // console.log(`Found ${postsRepliesQuotes.length} posts who replied or quoted the user`);
         foundPosts.sort((a, b) => a.timestamp - b.timestamp);
 
         // organize into indexes
@@ -189,7 +185,6 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
             }
         }
 
-
         currentUserIndex = createdIndexes[amountIndexesCreated-1];
         if (currentUserIndex) {
             currentUserIndex.current = true;
@@ -205,12 +200,24 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
         const allPostsFeed = await allPostsFeedV2({ userID });
         return allPostsFeed;
     }
+    
     // set current index to shown true, current false
     await interactPostIndexSchema.findOneAndUpdate({ _id: currentUserIndex._id}, { current: false, shown: true })
-    await interactPostIndexSchema.findOneAndUpdate({ _id: currentUserIndex.nextIndexID }, { current: true });
+    await interactPostIndexSchema.findOneAndUpdate({ _id: currentUserIndex.prevIndexID }, { current: true, shown: false });
 
     sendingData.nextIndexID = currentUserIndex.nextIndexID;
     sendingData.prevIndexID = currentUserIndex.prevIndexID;
+
+    // add 5 newest posts to sendingData
+    if (!indexID) {
+        const newestPosts = await interactPostSchema.find({ _id: { $nin: currentUserIndex.postIDs }}).limit(5).sort({ timestamp: -1 });
+        for (const post of newestPosts) {
+            const newPostData = await getPostWithData({ userID, postID: post._id, ownUser });
+            if (newPostData && !newPostData.error) {
+                sendingData.posts.push(newPostData);
+            }
+        }
+    }
 
     for (const post of currentUserIndex.postIDs) {
         if (!post || !post._id/*|| amountFound>=category.score*/) continue;
@@ -241,9 +248,11 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
 
     if (sendingData.amount <=0 && sendingData.prevIndexID ) {
         console.log(`No posts found for user: ${userID} in index: ${currentUserIndex._id}, trying to get next index...`);
-        const gettingFeedAgain = await buildPersonalizedFeed({ userID });
+        const gettingFeedAgain = await buildPersonalizedFeed({ userID, indeXID: sendingData.prevIndexID });
         return gettingFeedAgain;
     }
+
+    sendingData.posts.sort((a, b) => a.postData.timestamp - b.postData.timestamp);
     return sendingData;
 }
 
