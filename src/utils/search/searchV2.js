@@ -19,20 +19,23 @@ async function explorePage({ userID }) {
 
     // hashtagsFound -> newest 5 hashtags
     const foundHashtags = await interactPostTagIndexSchema.find({ current: true, tagType: 1 }).sort({timestamp: -1, count: -1 }).limit(5);
-    for (const tag of foundHashtags.sort((a, b) => a.timestamp - b.timestamp)) {
+    foundHashtags.sort((a, b) => a.timestamp - b.timestamp);
+    for (const tag of foundHashtags) {
         returnData.hashtagsFound.push(tag._doc);
     }
 
     // usersFound -> newest 5 users
     const foundUsers = await interactUserSchema.find().sort({ creationTimestamp: -1 }).limit(5);
-    for (const user of foundUsers.sort((a, b) => a.creationTimestamp - b.creationTimestamp)) {
+    foundUsers.sort((a, b) => a.creationTimestamp - b.creationTimestamp)
+    for (const user of foundUsers) {
         // const foundUser
         returnData.usersFound.push(user._doc);
     }
 
     // postsFound -> newest 5 posts
-    const foundPosts = await interactPostSchema.find().sort({ timestamp: -1 }).limit(5);
-    for (const post of foundPosts.sort((a, b) => a.timestamp - b.timestamp)) {
+    const foundPosts = await interactPostSchema.find().sort({ timestamp: -1 }).limit(10);
+    foundPosts.sort((a, b) => a.timestamp - b.timestamp);
+    for (const post of foundPosts) {
         const fullPost = await getPostWithData({ userID: userID, post });
         if (fullPost && !fullPost.error) {
             returnData.postsFound.push(fullPost);
