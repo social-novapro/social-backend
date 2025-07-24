@@ -1343,6 +1343,30 @@
                     "msg" : "Requires categoryID to adjust category weight"
                 },
                 {
+                    "code" : "Q030",
+                    "msg" : "Current user index to old, generating new one",
+                    "ignoreError" : true
+                },
+                {
+                    "code" : "Q031",
+                    "msg" : "Post without ID was found: %postData%",
+                    "options" : [
+                        {
+                            "name" : "postData",
+                            "replacement" : "%postData%",
+                            "default" : "Unknown"
+                        }
+                    ]
+                },
+                {
+                    "code" : "Q032",
+                    "msg" : "No posts for current user, defaulting to allPosts"
+                },
+                {
+                    "code" : "Q033",
+                    "msg" : "No categories found for user"
+                },
+                {
                     "code" : "R001",
                     "msg" : "No errorID was provided."
                 },

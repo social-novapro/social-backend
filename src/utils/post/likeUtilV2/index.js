@@ -142,8 +142,8 @@ async function unlikePost({postID, userID}) {
 
     // Update original poster's like count
     const userFoundOgPost = await interactUserSchema.findOne({ _id: postFound.userID });
-    const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount - 1 : 0;
-    await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
+    const foundUserLikeCount = userFoundOgPost?.likeCount ? userFoundOgPost?.likeCount - 1 : 0;
+    if (userFoundOgPost) await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
 
     // if post has coposters, update their like counts
     if (postFound.coposters && postFound.coposters.length > 0) {
@@ -223,8 +223,8 @@ async function likePost({ postID, userID }) {
 
     // Update original poster's like count
     const userFoundOgPost = await interactUserSchema.findOne({ _id: postFound.userID });
-    const foundUserLikeCount = userFoundOgPost.likeCount ? userFoundOgPost.likeCount + 1 : 1;
-    await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
+    const foundUserLikeCount = userFoundOgPost?.likeCount ? userFoundOgPost?.likeCount + 1 : 1;
+    if (userFoundOgPost) await interactUserSchema.findOneAndUpdate({ _id: postFound.userID }, { likeCount: foundUserLikeCount }, { upsert: true });
 
     // update coposters' like counts
     if (postFound.coposters && postFound.coposters.length > 0) {
@@ -275,7 +275,8 @@ async function getPostLikes({ postID, indexID=null }) {
                     userID: foundUser._id,
                     username: foundUser.username,
                     likeID: likeData._id,
-                    timestamp: likeData.timestamp
+                    timestamp: likeData.timestamp,
+                    userData: foundUser
                 });
             }
         }
