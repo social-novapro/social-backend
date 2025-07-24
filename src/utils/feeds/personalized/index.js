@@ -84,9 +84,9 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
         }
         const seenPosts = await interactPostSeenSchema.find({ userID, current: true});
         const seenPostIDs = seenPosts.map(post => post.postID);
-        
         // const categoryNames = foundCategoriesForUser.map(category => category.categoryData.name);
         const foundPosts = [];
+        const addedPostIDs = [];
 
         // Getting posts from categories and subcategories
         for (const category of foundCategoriesForUser) {
@@ -94,7 +94,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
             const score = category.score;
 
             const posts = await interactPostSchema.find({
-                _id: { $nin: seenPostIDs },
+                _id: { $nin: [...seenPostIDs, ...addedPostIDs] },
                 $or: [
                     { category: categoryName },
                     { subCats: categoryName }
@@ -102,17 +102,19 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
             }).limit(score).sort({ timestamp: +1 });
 
             foundPosts.push(...posts);
+            addedPostIDs.push(...posts.map(post => post._id));
         }
 
         // Posts who replied or quoted the user
         const postsRepliesQuotes = await interactPostSchema.find({
-            _id: { $nin: seenPostIDs },
+            _id: { $nin: [...seenPostIDs, ...addedPostIDs] },
             $or: [
                 { "replyData.userID": userID },
                 { "quoteData.userID": userID }
             ]
         }).limit(20).sort({ timestamp: +1 });
         foundPosts.push(...postsRepliesQuotes);
+        addedPostIDs.push(...postsRepliesQuotes.map(post => post._id));
 
         // Add posts from user following
         const userFollowingPosts = [];
@@ -122,8 +124,12 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
         if (!userFollowingIndex) endReached = true;
         while (userFollowingPosts.length <= 0 && endReached == false) {
             for (const follow of userFollowingIndex.follows) {
-                const userPosts = await interactPostSchema.find({ _id: { $nin: seenPostIDs }, userID: follow._id }).limit(20).sort({ timestamp: +1 });
+                const userPosts = await interactPostSchema.find({
+                    _id: { $nin: [...seenPostIDs, ...addedPostIDs] },
+                    userID: follow._id 
+                }).limit(20).sort({ timestamp: +1 });
                 userFollowingPosts.push(...userPosts);
+                addedPostIDs.push(...userPosts.map(post => post._id));
             }
             if (userFollowingPosts.length <= 0) {
                 if (!userFollowingIndex || !userFollowingIndex.nextIndexID){
@@ -134,6 +140,7 @@ async function buildPersonalizedFeed({ userID, indexID=null }) {
             }
         }
         foundPosts.push(...userFollowingPosts);
+        // addedPostIDs.push(...userFollowingPosts.map(post => post._id));
 
         // console.log(`Found ${foundPosts.length} posts for user: ${userID}`);
         // console.log(`Found ${userFollowingPosts.length} posts from user following`);
