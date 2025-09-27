@@ -1,12 +1,12 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
+const { isContentBookmarked } = require("../../bookmarks/bookmarkManagerV2");
 const { findPoll, findUserVote } = require("../../polls");
 const { getPrivacySetting } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");
 const { checkIfPinned } = require("../../user/edit/checkIfPinned");
 const { findFollow } = require("../../user/follows");
 const { getUserRelation, canView, checkUserRelationForPrivacy } = require("../../user/relations");
-const { getBookmarkSave } = require("../bookmarks");
 const { postIsLiked } = require("../likeUtilV2/isPostLiked");
 const { getPostTags } = require("../tags/getPostTags");
 
@@ -67,8 +67,8 @@ async function getPostWithData({ userID, postID, post, ownUser }) {
         }
         /* if post is saved */
         if (userID) {
-            const foundSave = await getBookmarkSave({ userID, postID: postData._id });
-            if (foundSave) extraData.saved = true;
+            const isBookmarked = await isContentBookmarked({ userID, UUID: postData._id, contentType: 0 });
+            if (isBookmarked && !isBookmarked.error) extraData.saved = true;
         }
 
         /* if extra should be invoked */

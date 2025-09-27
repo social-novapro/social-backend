@@ -50,7 +50,7 @@ const interactPostSchema = mongoose.Schema({
     totalLikes: reqNum,
     totalReplies: reqNum,
     totalQuotes: reqNum,
-    totalSaves: reqNum,
+    totalBookmarks: reqNum,
     attachments: [attachmentDataSchema],
 
     privacyOverride: nonreqNum,

@@ -19,6 +19,8 @@ const posts = require('./posts');
 const notifications = require('./notifications');
 const feeds = require('./feeds');
 const search = require('./search');
+const bookmarks = require('./bookmarks');
+
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 // Legacy Routes (still used)
@@ -37,6 +39,7 @@ router.use('/subscriptions', notifications);
 router.use('/notifications', notifications);
 router.use('/feeds', feeds);
 router.use('/search', search);
+router.use('/bookmarks', bookmarks);
 
 // re-routes
 router.use('/ai', async (req, res, next) => {

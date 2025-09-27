@@ -82,7 +82,7 @@ async function startupCategories() {
     // assignExamplesFromOllama();
     // assignIds();
     if (exampleCategoriesVersion == -1) {
-        const result = await fetch(targetService+'/ ', {
+        const result = await fetch(targetService+'/categoryExample/version', {
             method: 'GET',
         });
 

@@ -116,7 +116,7 @@ async function newPostIndex(userID, data) {
         totalLikes: 0,
         totalReplies: 0,
         totalQuotes: 0,
-        totalSaves: 0,
+        totalBookmarks: 0,
         edited: false,
         hasPoll: false,
         isQuote: false,

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqString, reqNum, nonreqString } = require('../../types');
+const { reqString, reqNum, nonreqString, nonreqNum } = require('../../types');
 
 const interactBookmark = mongoose.Schema({
     _id: reqString, // bookmarkID
@@ -19,6 +19,7 @@ const interactBookmark = mongoose.Schema({
     listID: reqString, // which list is this bookmark
     indexID: reqString, // which list index this bookmark placed in
     active: reqNum, // 0 = archived, 1 = active
+    archivedTimestamp: nonreqNum, // time archived
 });
 
 module.exports = mongoose.model('interact-bookmark', interactBookmark);
