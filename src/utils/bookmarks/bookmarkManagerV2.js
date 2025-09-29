@@ -28,7 +28,7 @@ const CURRENT_BOOKMARK_VERSION = 2.0;
  */
 async function isContentBookmarked({ userID, UUID, contentType, listID=null, listname=null, bookmarkID=null }) {
     if (!userID) return { error: true, msg: "No userID provided" };
-    if (!UUID) return { error: true, msg: "No UUID provided" };
+    if (!UUID && !bookmarkID) return { error: true, msg: "No UUID nor bookmarkID provided" };
 
     if (!contentType && !bookmarkID) {
         // find content
@@ -56,6 +56,69 @@ async function isContentBookmarked({ userID, UUID, contentType, listID=null, lis
     return bookmarkFound;
 }
 
+/**
+ * get user bookmark lists
+ */
+
+async function getBookmarkLists({ userID, showArchived=false }) {
+    if (!userID) return { error: true, msg: "No userID provided" };
+
+    const listsFound = await interactBookmarkList.find({ userID, active: showArchived == true ? 0 : 1 });
+    if (!listsFound || listsFound.length==0) return { error: true, msg: "No lists found" };
+    
+    return listsFound;
+}
+
+/**
+ * adjust / move a bookmark to another list or index
+ * 
+ * must provide userID and bookmarkID
+ * must provider either listname or listID to the bookmark move to
+ */
+async function adjustSavedBookmarkList({ userID, bookmarkID, listname=null, listID=null }) {
+    if (!userID) return { error: true, msg: "No userID provided" };
+    if (!bookmarkID) return { error: true, msg: "No bookmarkID provided" };
+    if (!listname && !listID) return { error: true, msg: "No newListname or listID provided" };
+
+    console.log("adjustSavedBookmarkList called", { userID, bookmarkID, listname, listID });
+    const foundBookmark = await isContentBookmarked({ userID, bookmarkID });
+    if (!foundBookmark || foundBookmark.error) return foundBookmark ? foundBookmark : { error: true, msg: "Content was not bookmarked"};
+
+    // find or create list
+    const foundList = await findListID({ userID, listname, listID, createNew: true});
+    if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found or created" };
+
+    // find or create index of list
+    const foundListIndex = await findBookmarkListIndex({ userID, listID: foundList._id, createNew: true });
+    if (!foundListIndex) return { error: true, msg: "no list index found, and couldnt create"}
+
+    // remove from old list index
+    await interactBookmarkListIndex.findOneAndUpdate(
+        { _id: foundBookmark.indexID },
+        { $pull: { saves: foundBookmark._id } },
+        { new: true } 
+    );
+
+    // push to new list index
+    const addedToList = await interactBookmarkListIndex.findOneAndUpdate(
+        { _id: foundListIndex._id },
+        { $push : { "saves" : foundBookmark._id } },
+        { new: true }
+    );
+
+    // update bookmark to new list and index
+    foundBookmark.listID = foundList._id;
+    foundBookmark.indexID = foundListIndex._id;
+
+    foundBookmark.save();
+
+    return {
+        success: true,
+        bookmark: foundBookmark,
+        list: foundList,
+        listIndex: addedToList
+    };
+}
 
 /**
  * add to bookmark
@@ -106,7 +169,7 @@ async function saveBookmark({ userID, UUID, contentType, listID=null, listname="
     }, {
         $push : { "saves" : newBookmark._id }
     }, {
-        $upsert: true
+        new: true
     });
 
     // console.log("check if i added to list?", addedToList);
@@ -118,7 +181,12 @@ async function saveBookmark({ userID, UUID, contentType, listID=null, listname="
         });
     }
 
-    return newBookmark;
+    return {
+        success: true,
+        bookmark: newBookmark,
+        list: foundList,
+        listIndex: foundListIndex
+    };
 }
 
 /**
@@ -129,10 +197,10 @@ async function removeBookmark({ userID, bookmarkID, UUID, contentType, listname,
     // or bookmarkID
     if (!userID) return { error: true, msg: "No userID provided" };
     console.log("remove bookmark called", { userID, bookmarkID, UUID, contentType, listname, listID });
-    if ((!UUID || (!listID && !listname)) && !bookmarkID) return { error: true, msg: "No UUID or listID or bookmarkID provided" };
+    if (!UUID && !(listID && listname) && !bookmarkID) return { error: true, msg: "No UUID or listID/list or bookmarkID provided" };
 
     // check for bookmark
-    const foundBookmark = await isContentBookmarked({ userID, UUID, listID, listname, bookmarkID });
+    const foundBookmark = await isContentBookmarked({ userID, UUID, contentType, listID, listname, bookmarkID });
     if (!foundBookmark || foundBookmark.error) return foundBookmark ? foundBookmark : { error: true, msg: "Content was not bookmarked"};
 
     // remove from bookmarkList, and -1 on post schema
@@ -288,5 +356,7 @@ async function findBookmarkListIndex({ userID, listID, createNew=false }) {
 module.exports = {
     saveBookmark,
     removeBookmark,
-    isContentBookmarked
+    adjustSavedBookmarkList,
+    isContentBookmarked,
+    getBookmarkLists
 }
