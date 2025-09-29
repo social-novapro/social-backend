@@ -1,6 +1,6 @@
 const interactPostSchema = require("../../../schemas/interactPostSchema");
 const interactUserSchema = require("../../../schemas/interactUserSchema");
-const { isContentBookmarked } = require("../../bookmarks/bookmarkManagerV2");
+const { isContentBookmarked } = require("../../bookmarks/isContentBookmarked");
 const { findPoll, findUserVote } = require("../../polls");
 const { getPrivacySetting } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");

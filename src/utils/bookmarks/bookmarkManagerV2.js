@@ -5,55 +5,68 @@ const interactPostSchema = require("../../schemas/interactPostSchema");
 const { checktime } = require("../checktime");
 const { v4: uuidv4 } = require("uuid");
 const { findContentType } = require("../general/findContentType");
-
+const { findContentData } = require("../general/findContentData");
+const { isContentBookmarked } = require("./isContentBookmarked");
+// multi bookmarked content
+// backend: getPosts need to show lists post is bookmarked in
+// frontend: if bookmarked, have dropdown for removing bookmarks save to another list
 // WIP, not tested, NOT DONE
 
 const MAX_BOOKMARKS_SAVES = 25;
 const CURRENT_BOOKMARK_VERSION = 2.0;
 
 /**
- * is content bookmarked?
+ * get user bookmarks
  * 
- * if contentType not provided, will try to find it -- unless bookmarkID provided
+ * no extra data:
+ * returns, possible lists, main list, current index, bookmarks within+ the data of the bookmarks
  * 
- * must provide userID and UUID
- * can provide: bookmarkID, listID, or listname
- * 
- * returns null if not bookmarked
- * returns bookmark object if bookmarked
- * returns { error: true, msg } if error
- * 
- * bookmark doesnt exist: if (!result || result.error)
- * bookmarked: if (result && !result.error)
+ * return { bookmarks: [], lists: [], indexData: {}, listData: {}} 
  */
-async function isContentBookmarked({ userID, UUID, contentType, listID=null, listname=null, bookmarkID=null }) {
+async function getUserBookmarks({ userID, listname=null, listID=null, indexID=null }) {
     if (!userID) return { error: true, msg: "No userID provided" };
-    if (!UUID && !bookmarkID) return { error: true, msg: "No UUID nor bookmarkID provided" };
 
-    if (!contentType && !bookmarkID) {
-        // find content
-        const contentTypeFound = await findContentType(UUID);
-        if (contentTypeFound<0) return //{ error: true, msg: "content not found" };
-        contentType = contentTypeFound;
+    if (!listname && !listID && !indexID) listname = "main"; // default to main if no list or index provided
+
+    const listsFound = await getBookmarkLists({ userID });
+    if (listsFound.error) return listsFound;
+
+    const foundListIndex = await findBookmarkListIndex({ userID, listID, listname, indexID, createNew: false });
+    if (!foundListIndex || foundListIndex.error) return foundListIndex;
+
+    const foundList = await findListID({ userID, listID: foundListIndex.listID, createNew: false });
+    if (!foundList || foundList.error) return foundList;
+
+    const bookmarksFound = [];
+    const bookmarksData = [];//await interactBookmark.find({ _id: { $in: foundListIndex.saves }, active: 1 });
+    const foundErrors = [];
+
+    for (const bookmarkID of foundListIndex.saves) {
+        var pushed = false;
+        const bookmarkData = await interactBookmark.findOne({ _id: bookmarkID, active: 1 });
+        if (bookmarkData) {
+            const contentData = await findContentData(userID, bookmarkData.contentUUID, bookmarkData.contentType);
+            if (contentData && !contentData.error) {
+                bookmarksFound.push(bookmarkData);
+                bookmarksData.push(contentData);
+                pushed = true;
+            } else {
+                console.log("content data not found for bookmark?", bookmarkData, contentData);
+            }
+        }
+
+        if (!pushed) foundErrors.push({ bookmarkID, msg: "bookmark not found or content not found", bookmarkData });
     }
 
-    var bookmarkFound;
-    if (bookmarkID) {
-        bookmarkFound = await interactBookmark.findOne({ _id: bookmarkID, active: 1 });
-    } else if (listID) {
-        bookmarkFound = await interactBookmark.findOne({ userID, contentUUID: UUID, listID, active: 1 });
-    } else if (listname) {
-        const foundList = await interactBookmarkList.findOne({ userID, listname });
-        console.log("found list by name?", foundList);
-        if (!foundList) return { error: true, msg: "no list found with that name"}
-        bookmarkFound = await interactBookmark.findOne({ userID, contentUUID: UUID, listID: foundList._id, active: 1 });
-    } else {
-        // check all lists for this user
-        bookmarkFound = await interactBookmark.findOne({ userID, contentUUID: UUID, active: 1 });
+    console.log("found bookmarks?", bookmarksFound, bookmarksData, foundErrors);
+    return {
+        success: true,
+        lists: listsFound,
+        listData: foundList,
+        indexData: foundListIndex,
+        bookmarks: bookmarksFound,
+        bookmarksData
     }
-
-    if (!bookmarkFound || bookmarkFound?.active == 0) return null
-    return bookmarkFound;
 }
 
 /**
@@ -345,7 +358,22 @@ async function createBookmarkListIndex({ userID, listID, prevBookmarkIndex, from
 /**
  * find a bookmark index
  */
-async function findBookmarkListIndex({ userID, listID, createNew=false }) {
+async function findBookmarkListIndex({ userID, listID, listname, indexID=null, createNew=false }) {
+    if (!listID && listname) {
+        const foundList = await findListID({ userID, listname, createNew: false});
+        if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found with that name"}
+        
+        listID = foundList._id;
+    }
+
+    if (indexID) {
+        const foundIndexByID = await interactBookmarkListIndex.findOne({ _id: indexID });
+        
+        if (listID && foundIndexByID.listID != listID) return { error: true, msg: "index does not belong to that list"};
+        if (foundIndexByID) return foundIndexByID;
+        else return { error: true, msg: "no index found with that ID"}
+    }
+
     const foundBookmarkIndex = await interactBookmarkListIndex.findOne({ listID, current: true });
     if (!foundBookmarkIndex && createNew==true) return createBookmarkListIndex({ userID, listID, fromFind: true })
     else if (!foundBookmarkIndex) return {error: true, msg: "no index from for bookmark list"}
@@ -358,5 +386,6 @@ module.exports = {
     removeBookmark,
     adjustSavedBookmarkList,
     isContentBookmarked,
-    getBookmarkLists
+    getBookmarkLists,
+    getUserBookmarks
 }

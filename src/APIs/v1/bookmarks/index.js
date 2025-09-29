@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { saveBookmark, removeBookmark, adjustSavedBookmarkList, getBookmarkLists } = require('../../../utils/bookmarks/bookmarkManagerV2');
+const { saveBookmark, removeBookmark, adjustSavedBookmarkList, getBookmarkLists, getUserBookmarks } = require('../../../utils/bookmarks/bookmarkManagerV2');
 
 /**
  * Save bookmark
@@ -38,8 +38,17 @@ router.put('/move', async (req, res) => {
 
 router.get('/lists', async (req, res) => {
     const lists = await getBookmarkLists({ userID: req.headers.userid });
+    
     if (lists.error) return res.status(403).send(lists);
     else return res.status(200).send(lists);
+});
+
+router.get('/', async (req, res) => {
+    const { listname, listID, indexID } = req.query;
+    const bookmarks = await getUserBookmarks({ userID: req.headers.userid, listname, listID, indexID });
+
+    if (bookmarks.error) return res.status(403).send(bookmarks);
+    else return res.status(200).send(bookmarks);
 });
 
 module.exports = router;
