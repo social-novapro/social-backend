@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/list/create', async (req, res) => {
-    const createdList = await createBookmarkListUser({ userID: req.headers.userid, listID, newInfo: req.body });
+    const createdList = await createBookmarkListUser({ userID: req.headers.userid, newInfo: req.body });
     if (createdList.error) return res.status(403).send(createdList);
     else return res.status(200).send(createdList);
 });

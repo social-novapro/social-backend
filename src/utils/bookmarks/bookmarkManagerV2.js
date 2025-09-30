@@ -98,7 +98,7 @@ async function updateBookmarkList({ userID, listID, newInfo={}}) {
                 break;
             case "default":
                 if (changeValueTo===true) { // making to true
-                    const currentDefaultList = await findListID({ userID, getDefaultList: true, createNew: false });
+                    var currentDefaultList = await findListID({ userID, getDefaultList: true, createNew: false });
                     // no default found?
                     if (currentDefaultList && !currentDefaultList.error) {
                         if (currentDefaultList._id === foundList._id) {
@@ -107,9 +107,11 @@ async function updateBookmarkList({ userID, listID, newInfo={}}) {
                         }
 
                         currentDefaultList.default = false;
+                        currentDefaultList = makeListDataDefault(foundList);
                         try {
                             await currentDefaultList.save();
                         } catch (error) {
+                            console.log(error)
                             changesMade.push({key, error: true, msg: "could not update current default list to false" });
                             continue;
                         }
@@ -119,6 +121,7 @@ async function updateBookmarkList({ userID, listID, newInfo={}}) {
 
                     // updating this list
                     foundList.default = true;
+                    foundList = makeListDataDefault(foundList);
                     try {
                         await foundList.save();
                         changesMade.push({ key, msg: "list is now default" });
@@ -136,6 +139,7 @@ async function updateBookmarkList({ userID, listID, newInfo={}}) {
                 } else if (changeValueTo===false) { // making it off
                     // if to off, make a new list default    
                     foundList.default = false;
+                    foundList = makeListDataDefault(foundList);
 
                     try {
                         await foundList.save();
@@ -148,7 +152,7 @@ async function updateBookmarkList({ userID, listID, newInfo={}}) {
                     if (!newDefaultList || newDefaultList.error) {
                         // undo 
                         foundList.default = true;
-
+                        foundList = makeListDataDefault(foundList);
                         try {
                             await foundList.save();
                             changesMade.push({ key, error: true, msg: "could not find or create new default list, but reverted old default" });
@@ -164,6 +168,7 @@ async function updateBookmarkList({ userID, listID, newInfo={}}) {
                     continue;
                 }
                 foundList.description = changeValueTo;
+                changesMade.push({ key, msg: "description changed" });
                 break;
             case "privacy":
                 const validPrivacy = validPrivacyOption(userID, changeValueTo, "bookmarks");
@@ -443,12 +448,13 @@ async function removeBookmark({ userID, bookmarkID, UUID, contentType, listname,
 /**
  * user facing create bookmark list
  */
-async function createBookmarkListUser({userID, listname, newInfo={}}) {
+async function createBookmarkListUser({userID, newInfo}) {
     if (!userID) return { error: true, msg: "No userID provided" };
-    if (!listname) return { error: true, msg: "No listname provided" };
-    
+    if (!newInfo) return { error: true, msg: "No data provided for list" };
+    if (!newInfo.listname) return { error: true, msg: "No listname provided" };
+
     // find or create list
-    const foundList = await findListID({ userID, listname, createNew: true});
+    const foundList = await findListID({ userID, listname: newInfo.listname, createNew: true});
     if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found or created" };
 
     // find or create index of list
@@ -500,15 +506,17 @@ async function createList({ userID, createDefault=false, listname, fromFind=fals
     // find list with the name already
     const usingListName = await findBookmarkListUniqueName({ userID, listname: makeListName, added: null });
 
+    const getUserPrivacy = await getPrivacySetting({userID, privacy: "bookmarks"});
     // need to create a list
     // if having toruble, switch back to .create()
+    console.log("creating new list with name", usingListName, "privacy", getUserPrivacy);
     const newBookmarkList = new interactBookmarkList({
         _id: uuidv4(),
         version: CURRENT_BOOKMARK_VERSION,
         listname: usingListName,
         default: creatingDefault,
         description: creatingDefault ? "Default Bookmark List" : `${makeListName} bookmark list`,
-        privacy: getPrivacySetting({userID, privacy: "bookmarks"}), 
+        privacy: (getUserPrivacy && !getUserPrivacy.error) ? getUserPrivacy : 4,
         // currentIndexID
         userID: userID,
         timestamp: checktime(),
