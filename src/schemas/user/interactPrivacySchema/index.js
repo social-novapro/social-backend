@@ -12,6 +12,7 @@ const interactPrivacySchema = mongoose.Schema({
     theme: reqNum,
     message: reqNum,
     likes: reqNum,
+    bookmarks: reqNum,
 });
 
 module.exports = mongoose.model('interact-privacy-schema', interactPrivacySchema);

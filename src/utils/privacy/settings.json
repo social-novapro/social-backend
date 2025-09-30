@@ -152,6 +152,22 @@
             }, {
                 "value" : 4
             }]
+        },
+        {
+            "title" : "Bookmarks Privacy",
+            "description" : "Choose who can view your bookmarks.",
+            "default" : 4,
+            "shortTitle" : "bookmarks",
+            "dbTitle" : "bookmarks",
+            "options" : [{
+                "value" : 1
+            }, {
+                "value" : 2
+            }, {
+                "value" : 3
+            }, {
+                "value" : 4
+            }]
         }
     ]
 }

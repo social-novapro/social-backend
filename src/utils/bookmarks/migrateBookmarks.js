@@ -8,7 +8,8 @@ async function migrateBookmarks() {
     const allBookmarks = await interactPostBookmarks.find({});
 
     for (const userBookmarks of allBookmarks) {
-        // await interactPostBookmarks.findOneAndDelete({ _id: userBookmarks._id });
+        // lists, and saves
+        await interactPostBookmarks.findOneAndDelete({ _id: userBookmarks._id });
 
         var listsMap = {};
 

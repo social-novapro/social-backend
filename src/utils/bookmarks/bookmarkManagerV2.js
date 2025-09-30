@@ -7,13 +7,189 @@ const { v4: uuidv4 } = require("uuid");
 const { findContentType } = require("../general/findContentType");
 const { findContentData } = require("../general/findContentData");
 const { isContentBookmarked } = require("./isContentBookmarked");
+const { getPrivacySetting, validPrivacyOption, findFullDetailByDbTitle } = require("../privacy");
+
+// instead of "main", have "default" list, which ticks a box to be default list
+
 // multi bookmarked content
 // backend: getPosts need to show lists post is bookmarked in
 // frontend: if bookmarked, have dropdown for removing bookmarks save to another list
 // WIP, not tested, NOT DONE
 
+const DEFAULT_LIST_NAME = "main";
 const MAX_BOOKMARKS_SAVES = 25;
 const CURRENT_BOOKMARK_VERSION = 2.0;
+const MIN_LENGTH_LISTNAME = 3;
+const MAX_LENGTH_LISTNAME = 30;
+const MAX_LENGTH_DESCRIPTION = 200;
+
+var detailedFullAllow = null;
+
+function allowedListChanges() {
+    if (detailedFullAllow) return detailedFullAllow;
+    const foundPrivDetails = findFullDetailByDbTitle("bookmarks");
+    const allowedListChanges = {
+        simple: ["listname", "default", "description", "privacy"],
+        detailed: {
+            listname: { type: "string", min: MIN_LENGTH_LISTNAME, max: MAX_LENGTH_LISTNAME },
+            default: { type: "boolean" },
+            description: { type: "string", min: 0, max: MAX_LENGTH_DESCRIPTION },
+            privacy: { type: "int", details: foundPrivDetails} 
+        }
+    };
+    detailedFullAllow = allowedListChanges;
+    return allowedListChanges;
+}
+
+function validateListname(listname) {
+    if (!listname) return { valid: false, msg: "No listname provided" };
+
+    if (listname.length < MIN_LENGTH_LISTNAME) return { error: true, msg: `Listname too short, must be at least ${MIN_LENGTH_LISTNAME} characters` };
+    if (listname.length > MAX_LENGTH_LISTNAME) return { error: true, msg: `Listname too long, must be at most ${MAX_LENGTH_LISTNAME} characters` };
+    
+    return { valid: true };
+}
+
+function makeListDataDefault(listData) {
+    if (!listData) return { error: true, msg: "No list data provided" };
+    if (!listData.listname) listData.listname = DEFAULT_LIST_NAME;
+    if (!listData.description) listData.description = listData.listname + "Bookmark List";
+    if (!listData.privacy) listData.privacy = 4;
+    if (listData.default !== true && listData.default !== false) listData.default = false;
+    return listData;
+}
+
+/**
+ * update bookmark list info
+ * 
+ * can update: name, default (if true, make other lists default false), description, privacy
+ */
+async function updateBookmarkList({ userID, listID, newInfo={}}) {
+    if (!userID) return { error: true, msg: "No userID provided" };
+    var foundList = await findListID({ userID, listID, createNew: false });
+    if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "list specified not found" };
+
+    const changesMade = [];
+
+    for (const key in newInfo) {
+        if (!allowedListChanges().simple.includes(key)) {
+            changesMade.push({ key, msg: "not allowed to change that key" });
+            continue;
+        }
+        if (newInfo[key]===null || newInfo[key]===undefined) {
+            changesMade.push({ key, msg: "no value provided" });
+            continue;
+        }
+
+        const changeValueTo = newInfo[key];
+        if (foundList[key] === changeValueTo) {
+            changesMade.push({ key, msg: "no change in value" });
+            continue; // no change
+        }
+
+        switch (key) {
+            case "listname":
+                const validated = validateListname(changeValueTo);
+                if (validated.error) {
+                    changesMade.push({ key, msg: validated.msg });
+                }
+                foundList.listname = changeValueTo;
+                changesMade.push({ key, msg: "listname changed" });
+                break;
+            case "default":
+                if (changeValueTo===true) { // making to true
+                    const currentDefaultList = await findListID({ userID, getDefaultList: true, createNew: false });
+                    // no default found?
+                    if (currentDefaultList && !currentDefaultList.error) {
+                        if (currentDefaultList._id === foundList._id) {
+                            changesMade.push({ key, msg: "list already default" });
+                            continue;
+                        }
+
+                        currentDefaultList.default = false;
+                        try {
+                            await currentDefaultList.save();
+                        } catch (error) {
+                            changesMade.push({key, error: true, msg: "could not update current default list to false" });
+                            continue;
+                        }
+                    } else {
+                        changesMade.push({ key, msg: "no current default list found previously" });
+                    }
+
+                    // updating this list
+                    foundList.default = true;
+                    try {
+                        await foundList.save();
+                        changesMade.push({ key, msg: "list is now default" });
+                    } catch (error) {
+                        currentDefaultList.default = true;
+                        try {
+                            await currentDefaultList.save();
+                            changesMade.push({ key, error: true, msg: "could not update new default list to true, but reverted old default" });
+                        } catch(error) {
+                            return { error: true, msg: "could not revert old default list to true, database may be inconsistent" };
+                        }
+
+                        return { error: true, msg: "could not update new default list to true" };
+                    }
+                } else if (changeValueTo===false) { // making it off
+                    // if to off, make a new list default    
+                    foundList.default = false;
+
+                    try {
+                        await foundList.save();
+                        changesMade.push({ key, msg: "list is no longer default" });
+                    } catch (error) {
+                        return { error: true, msg: "could not update current list to false" };
+                    }
+
+                    const newDefaultList = await findListID({ userID, getDefaultList: true, createNew: true });    
+                    if (!newDefaultList || newDefaultList.error) {
+                        // undo 
+                        foundList.default = true;
+
+                        try {
+                            await foundList.save();
+                            changesMade.push({ key, error: true, msg: "could not find or create new default list, but reverted old default" });
+                        } catch (error) {
+                            return { error: true, msg: "could not revert old default list to true, database may be inconsistent" };
+                        }
+                    }
+                }
+                break;
+            case "description":
+                if (changeValueTo.length > MAX_LENGTH_DESCRIPTION) {
+                    changesMade.push({ key, msg: `description too long, must be at most ${MAX_LENGTH_DESCRIPTION} characters` });
+                    continue;
+                }
+                foundList.description = changeValueTo;
+                break;
+            case "privacy":
+                const validPrivacy = validPrivacyOption(userID, changeValueTo, "bookmarks");
+                if (!validPrivacy || validPrivacy.error) {
+                    changesMade.push({ key, msg: "privacy option not valid" });
+                    continue;
+                }
+                foundList.privacy = changeValueTo;
+                break;
+            default:
+                continue;
+        }
+        try {
+            console.log(foundList)
+            foundList = makeListDataDefault(foundList);
+            await foundList.save();
+        } catch (error) {
+            console.log("error saving list changes?", error);
+            return { error: true, msg: "could not save changes to list" };
+        }
+    }
+
+    console.log(changesMade)
+    const updatedList = await interactBookmarkList.findOne({ _id: foundList._id });
+    return updatedList;
+}
 
 /**
  * get user bookmarks
@@ -26,20 +202,35 @@ const CURRENT_BOOKMARK_VERSION = 2.0;
 async function getUserBookmarks({ userID, listname=null, listID=null, indexID=null }) {
     if (!userID) return { error: true, msg: "No userID provided" };
 
-    if (!listname && !listID && !indexID) listname = "main"; // default to main if no list or index provided
-
+    // gets all lists, expect archived ones
     const listsFound = await getBookmarkLists({ userID });
     if (listsFound.error) return listsFound;
 
-    const foundListIndex = await findBookmarkListIndex({ userID, listID, listname, indexID, createNew: false });
-    if (!foundListIndex || foundListIndex.error) return foundListIndex;
+    // default list logic
+    const getDefaultList = (!listname && !listID && !indexID) ? true : false;
+    const foundList = await findListID({ userID, getDefaultList, listname, listID, createNew: false});
+    if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found or created" };
 
-    const foundList = await findListID({ userID, listID: foundListIndex.listID, createNew: false });
-    if (!foundList || foundList.error) return foundList;
+    const foundListIndex = await findBookmarkListIndex({ userID, listID: foundList._id, createNew: true });
+    if (!foundListIndex) return { error: true, msg: "no list index found, and couldnt create"}
+    console.log(foundListIndex)
+
+    // get default list, will create if not found
+    // const foundDefaultList = await findListID({ userID, getDefaultList: true, createNew: true });
+
+
+    // const foundListIndex = await findBookmarkListIndex({ userID, listID, listname, indexID, createNew: false });
+
+    // const foundList = await findListID({ userID, getDefaultList: usingDefaultList, listID: foundListIndex.listID, createNew: false });
+    // if (!foundList || foundList.error) return foundList;
 
     const bookmarksFound = [];
     const bookmarksData = [];//await interactBookmark.find({ _id: { $in: foundListIndex.saves }, active: 1 });
     const foundErrors = [];
+
+    // get 
+    // const foundListIndex = await findBookmarkListIndex({ userID, listID : listID/*? listID : foundDefaultList._id*/, listname, indexID, createNew: false });
+    // if (!foundListIndex || foundListIndex.error) return foundListIndex;
 
     for (const bookmarkID of foundListIndex.saves) {
         var pushed = false;
@@ -72,7 +263,6 @@ async function getUserBookmarks({ userID, listname=null, listID=null, indexID=nu
 /**
  * get user bookmark lists
  */
-
 async function getBookmarkLists({ userID, showArchived=false }) {
     if (!userID) return { error: true, msg: "No userID provided" };
 
@@ -138,7 +328,7 @@ async function adjustSavedBookmarkList({ userID, bookmarkID, listname=null, list
  * 
  * THIS FUNCTION NOT COMPLETE
  */
-async function saveBookmark({ userID, UUID, contentType, listID=null, listname="main" }) {
+async function saveBookmark({ userID, UUID, contentType, listID=null, listname=null }) {
     if (!userID) return { error: true, msg: "no userID provided" };
     if (!contentType) {
         // find content
@@ -146,20 +336,23 @@ async function saveBookmark({ userID, UUID, contentType, listID=null, listname="
         if (contentTypeFound<0) return { error: true, msg: "content not found" };
         contentType = contentTypeFound;
     }
-
-    // find or create list
-    const foundList = await findListID({ userID, listname, listID, createNew: true});
-    if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found or created" };
-    // maybe make find list have the current index, and if count is over, then make a new one on  after adding to index?
     
+    // find or create list
+    const getDefaultList = (!listname && !listID) ? true : false;
+    const foundList = await findListID({ userID, getDefaultList, listname, listID, createNew: true});
+    if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found or created" };
+   
+    // maybe make find list have the current index, and if count is over, then make a new one on  after adding to index?
+    console.log('passed creation / found list', foundList);
     // check if already bookmarked (in list) 
     const isBookmarked = await isContentBookmarked({ userID, UUID, contentType, listID: foundList._id });
     if (isBookmarked && !isBookmarked.error) return isBookmarked?.error ? isBookmarked : { error: true, msg: "content already bookmarked in that list" };
+    console.log("not bookmarked yet, continue to add");
 
     // find or create index of list
     const foundListIndex = await findBookmarkListIndex({ userID, listID: foundList._id, createNew: true });
     if (!foundListIndex) return { error: true, msg: "no list index found, and couldnt create"}
-
+    console.log("found list index to add to", foundListIndex);
     // create bookmark save
     const newBookmark = new interactBookmark({
         _id: uuidv4(),
@@ -248,9 +441,49 @@ async function removeBookmark({ userID, bookmarkID, UUID, contentType, listname,
 }
 
 /**
+ * user facing create bookmark list
+ */
+async function createBookmarkListUser({userID, listname, newInfo={}}) {
+    if (!userID) return { error: true, msg: "No userID provided" };
+    if (!listname) return { error: true, msg: "No listname provided" };
+    
+    // find or create list
+    const foundList = await findListID({ userID, listname, createNew: true});
+    if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found or created" };
+
+    // find or create index of list
+    const foundListIndex = await findBookmarkListIndex({ userID, listID: foundList._id, createNew: true });
+    if (!foundListIndex) return { error: true, msg: "no list index found, and couldnt create"}
+
+    // update list with new info
+    const updatedList = await updateBookmarkList({ userID, listID: foundList._id, newInfo });
+    if (updatedList.error) return updatedList;
+
+    return {
+        success: true,
+        list: updatedList,
+        listIndex: foundListIndex
+    };
+}
+
+/**
+ * verify bookmark list name is unique
+ */
+async function findBookmarkListUniqueName({ userID, listname, added=null }) {
+    if (!userID) return { error: true, msg: "No userID provided" };
+    if (!listname) return { error: true, msg: "No listname provided" };
+
+    const lookup = listname + (added ? `_${added}` : "");
+    const foundList = await interactBookmarkList.findOne({ userID, listname: lookup, active: 1 });
+
+    if (foundList) return findBookmarkListUniqueName({ userID, listname: listname, added: added ? added+1 : 1 });
+    return lookup;
+}
+
+/**
  * create a new list
  */
-async function createList({ userID, listname, fromFind=false }) {
+async function createList({ userID, createDefault=false, listname, fromFind=false }) {
     // in case it was not called by findListID, double check
     if (!fromFind) {
         const findList = await findListID({ userID, listname, createNew: false});
@@ -259,12 +492,23 @@ async function createList({ userID, listname, fromFind=false }) {
         // do i care if user already created one with same name? maybe
     }
 
+    // default / name list logic
+    const creatingDefault = (!listname && createDefault) ? true : false;
+    const makeListName = creatingDefault ? DEFAULT_LIST_NAME : listname;
+    if (!makeListName) return { error: true, msg: "No listname provided to make new list" };
+    
+    // find list with the name already
+    const usingListName = await findBookmarkListUniqueName({ userID, listname: makeListName, added: null });
+
     // need to create a list
     // if having toruble, switch back to .create()
     const newBookmarkList = new interactBookmarkList({
         _id: uuidv4(),
         version: CURRENT_BOOKMARK_VERSION,
-        listname: listname,
+        listname: usingListName,
+        default: creatingDefault,
+        description: creatingDefault ? "Default Bookmark List" : `${makeListName} bookmark list`,
+        privacy: getPrivacySetting({userID, privacy: "bookmarks"}), 
         // currentIndexID
         userID: userID,
         timestamp: checktime(),
@@ -277,10 +521,53 @@ async function createList({ userID, listname, fromFind=false }) {
 }
 
 /**
+ * public route for find list
+ */
+async function getListInfo({ userID, lookup }) {
+    if (!userID) return { error: true, msg: "No userID provided" };
+    if (!lookup) return { error: true, msg: "No lookup key provided" };
+
+    const foundList = await findListID({ userID, getDefaultList:false, lookupkey:lookup, createNew: false });
+    if (!foundList || foundList.error) return foundList ? foundList : { error: true, msg: "no list found with that name or ID" };
+
+    return foundList;
+}
+
+/**
  * find a listID by list name
  */
-async function findListID({ userID, listname, listID, createNew=false }) {
-    if (!listname && !listID) return { error: true, msg: "No listname or listID provided" };
+async function findListID({ userID, getDefaultList=false, listname=null, listID=null, lookupkey=null, createNew=false }) {
+    if ((!listname && !listID) && !getDefaultList && !lookupkey) return { error: true, msg: "No listname or listID provided" };
+    
+    if (getDefaultList) {
+        const foundDefault = await interactBookmarkList.findOne({ userID, default: true, active: 1 });
+        if (foundDefault) return foundDefault;
+        else {
+            // check for list named "main"
+            const foundMain = await interactBookmarkList.findOne({ userID, listname: DEFAULT_LIST_NAME, active: 1 });
+            if (foundMain) {
+                // make it default
+                foundMain.default = true;
+                await foundMain.save();
+                return foundMain;
+            }
+
+            // if (createNew) 
+            // should always create new if no default found when trying to get default list
+            return createList({ userID, createDefault: true, fromFind: true });
+            // else return { error: true, msg: "no default list found" };
+        }
+    }
+
+    if (lookupkey) {
+        const lookByID = await interactBookmarkList.findOne({ _id: lookupkey, userID });
+        if (lookByID) return lookByID;
+
+        const lookByName = await interactBookmarkList.findOne({ listname: lookupkey, userID });
+        if (lookByName) return lookByName;
+
+        return { error: true, msg: "no list found with that lookup key"}
+    }
 
     if (listID) {
         const foundListByID = await interactBookmarkList.findOne({ _id: listID, userID });
@@ -295,6 +582,12 @@ async function findListID({ userID, listname, listID, createNew=false }) {
     if (foundList) return foundList;
     else if (createNew==true) return createList({ userID, listname, fromFind: true}); // TODO: check this
     else return { error: true, msg: "no list found with that name"}
+}
+
+async function getUserDefaultList({userID}) {
+    if (!userID) return { error: true, msg: "No userID provided" };
+
+    // const 
 }
 
 /**
@@ -346,12 +639,6 @@ async function createBookmarkListIndex({ userID, listID, prevBookmarkIndex, from
         })
     };
 
-    // await interactBookmarkList.findOneAndUpdate({
-    //     _id: listID,
-    // }, {
-    //     currentIndexID: newBookmarkListIndex._id
-    // });
-
     return newBookmarkListIndex;
 }
 
@@ -387,5 +674,9 @@ module.exports = {
     adjustSavedBookmarkList,
     isContentBookmarked,
     getBookmarkLists,
-    getUserBookmarks
+    getUserBookmarks,
+    updateBookmarkList,
+    allowedListChanges,
+    getListInfo,
+    createBookmarkListUser
 }

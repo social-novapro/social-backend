@@ -4,13 +4,56 @@ const { searchErrorV2 } = require('../searchError');
 
 const privacySettings = require("./settings.json")
 
+function findFullDetailByDbTitle(dbTitle) {
+    const setting = findSettingByDbTitle(dbTitle);
+
+    const settingToPush = {
+        title: setting.title, 
+        description: setting.description,
+        name: setting.dbTitle,
+        defaultValue: setting.default,
+        options: [],
+        allowed: setting.options.map(option => option.value)
+    }
+
+    // for (const option of foundSetting.options) {
+    setting.options.forEach(option => {
+        if (!option) return searchErrorV2("T009", { userID })
+        var foundOption = privacySettings.options.find(option_details => option.value === option_details.intTitle);
+        if (!foundOption) return searchErrorV2("T010", { userID })
+
+        settingToPush.options.push({
+            title: foundOption.title,
+            value: foundOption.intTitle,
+            description: 
+                option.description ? foundOption['description_' + option.description].replace("{{title}}", setting.shortTitle) :
+                foundOption.description.replace("{{title}}", setting.shortTitle),
+        })
+    });
+    // return {
+    //     option
+    // }
+    return settingToPush;
+}
+
+function findSettingByDbTitle(dbTitle) {
+    return privacySettings.settings.find(item => item.dbTitle === dbTitle);
+}
+
 /**
     gets single privacy setting for use for outside functions.
 */
 async function getPrivacySetting({ userID, privacy }) {
     if (!userID) return searchErrorV2("T001", { userID });
     const settings = await getUserDBSettings({ userID });
-    if (!settings) return searchErrorV2("T011", { userID })
+    if (!settings) return searchErrorV2("T011", { userID });
+
+    if (!settings[privacy] && settings[privacy] !== 0) {
+        const defaultValue = findSettingByDbTitle(privacy).default;
+        await setPrivacySetting({ userID, newSetting: { name: privacy, value: defaultValue }})
+        return defaultValue;
+    } 
+
     return settings[privacy];
 }
 
@@ -52,6 +95,7 @@ async function setPrivacySettings({ userID, newSettings }) {
 
 /**
  * sets a single privacy setting for a user
+ * newSetting = { name, value }
  */
 async function setPrivacySetting({ userID, newSetting }) {
     if (!userID) return searchErrorV2("T001", { userID });
@@ -136,5 +180,6 @@ module.exports = {
     getPrivacySettings,
     setPrivacySettings,
     setPrivacySetting,
-    validPrivacyOption
+    validPrivacyOption,
+    findFullDetailByDbTitle
 };

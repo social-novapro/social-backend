@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { saveBookmark, removeBookmark, adjustSavedBookmarkList, getBookmarkLists, getUserBookmarks } = require('../../../utils/bookmarks/bookmarkManagerV2');
+const { saveBookmark, removeBookmark, adjustSavedBookmarkList, getBookmarkLists, getUserBookmarks, allowedListChanges, getListInfo, updateBookmarkList, createBookmarkListUser } = require('../../../utils/bookmarks/bookmarkManagerV2');
 
 /**
  * Save bookmark
@@ -51,4 +51,32 @@ router.get('/', async (req, res) => {
     else return res.status(200).send(bookmarks);
 });
 
+router.post('/list/create', async (req, res) => {
+    const createdList = await createBookmarkListUser({ userID: req.headers.userid, listID, newInfo: req.body });
+    if (createdList.error) return res.status(403).send(createdList);
+    else return res.status(200).send(createdList);
+});
+
+router.get('/list/changes', async (req, res) => {
+    const foundAllowed = await allowedListChanges();
+
+    if (foundAllowed.error) return res.status(500).send(foundAllowed);
+    else return res.status(200).send(foundAllowed);
+});
+
+router.get('/list/:lookup', async (req, res) => {
+    const { lookup } = req.params;
+    const foundAllowed = await getListInfo({ userID: req.headers.userid, lookup });
+    
+    if (foundAllowed.error) return res.status(500).send(foundAllowed);
+    else return res.status(200).send(foundAllowed);
+});
+
+router.put('/list/:listID', async (req, res) => {
+    const { listID } = req.params;
+    console.log(req.body)
+    const updatedList = await updateBookmarkList({ userID: req.headers.userid, listID, newInfo: req.body });
+    if (updatedList.error) return res.status(403).send(updatedList);
+    else return res.status(200).send(updatedList);
+});
 module.exports = router;
