@@ -9,6 +9,31 @@ const { findContentData } = require("../general/findContentData");
 const { isContentBookmarked } = require("./isContentBookmarked");
 const { getPrivacySetting, validPrivacyOption, findFullDetailByDbTitle } = require("../privacy");
 
+
+/* TODO
+backend:
+- limit number of lists a user can have? (10?)
+- make sure pagination works
+
+
+frontend
+- UI
+- Open list button
+- bookmarking profiles and other content
+
+features:
+- delete list function
+- archive list features --- do i just delete right away instead?, or make seperate feature
+- implement multi bookmarked content
+- view other peoples bookmarks - if privacy allows
+
+misc
+- create migration script
+- should bookmark lists have a feed ability?, if users, generate feed of users newest posts
+*/
+
+
+
 // instead of "main", have "default" list, which ticks a box to be default list
 
 // multi bookmarked content
