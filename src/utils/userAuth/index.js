@@ -1,9 +1,49 @@
 const { searchErrorV2 } = require('../../utils/searchError');
 const SHA1 = require("crypto-js/sha1");
-const { useID } = require("@dothq/id");
+const bcrypt = require('bcrypt');
 const interactUserSchema = require('../../schemas/interactUserSchema');
 const interactEmailVerificationSchema = require('../../schemas/emails/interactEmailVerificationSchema');
 const interactUserPrivSchema = require('../../schemas/interactUserPrivSchema');
+
+const PASSWORD_VERSION_V1 = 1;
+const PASSWORD_VERSION_V2 = 2;
+const PASSWORD_VERSION_V3 = 3;
+const BCRYPT_SALT_ROUNDS = 12;
+
+function getPasswordVersion(foundPrivUser) {
+    const passwordValue = typeof foundPrivUser.password === 'string' ? foundPrivUser.password : '';
+
+    if (
+        foundPrivUser.passwordVersion === PASSWORD_VERSION_V3 &&
+        passwordValue.startsWith('$2')
+    ) return PASSWORD_VERSION_V3;
+
+    if (foundPrivUser.salted && passwordValue.includes(':')) return PASSWORD_VERSION_V2;
+
+    return PASSWORD_VERSION_V1;
+}
+
+async function verifyPasswordWithVersion({ foundPrivUser, password }) {
+    const version = getPasswordVersion(foundPrivUser);
+
+    if (version === PASSWORD_VERSION_V3) {
+        const valid = await bcrypt.compare(password, foundPrivUser.password);
+        return { valid, version };
+    }
+
+    if (version === PASSWORD_VERSION_V2) {
+        const [salt, key] = (foundPrivUser.password || '').split(':');
+        const saltedPassword = SHA1(password).toString();
+        return { valid: key == saltedPassword, version };
+    }
+
+    return { valid: foundPrivUser.password == password, version };
+}
+
+async function upgradePasswordToLatest({ userID, password, version }) {
+    if (version === PASSWORD_VERSION_V3) return { success: true };
+    return setPassword({ userID, password });
+}
 
 // function that can be used to check password
 async function checkPassword({ userID, password }) {
@@ -14,44 +54,28 @@ async function checkPassword({ userID, password }) {
     const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
     if (!foundPrivUser) return searchErrorV2("G004", { userID });
 
+    if (!password || typeof password !== 'string') return searchErrorV2("G005", { userID });
+
     var returnValue = {
         error: false,
         msg: {},
         correctPassword: false
     }
 
-    var passwordCorrect = false;
-    if (foundPrivUser.salted) {
-        const [salt, key] = foundPrivUser.password.split(":");
-        const saltedPassword = SHA1(password).toString();
+    const verifyResult = await verifyPasswordWithVersion({ foundPrivUser, password });
+    var passwordCorrect = verifyResult.valid;
 
-        if (key != saltedPassword) {
-            return searchErrorV2("G005", { userID });
-        }
-        passwordCorrect=true
-    }
-    else {
-        if (foundPrivUser.password != password) {
-            return searchErrorV2("G005", { userID });
-        }
-        else {
-            const foundUsername = await interactUserSchema.findOne({ _id: userID });
-            const saltedPassword = `${useID(2)}:${SHA1(password).toString()}`
-    
-            await interactUserPrivSchema.findOneAndUpdate({
-                _id: foundUsername._id
-            }, {        
-                salted: true,
-                password: saltedPassword
-            }, {
-                upsert: true
-            });
-        }
-
-        passwordCorrect=true
+    // Backwards compatibility path: migrate legacy users to v3 bcrypt on successful login.
+    if (passwordCorrect) {
+        const upgradeResult = await upgradePasswordToLatest({
+            userID,
+            password,
+            version: verifyResult.version
+        });
+        if (upgradeResult && upgradeResult.error) return upgradeResult;
     }
 
-    if (passwordCorrect!=true) {
+    if (passwordCorrect != true) {
         return searchErrorV2("G005", { userID });
     }
 
@@ -67,17 +91,10 @@ async function quickCheckPassword({ userID, password }) {
     const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
     if (!foundPrivUser) return searchErrorV2("G004", { userID });
 
-    var passwordCorrect = false;
-    if (foundPrivUser.salted) {
-        const [salt, key] = foundPrivUser.password.split(":");
-        const saltedPassword = SHA1(password).toString();
-        if (key != saltedPassword) return searchErrorV2("G005", { userID });
-        passwordCorrect=true
-    }
-    else {
-        if (foundPrivUser.password != password) return searchErrorV2("G005", { userID });
-        passwordCorrect=true
-    }
+    if (!password || typeof password !== 'string') return searchErrorV2("G005", { userID });
+
+    const verifyResult = await verifyPasswordWithVersion({ foundPrivUser, password });
+    var passwordCorrect = verifyResult.valid;
 
     if (!passwordCorrect) return searchErrorV2("G005", { userID });
     else return foundPrivUser;
@@ -87,13 +104,16 @@ async function setPassword({ userID, password }) {
     const foundPrivUser = await interactUserPrivSchema.findOne({_id: userID });
     if (!foundPrivUser) return searchErrorV2("G004", { userID });
 
-    const saltedPassword = `${useID(2)}:${SHA1(password).toString()}`;
+    if (!password || typeof password !== 'string') return searchErrorV2("G005", { userID });
+
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     await interactUserPrivSchema.findOneAndUpdate({
         _id: userID
     }, {        
         salted: true,
-        password: saltedPassword
+        passwordVersion: PASSWORD_VERSION_V3,
+        password: hashedPassword
     }, {
         upsert: true
     });

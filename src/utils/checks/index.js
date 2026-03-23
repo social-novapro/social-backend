@@ -34,10 +34,6 @@ async function checkUserage(userID, userAge) {
     }
 }
 
-async function checkPassword(password) {
-    return { "allowed" : true };
-};
-
 function checkDisplayname() {
 
 };
@@ -50,4 +46,4 @@ async function checkPostContent(content) {
     else return true;
 };
 
-module.exports = { checkUsername, checkUserage, checkDisplayname, checkPostContent, checkPassword };
+module.exports = { checkUsername, checkUserage, checkDisplayname, checkPostContent };
