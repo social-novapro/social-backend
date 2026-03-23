@@ -14,6 +14,7 @@ const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
 const {InteractStartup} = require('./utils/startup');
+const developerAppToken = require('./schemas/developer/developerAppToken');
 
 require('dotenv').config({ path: 'secret.env' })
 
@@ -108,7 +109,44 @@ async function createTokens() {
 //     ],
 //     credentials: true
 // }));
-app.use(cors())
+
+const localAllowList = [
+    'https://interact.novapro.net',
+    'https://interact-analytics.novapro.net'
+];
+
+app.use(cors((req, callback) => {
+    const origin = req.headers.origin;
+    // Non browser requests
+    if (!origin) {
+        return callback(null, { origin: false })
+    }
+
+    // trusted frontend
+    if (localAllowList.includes(origin)) {
+        return callback(null, { origin, credentials: true })
+    }
+
+    // preflight requests
+    if (req.method === 'OPTIONS') {
+        return callback(null, { origin })
+    }
+
+    // check token for external apps
+    const appToken = req.headers.apptoken;
+    if (!appToken) {
+        return callback(null, { origin: false })
+    }
+
+    // check if token is valid and get app origin
+    const app = await developerAppToken.findOne({ _id: appToken }).lean();
+    if (app && app.origin == origin) {
+        return callback(null, { origin, credentials: true })
+    }
+
+    // everything else blocked
+    return callback(null, { origin: false })
+}));
 
 // app.use(cors({
 //     origin: '*'
