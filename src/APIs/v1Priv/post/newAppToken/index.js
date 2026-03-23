@@ -1,26 +1,29 @@
 const router = require('express').Router()
-const { newDeveloperAppToken } = require('../../../../utils/developer/create/appToken')
-const developerAppToken = require('../../../../schemas/developer/developerAppToken');
-const developerToken = require('../../../../schemas/developer/developerToken');
-const { searchErrorV2 } = require('../../../../utils/searchError');
+const { newDeveloperAppToken, editDeveloperAppToken } = require('../../../../utils/developer/create/appToken')
 
 router.post('/', async (req, res) => {
     const { userid } = req.headers;
-    const { userdevtoken, appname } = req.body;
-    
-    if (!userdevtoken) return res.status(401).send(searchErrorV2("A011", { userID: userid }));
-    if (!appname) return res.status(401).send(searchErrorV2("A011", { userID: userid }));
-    
-    const foundDevtoken = await developerToken.findOne({_id: userdevtoken })
-    if (!foundDevtoken) return res.status(401).send(searchErrorV2("A002", { userID: userid }))
+    const { userdevtoken, appname, apporigin} = req.body;
 
-    if (foundDevtoken.userID != userid) return res.status(401).send(searchErrorV2("B003", { userID: userid }))
-    const newAppToken = await newDeveloperAppToken(userid, userdevtoken, appname);
-    
-    const newTokenData = await developerAppToken.findOne({ _id: newAppToken });
-    if (!newTokenData) return res.status(404).send(searchErrorV2("A008", { userID: userid }))
+    const createResult = await newDeveloperAppToken(userid, userdevtoken, appname, apporigin);
 
-    return res.status(200).send(newTokenData);
+    if (createResult.error) return res.status(401).send(createResult);
+    return res.status(200).send(createResult.data);
+});
+
+router.put('/', async (req, res) => {
+    const { userid } = req.headers;
+    const { appToken, newAppName, newAppOrigin } = req.body;
+
+    const editResult = await editDeveloperAppToken({
+        userID: userid,
+        appToken,
+        newAppName,
+        newAppOrigin
+    });
+
+    if (editResult.error) return res.status(401).send(editResult);
+    return res.status(200).send(editResult.data);
 });
 
 module.exports = router;

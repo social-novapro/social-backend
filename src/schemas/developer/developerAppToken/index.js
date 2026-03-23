@@ -6,6 +6,7 @@ const developerAppToken = mongoose.Schema({
    userID: reqString,
    devToken: reqString,
    appName: nonreqString,
+   origin: nonreqString,
    APIUses: reqNum,
    creationTimestamp: nonreqNum,
 });
