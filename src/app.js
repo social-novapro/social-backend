@@ -115,37 +115,62 @@ const localAllowList = [
     'https://interact-analytics.novapro.net'
 ];
 
+const normalizeOrigin = (value) => {
+    if (!value || typeof value !== 'string') return null;
+    return value.trim().replace(/\/+$/, '');
+};
+
+const originMatches = (requestOrigin, storedOrigin) => {
+    const normalizedRequest = normalizeOrigin(requestOrigin);
+    const normalizedStored = normalizeOrigin(storedOrigin);
+    if (!normalizedRequest || !normalizedStored) return false;
+    if (normalizedRequest === normalizedStored) return true;
+
+    try {
+        const reqHost = new URL(normalizedRequest).hostname;
+        if (reqHost === normalizedStored) return true;
+
+        const storedHost = new URL(normalizedStored).hostname;
+        return reqHost === storedHost;
+    } catch (err) {
+        return false;
+    }
+};
+
 app.use(cors((req, callback) => {
-    const origin = req.headers.origin;
-    // Non browser requests
-    if (!origin) {
-        return callback(null, { origin: false })
-    }
+    (async () => {
+        try {
+            const requestOrigin = normalizeOrigin(req.headers.origin);
 
-    // trusted frontend
-    if (localAllowList.includes(origin)) {
-        return callback(null, { origin, credentials: true })
-    }
+            // Non-browser requests (curl/server-to-server)
+            if (!requestOrigin) return callback(null, { origin: false });
 
-    // preflight requests
-    if (req.method === 'OPTIONS') {
-        return callback(null, { origin })
-    }
+            // Trusted first-party frontends
+            if (localAllowList.includes(requestOrigin)) {
+                return callback(null, { origin: requestOrigin, credentials: true });
+            }
 
-    // check token for external apps
-    const appToken = req.headers.apptoken;
-    if (!appToken) {
-        return callback(null, { origin: false })
-    }
+            // Preflight requests from external apps should pass; actual request is strictly validated.
+            if (req.method === 'OPTIONS') {
+                return callback(null, { origin: requestOrigin, credentials: false });
+            }
 
-    // check if token is valid and get app origin
-    const app = await developerAppToken.findOne({ _id: appToken }).lean();
-    if (app && app.origin == origin) {
-        return callback(null, { origin, credentials: true })
-    }
+            // External app request must include an app token.
+            const appToken = typeof req.headers.apptoken === 'string' ? req.headers.apptoken.trim() : null;
+            if (!appToken) return callback(null, { origin: false });
 
-    // everything else blocked
-    return callback(null, { origin: false })
+            // Token must exist and belong to the requesting origin.
+            const app = await developerAppToken.findOne({ _id: appToken }).lean();
+            const appOrigin = app?.origin;
+            if (originMatches(requestOrigin, appOrigin)) {
+                return callback(null, { origin: requestOrigin, credentials: false });
+            }
+
+            return callback(null, { origin: false });
+        } catch (err) {
+            return callback(null, { origin: false });
+        }
+    })();
 }));
 
 // app.use(cors({
