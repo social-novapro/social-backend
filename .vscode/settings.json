@@ -1,0 +1,50 @@
+
+{
+    "remote.portsAttributes": {
+        "5500" : {
+            "label" : "Frontend",
+            "onAutoForward" : "openBrowser",
+            "requireLocalPort": true
+        },
+        "5002" : {
+            "label" : "Backend",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
+        },
+        "5004" : {
+            "label" : "Ai Interface",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
+        },
+        "5005" : {
+            "label" : "CDN Server",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
+        }, 
+        "5000" : {
+            "label" : "Embedding Server",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
+        },
+        "9000" : {
+            "label" : "Minio Backend",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
+        },
+        "9090" : {
+            "label" : "Minio Frontend",
+            "onAutoForward" : "openBrowser",
+            "requireLocalPort": true
+        },
+        "11434" : {
+            "label" : "Ollama Backend",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
+        },
+        "27017" : {
+            "label" : "MongoDB",
+            "onAutoForward" : "notify",
+            "requireLocalPort": true
+        }
+    },
+}

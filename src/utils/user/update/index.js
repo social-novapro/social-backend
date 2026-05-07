@@ -6,6 +6,7 @@ const { searchErrorV2 } = require('../../../utils/searchError');
 const { checkUsername, checkUserage } = require('../../checks');
 const { checktime } = require('../../checktime');
 const { checkSafeURL } = require('../../checkSafeURL');
+const { current } = require("../../../../config.json");
 
 async function validField({ userID, field }) {
     for (const option of options.options) {
@@ -29,10 +30,21 @@ async function formatUserData({ userID, userData }) {
     const fields = [];
     
     for (const option of options.options) {
-        fields.push({
+        // currentValueString, currentValueDate
+        var pushValue = {
             ...option,
-            currentValue: userData[option.dbName]
-        });
+            currentValue: userData[option.dbName],
+            currentValueString: null,
+            currentValueDate: null
+        };
+
+        if (option.type === "String") {
+            pushValue.currentValueString = userData[option.dbName];
+        } else if (option.type === "Date") {
+            pushValue.currentValueDate = userData[option.dbName];
+        }
+
+        fields.push(pushValue);
     };
 
     return fields;
@@ -54,14 +66,30 @@ async function userUpdate({ userID, body }) {
 
     for (const field in body) {
         const validated = await validField({ userID, field });
+        // step 0 - make sure in correct format and no error
+        
         if (validated.error) {
             // non valid field
             invalidFields.push({
                 field,
-                error: validated
+                ...validated
             });
             continue;
-        };
+        // expect string (should be usaully)
+        } else if (validated.type === "String" && typeof body[field] !== "string") {
+            fails.push({
+                field,
+                ...searchErrorV2("C031", { userID, options: [{ name: "field", data: field }, { name: "reason", data: "field is not a string." }] })
+            });
+            continue;
+        // expect number, but if its not then itll fail
+        } else if (validated.type === "Date" && (isNaN(body[field]))) {
+            fails.push({
+                field,
+                ...searchErrorV2("C031", { userID, options: [{ name: "field", data: field }, { name: "reason", data: "field is not a number." }] })
+            });
+            continue;
+        }
 
         // step 1 - make sure its not the same as the current value
         const prevUpdate = prevUpdates.find(update => update.dbName === field);
@@ -75,8 +103,25 @@ async function userUpdate({ userID, body }) {
         }
     
         // update field
-        toUpdates.push({"field": field, "value": body[field], "prevValue": prevUpdate.currentValue, type: validated.type});
-        // await lastUpdatedField({ userID, field });
+        if (validated.type === "String") {
+            toUpdates.push({
+                "field": field,
+                "value": body[field],
+                "prevValue": prevUpdate.currentValue,
+                type: validated.type,
+                "valueString": body[field],
+                "valuePrevString": prevUpdate.currentValue
+            })
+        } else if (validated.type === "Date") {
+            toUpdates.push({
+                "field": field,
+                "value": Number(body[field]),
+                "prevValue": prevUpdate.currentValue,
+                type: validated.type,
+                "valueDate": Number(body[field]),
+                "valuePrevDate": Number(prevUpdate.currentValue)
+            })
+        }
     }
 
     // updates
@@ -91,17 +136,19 @@ async function userUpdate({ userID, body }) {
 
         // step 2 - make sure not updated recently
         const lastUpdate = await lastUpdatedField({ userID, field: update.field });
-        if (lastUpdate.error) {
+        if (lastUpdate.error && current != "dev") {
             fails.push(lastUpdate);
             continue;
         }
 
         acceptedChanges.push(update);
         userData[update.field] = update.value;
+
         if (update.field == "username") {
             userData.usernameLc = update.value.toLowerCase();
         }
     }
+
     // step 3 - update user record
     const newUser = await interactUserSchema.findOneAndUpdate({ _id: userID }, userData, { new: true });
     const newUpdates = await formatUserData({ userID, userData: newUser });

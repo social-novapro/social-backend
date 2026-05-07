@@ -9,6 +9,8 @@ const { pullPostBookmarks } = require("../../bookmarks");
 const { removePostFromIndex } = require("../postIndexManagement");
 const { deleteEmbedPost } = require("../../search/embed");
 const { removeTags } = require("../tags");
+const { removePostFromUserPostIndex } = require("../userPostIndexManagement");
+const { adjustWeight } = require("../postScores/userAutoScore");
 
 async function removePost(postData) {
     if (postData.isReply) await removeFromReplyIndex(postData);
@@ -16,11 +18,13 @@ async function removePost(postData) {
     
     // if postData.isQuote later
     if (postData.replyIndexID) await deleteReplyIndex(postData);
+
     await deleteLikes({ postID: postData._id });
+    await removePostFromIndex({ userID: postData.userID, postID: postData._id });
+    await removePostFromUserPostIndex({ userID: postData.userID, postID: postData._id, userPostIndexID: postData.userPostIndexID });
+
     await interactPostSchema.findOneAndDelete({_id: postData._id});
 
-    await removePostFromIndex({ userID: postData.userID, postID: postData._id });
-    
     await interactPostSchema.findOneAndUpdate({
         _id: postData.postID
     }, {
@@ -47,6 +51,9 @@ async function removePost(postData) {
     // pulls tags
     removeTags({ userID: postData.userID, postID: postData._id });
     
+    // adjust weight
+    adjustWeight({ userID: postData.userID, action: "POST.DELETED", postID: postData._id, postData });
+
     return true;
 };
 
@@ -77,6 +84,7 @@ async function removeFromReplyIndex({_id, replyData}) {
         $pull: { "postIDs" : _id },
     });
 
+    adjustWeight({ userID: replyData.userID, action: "POST.REPLY_DELETED", postID: replyData.postID, postData: foundPost });
     return true;
 };
 
@@ -99,6 +107,7 @@ async function removeFromQuoteIndex({_id, quoteData}) {
         $pull: { "postIDs" : _id },
     });
 
+    adjustWeight({ userID: quoteData.userID, action: "POST.QUOTE_DELETED", postID: quoteData.postID, postData: foundPost });
     return true;
 };
 

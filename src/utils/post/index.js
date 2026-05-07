@@ -7,6 +7,10 @@ const { checktime } = require("../checktime");
 const { searchErrorV2 } = require("../searchError");
 const { embedEditedPost } = require("../search/embed");
 const { editTags } = require("./tags");
+const { getPostWithData } = require("./getPost");
+const interactUserSchema = require("../../schemas/interactUserSchema");
+const { editAttachments } = require("./attachments");
+const { categorizeEditedPost } = require("./categories");
 
 async function getPostReplies({ postID, userID }) {
     const postData = await interactPostSchema.findOne({_id: postID});
@@ -69,10 +73,14 @@ async function editPost({ postID, userID, content}) {
     if (!checkedContent || checkedContent.error) return checkedContent;
 
     const postCheck = await interactPostSchema.findOne({ _id: postID});
-
     if (!postCheck) return searchErrorV2("K002", { userID });
     else if (postCheck.userID != userID) return searchErrorV2("D008", { userID });
     else if (postCheck.content == content) return searchErrorV2("D009", { userID });
+
+    // check for attachments
+    // re-add attachments
+    const addedAttachments = await editAttachments({ postID, content });
+
 
     const editedTimestamp = checktime();
     var editedAmount;
@@ -81,7 +89,7 @@ async function editPost({ postID, userID, content}) {
     
     await interactPostSchema.findOneAndUpdate(
         { _id: postID }, 
-        { content, edited: true, editedTimestamp, editedAmount },
+        { content: addedAttachments.newContent, attachments: addedAttachments.attachments, edited: true, editedTimestamp, editedAmount },
         { upsert: true }
     );
 
@@ -96,7 +104,12 @@ async function editPost({ postID, userID, content}) {
     )
 
     // re-embeds post
-    embedEditedPost({ postID, userID, timestamp: postCheck.timestamp, content });
+    embedEditedPost({ postID, userID, timestamp: postCheck.timestamp, content }).then((embedResult) => {
+        if (embedResult.error) return console.error("Error embedding edited post:", embedResult);
+        // re-categorizes post
+        categorizeEditedPost({ postID, userID });
+    });
+    
     // re-tags post
     editTags({ userID, postID, newContent: content, postedTimestamp: postCheck.timestamp });
 
@@ -105,9 +118,51 @@ async function editPost({ postID, userID, content}) {
     return { "before": postCheck, "new": postData }
 }
 
+async function getPostRepliesFull({ postID, userID }) {
+    const foundReplies = await getPostReplies({ postID, userID });
+    if (!foundReplies || foundReplies.error) return foundReplies;
+
+    const ownUser = await interactUserSchema.findOne({_id: userID});
+    const fullReplies = [];
+    for (const reply of foundReplies.replies) {
+        const postData = await getPostWithData({userID: userID, postID: reply._id, post: reply, ownUser});
+        fullReplies.push(postData);
+    }
+    
+    const dataSend = {
+        'post': foundReplies.postData,
+        'replyIndex': foundReplies.replyIndex,
+        'replies': fullReplies
+    }
+    
+    return dataSend;
+}
+
+async function getPostQuotesFull({ postID, userID }) {
+    const foundQuotes = await getPostQuotes({ postID, userID });
+    if (!foundQuotes || foundQuotes.error) return foundQuotes;
+
+    const ownUser = await interactUserSchema.findOne({_id: userID});
+    const fullQuotes = [];
+    for (const quote of foundQuotes.quotes) {
+        const postData = await getPostWithData({userID: userID, postID: quote._id, post: quote, ownUser});
+        fullQuotes.push(postData);
+    }
+
+    const dataSend = {
+        'post': foundQuotes.postData,
+        'quoteIndex': foundQuotes.quoteIndex,
+        'quotes': fullQuotes
+    }
+    
+    return dataSend;
+}
+
 module.exports = { 
     getPostReplies,
     getPostQuotes,
     getPostEdits,
     editPost,
+    getPostRepliesFull,
+    getPostQuotesFull
 };

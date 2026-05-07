@@ -12,12 +12,17 @@ const reqBool = {
     type: Boolean,
     required: false
 };
+const nonreqNum = {
+    type: Number,
+    required: false
+};
 
 const interactUserPrivSchema = mongoose.Schema({
     _id: reqString,
     userToken: reqString,
     email: nonreqString,
     salted: reqBool,
+    passwordVersion: nonreqNum,
     password: reqString,
     devToken: nonreqString
 });

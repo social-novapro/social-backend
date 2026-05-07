@@ -1,29 +1,35 @@
 const interactAdminUpdateActionsSchema = require("../../../schemas/admin/interactAdminUpdateActionsSchema");
 const { checktime } = require("../../checktime");
+const { categorizeAllPosts, undoAllCategorizePosts } = require("../../post/categories/updateAction");
+const { actionUpdateLikePostsIndexes, actionUndoLikePostsIndexes } = require("../../post/likeUtilV2/updateActionsLikes");
+const { actionUpdateUserAutoScore, actionUndoUserAutoScore } = require("../../post/postScores/userAutoScore/updateActionsUser");
 const { updateAllPostEmbeddings, undoAllPostEmbeddings } = require("../../search/embed/firstRun");
 const { searchErrorV2 } = require("../../searchError");
 const { updateUserBadges, undoUserBadges } = require("../../user/badges/firstRun");
 const { undoAllUsernameLc, updateAllUsernameLc } = require("../../userAuth");
 const { undoAllPostIndexes, updateAllPostIndexes } = require("./postIndexes");
 const { updateAllTimestamps, undoAllTimestamps } = require("./timestamps");
+const { updateAllUserPostIndexes, undoAllUserPostIndexes } = require("./userPostIndexes");
 
-// APR 2024 - 1.4
-async function updatePostEmbeddings({ adminID }) {
-    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "postEmbeddings" });
+// APR 2024 - 1.4, MAR 2025 - 1.7, JUN 2025 - 1.8, 1.8.2
+async function updatePostEmbeddings({ adminID, version=null }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: `postEmbeddings${version?version:""}` });
     if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    if (version) await undoAllPostEmbeddings();
 
     const result = await updateAllPostEmbeddings();
     await interactAdminUpdateActionsSchema.create({
-        _id: "postEmbeddings",
+        _id: `postEmbeddings${version?version:""}`,
         done: true,
         timestamp: checktime(),
     })
     return result;
 }
 
-async function undoPostEmbeddings({ adminID }) {
+async function undoPostEmbeddings({ adminID, version=null }) {
     await undoAllPostEmbeddings();
-    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "postEmbeddings" })
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: `postEmbeddings${version?version:""}` })
     return { done: true }
 }
 
@@ -112,6 +118,90 @@ async function undoUsernameLc({ adminID }) {
 }
 
 
+// JAN 2025 - 1.6.4
+async function updateUserPostIndexes({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userPostIndexes" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await updateAllUserPostIndexes({ adminID });
+    await interactAdminUpdateActionsSchema.create({
+        _id: "userPostIndexes",
+        done: true,
+        timestamp: checktime(),
+    });
+
+    return result;
+}
+
+async function undoUserPostIndexes({ adminID }) {
+    await undoAllUserPostIndexes({ adminID });
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "userPostIndexes" })
+    return { done: true }
+}
+
+// MAR 2025 - 1.7, JUN 2025 - 1.8, JUL 2025 - 1.8.2
+async function updateCategorizePosts({ adminID, version=null }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "categorizePosts"+(version?version:"") });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await categorizeAllPosts();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "categorizePosts"+(version?version:""),
+        done: true,
+        timestamp: checktime(),
+    });
+
+    return result;
+};
+
+async function undoCategorizePosts({ adminID, version=null }) {
+    await undoAllCategorizePosts();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "categorizePosts"+(version?version:"") })
+    return { done: true }
+}
+
+// June 2025 - 1.8
+async function updateLikePostsIndexes({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "likePostsIndexes" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await actionUpdateLikePostsIndexes();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "likePostsIndexes",
+        done: true,
+        timestamp: checktime(),
+    });
+    
+    return result;
+}
+
+async function undoLikePostsIndexes({ adminID }) {
+    await actionUndoLikePostsIndexes();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "likePostsIndexes" })
+    return { done: true };
+}
+
+// July 2025 - 1.8.2
+async function updateUserAutoScore({ adminID }) {
+    const doneAction = await interactAdminUpdateActionsSchema.findOne({ _id: "userAutoScore" });
+    if (doneAction && doneAction.done==true) return searchErrorV2("R015", { userID: adminID });
+
+    const result = await actionUpdateUserAutoScore();
+    await interactAdminUpdateActionsSchema.create({
+        _id: "userAutoScore",
+        done: true,
+        timestamp: checktime(),
+    });
+    
+    return result;
+}
+
+async function undoUserAutoScore({ adminID }) {
+    await actionUndoUserAutoScore();
+    await interactAdminUpdateActionsSchema.findOneAndDelete({ _id: "userAutoScore" })
+    return { done: true };
+}
+
 module.exports = { 
     updateUsernameLc,
     undoUsernameLc,
@@ -122,5 +212,14 @@ module.exports = {
     updateBadges,
     undoBadges,
     updatePostEmbeddings,
-    undoPostEmbeddings
+    undoPostEmbeddings,
+    updateUserPostIndexes,
+    undoUserPostIndexes,
+    updateCategorizePosts,
+    undoCategorizePosts,
+    updateLikePostsIndexes,
+    undoLikePostsIndexes,
+    updateUserAutoScore,
+    undoUserAutoScore,
 }
+

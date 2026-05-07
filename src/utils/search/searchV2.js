@@ -3,11 +3,47 @@ const interactEmbedSentenceSchema = require('../../schemas/embeddings/interactEm
 const interactEmbedSentencePostSchema = require('../../schemas/embeddings/interactEmbedSentencePost');
 const interactPostSchema = require('../../schemas/interactPostSchema');
 const interactUserSchema = require('../../schemas/interactUserSchema');
+const interactPostTagIndexSchema = require('../../schemas/posts/interactPostTagIndexSchema');
 const { checktime } = require('../checktime');
 const { getPostWithData } = require('../post/getPost');
 const { embedSearch } = require('./embed');
 const { searchPostTags, searchHashTags } = require('./searchPostTags');
 const { lookupUsers } = require('./searchUserTag');
+
+async function explorePage({ userID }) {
+    const returnData = {
+        hashtagsFound: [],
+        usersFound: [],
+        postsFound: [],
+    }
+
+    // hashtagsFound -> newest 5 hashtags
+    const foundHashtags = await interactPostTagIndexSchema.find({ current: true, tagType: 1 }).sort({timestamp: -1, count: -1 }).limit(5);
+    foundHashtags.sort((a, b) => a.timestamp - b.timestamp);
+    for (const tag of foundHashtags) {
+        returnData.hashtagsFound.push(tag._doc);
+    }
+
+    // usersFound -> newest 5 users
+    const foundUsers = await interactUserSchema.find().sort({ creationTimestamp: -1 }).limit(5);
+    foundUsers.sort((a, b) => a.creationTimestamp - b.creationTimestamp)
+    for (const user of foundUsers) {
+        // const foundUser
+        returnData.usersFound.push(user._doc);
+    }
+
+    // postsFound -> newest 5 posts
+    const foundPosts = await interactPostSchema.find().sort({ timestamp: -1 }).limit(10);
+    foundPosts.sort((a, b) => a.timestamp - b.timestamp);
+    for (const post of foundPosts) {
+        const fullPost = await getPostWithData({ userID: userID, post });
+        if (fullPost && !fullPost.error) {
+            returnData.postsFound.push(fullPost);
+        }
+    }
+
+    return returnData;
+}
 
 async function searchV2({ lookUpKey, userID }) {
     const start = checktime();
@@ -25,7 +61,9 @@ async function searchV2({ lookUpKey, userID }) {
     const PostData = [];
     const postsAdded = {};
 
-    for (const postID of postIDs) {
+    for (const ranking of postIDs) {
+        if (!ranking) {"No ranking"; continue}
+        const postID = ranking.postID;
         if (postsAdded[postID]) {
             console.log("ALREADY ADDED")
             continue
@@ -33,7 +71,6 @@ async function searchV2({ lookUpKey, userID }) {
         const post = await interactPostSchema.findOne({ _id: postID });
         if (post) {
             const fullPost = await getPostWithData({ userID: userID, post, ownUser });
-            console.log(fullPost)
             if (fullPost && !fullPost.error) PostData.push(fullPost);
             postsAdded[postID] = true;
         }
@@ -66,6 +103,7 @@ async function searchV2({ lookUpKey, userID }) {
 async function top50SimilarPosts({ lookUpKey, userID }) {
     // get the embedding of the search key
     const searchEmbedding = await embedSearch({ content: lookUpKey });
+    const finalRanking = [];
 
     // get all post embeddings
     const allEmbeddings = await interactEmbedPostSchema.find();
@@ -82,7 +120,11 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
     // console.log(similarities)
     const shortenedRank = similarities.slice(0, 50);
     const postIDs = shortenedRank.map((rank) => allEmbeddings[rank.index]._id);
-
+    for (const rank of shortenedRank) {
+        if (rank.similarity > 0.8) {
+            finalRanking.push({postID: allEmbeddings[rank.index]._id, similarity: rank.similarity});
+        }
+    }
     // return postIDs.reversed();
 
     // ranking top sentences
@@ -102,18 +144,21 @@ async function top50SimilarPosts({ lookUpKey, userID }) {
         }
     }
 
-    const similarSentences = cosineSimilarity(searchEmbedding.embedding.sentences[0].embedding, similarArrSentence, sentenceContents);
+    // why comparing first sentence of the search embedding? 
+    /// searchEmbedding.embedding.sentence[0].embedding
+    const similarSentences = cosineSimilarity(searchEmbedding.embedding.embedding, similarArrSentence, sentenceContents);
     // console.log(similarities)
     
     const topSentences = similarSentences.slice(0, 50);
-    const topPostIDs = topSentences.map((rank) => {
-        if (rank.similarity > 0.9) return allSentences[rank.index].postID
-    });
-
-    return topPostIDs.reverse();
+    for (const rank of topSentences) {
+        if (rank.similarity > 0.8) {
+            finalRanking.push({postID: allSentences[rank.index].postID, similarity: rank.similarity});
+        }
+    }
+    return finalRanking.sort((a, b) => a.similarity - b.similarity);
 }
 
-function cosineSimilarity(inputSearch, similarEmbeddings, contents) {
+function cosineSimilarity(inputSearch, similarEmbeddings, contents, id=null) {
     // Function to calculate dot product of two arrays
     const dotProduct = (arr1, arr2 ) => arr1.reduce((acc, val, i) => acc + val * arr2[i], 0);
 
@@ -126,7 +171,7 @@ function cosineSimilarity(inputSearch, similarEmbeddings, contents) {
         const inputMagnitude = magnitude(inputSearch);
         const arrMagnitude = magnitude(arr);
         const similarity = dotProd / (inputMagnitude * arrMagnitude);
-        return {similarity, index, content: contents[index]};
+        return {similarity, index, content: contents[index], id: id ? id[index] : null};
     });
 
     // Sort by similarity in descending order
@@ -134,4 +179,4 @@ function cosineSimilarity(inputSearch, similarEmbeddings, contents) {
     return similarities;
 }
 
-module.exports = { searchV2 };
+module.exports = { searchV2, cosineSimilarity, explorePage };

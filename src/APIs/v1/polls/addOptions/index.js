@@ -1,13 +1,8 @@
 const router = require('express').Router();
 const { searchErrorV2 } = require('../../../../utils/searchError');
-const { checktime } = require('../../../../utils/checktime');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { createNewPollOption, findPoll } = require('../../../../utils/polls');
 
 router.post('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-    
     // optionAmount = number of options
     // option_#num = option title
     const userID = req.headers.userid;

@@ -16,6 +16,11 @@ const { searchErrorV2 } = require('../../searchError');
 const { coposterRequestNotification } = require('../../pushNotifications/postActionNotifications');
 const { embedPost } = require('../../search/embed');
 const { pushPostTag, checkForTags } = require('../tags');
+const { pushPostToUserPostIndex } = require('../userPostIndexManagement');
+// const { categorizePost } = require('../../feeds/personalized');
+const { categorizePost } = require('../categories')
+const { addAttachments } = require('../attachments');
+const { adjustWeight } = require('../postScores/userAutoScore');
 
 async function createNewPost({
     content,
@@ -53,9 +58,21 @@ async function createNewPost({
 
     await checkForTags({userID, postID, content, postedTimestamp: postData.timestamp});
     pushNewPost(userID, postID)
-    embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content });
 
-    return postData
+    // const myPostEmbed = await embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content })//.then((embedData) => {
+    // await categorizePost({ postID, userID: postData.userID })/*.then((catData) => {
+
+    embedPost({ postID, userID: postData.userID, timestamp: postData.timestamp, content: postData.content }).then((embedData) => {
+        // console.log("Embed data: ", embedData)
+        categorizePost({ postID, userID: postData.userID }).then((catData) => {
+            adjustWeight({ userID: postData.userID, action: "POST.CREATED", postID, postData: catData /* will not share full post but works. */ })/*.then((weightData) => {
+                if (weightData.error) console.error("Error adjusting weight: ", weightData.msg);
+            });*/
+        });
+    });
+    
+    console.log("Post created");
+    return postData;  // does not provide category data, nor reply/quote data
 }
 
 async function newPostID() {
@@ -82,7 +99,9 @@ async function newPostIndex(userID, data) {
     const currentTime = checktime();
     // const newIndex = await newReplyIndex(postID);
 
-    const spotifyIncludedContent = await getSpotifyEmbeds(content);
+    const addedAttachments = await addAttachments(content);
+    // const spotifyIncludedContent = await getSpotifyEmbeds(content);
+    // const foundAttachments = await checkForAttachments(content, spotifyIncludedContent.spotifyEmbeds);
     //const userFound = await interactUserSchema.findOne({ _id: userID });
     //if (!userFound) return searchError("E004");
 
@@ -92,7 +111,8 @@ async function newPostIndex(userID, data) {
         timePosted: currentTime,
         timestamp: currentTime,
         userID,
-        content: spotifyIncludedContent,
+        content: addedAttachments.newContent,
+        attachments: addedAttachments.attachments,
         totalLikes: 0,
         totalReplies: 0,
         totalQuotes: 0,
@@ -105,6 +125,8 @@ async function newPostIndex(userID, data) {
     });
 
     await pushPostToIndex({ postID, userID });
+    // push to user index
+    await pushPostToUserPostIndex({ userID, postID });
     
     const foundUser = await interactUserSchema.findOne({ _id: userID });
     foundUser.totalPosts = foundUser.totalPosts ? foundUser.totalPosts + 1 : 1;
@@ -228,6 +250,7 @@ async function quotingPostSetup(quotingPost, postID, userID) {
     });
 
     await pushQuotePost(userID, postID, quotingPost.userID);
+    adjustWeight({ userID, action: "POST.QUOTE_CREATED", postID, postData: quotingPost });
 
     return postID;
 }
@@ -274,8 +297,9 @@ async function replyingPostSetup(replyingPost, postID, userID) {
         }
     }, {
         upsert: true
-    })
+    });
 
+    adjustWeight({ userID, action: "POST.REPLY_CREATED", postID, postData: replyingPost });
     return postID;
 }
 
@@ -417,54 +441,6 @@ async function checkQuoteIndexID(newID) {
     if (repliesIDused) return newReplyIndex();
 
     else return newID;
-}
-
-async function getSpotifyEmbeds(text) {
-    const spotifyRegex = /(?:https?:\/\/(?:open\.spotify\.com|spotify\.link)\/(?:embed\/)?[a-zA-Z0-9]+\/?[a-zA-Z0-9_-]*)/g;
-    const spotifyLinks = text.matchAll(spotifyRegex);
-
-    if (!spotifyLinks) return text;
-    
-    var newText = text;
-    const spotifyEmbeds = [];
-    var currentNumber = 0;
-    for (const link of spotifyLinks) {
-        const spotifyActualURL = link[0];
-        spotifyURL = spotifyActualURL.replace("https://", "")
-        if (spotifyURL.includes("/embed")) spotifyURL = spotifyURL.replace("/embed", "");
-
-        var spotifySeperations = spotifyURL.split("/");
-
-        var spotifyType = ""
-        var spotifyID = ""
-
-        if (spotifyURL.includes("open.spotify")) {
-            spotifyType = spotifySeperations[1];
-            spotifyID = spotifySeperations[2];
-        } else if (spotifyURL.includes("spotify.link")) {
-            const res = await fetch(`https://${spotifyURL}`)
-            const html = await res.text()
-
-            spotifyURL = html.split('You can also <a class="secondary-action" href="')[1].split('">open this link in your browser.</a>')[0].split("?")[0];
-            spotifyURL = spotifyURL.replace("https://", "")
-            spotifySeperations = spotifyURL.split("/")
-
-            spotifyType = spotifySeperations[1];
-            spotifyID = spotifySeperations[2];
-        }
-
-        var spotifyEmbed = `https://open.spotify.com/embed/${spotifyType}/${spotifyID}`;
-        spotifyEmbeds.push(spotifyEmbed);
-        newText = newText.replace(spotifyActualURL, `{{spotify_${currentNumber}}}`);
-
-        currentNumber++
-    }
-    
-    for (var i = 0; i < spotifyEmbeds.length; i++) {
-        newText = newText.replace(`{{spotify_${i}}}`, spotifyEmbeds[i]);
-    }
-
-    return newText;
 }
 
 module.exports = { createNewPost, addReplyToIndex, addQuoteToIndex };

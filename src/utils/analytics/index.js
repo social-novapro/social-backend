@@ -27,7 +27,7 @@ async function analytics(req) {
     // console.log(req.originalUrl)
     // console.log(req.headers)
     await interactUserAnalyticSchema.findOneAndUpdate(
-        { _id: req.headers.userid }, 
+        { _id: req.headers.userid ?? "unknown" }, 
         { $push : { "userConnections" : { _id: uuidv4(), timestamp: getTime(), api_urlbase: req.baseUrl, api_url: req.originalUrl  } }
         }, { upsert: true }
     )

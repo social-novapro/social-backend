@@ -1,19 +1,20 @@
 const { getPostWithData } = require("../getPost");
-const { getPostsFromUser } = require("../main");
+const { getPostsFromUserIndex } = require("../main");
 
-async function getUserPosts({ userID, requesterID, coposts }) {
+// get user posts, with full data
+async function getUserPosts({ userID, requesterID, indexID }) {
     const userPosts = []
-    const foundPosts = await getPostsFromUser({ userID, coposts});
-    if (foundPosts.error || !foundPosts) {
-        return foundPosts
+    const foundUserPostIndex = await getPostsFromUserIndex({ userID, indexID });
+    if (foundUserPostIndex.error || !foundUserPostIndex || !foundUserPostIndex.posts) {
+        return foundUserPostIndex
     };
 
-    for (const post of foundPosts) {
+    for (const post of foundUserPostIndex.posts) {
         const data = await getPostWithData({ userID: requesterID, postID: post._id, post })
         if (data && !data.error) userPosts.push(data)
     }
 
-    return userPosts;
+    return {index: foundUserPostIndex.index, posts: userPosts};
 }
 
 module.exports = { getUserPosts }

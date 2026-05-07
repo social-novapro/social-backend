@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString, reqBool } = require('../../types');
+const { reqNum, reqString, reqBool, nonreqNum } = require('../../types');
 
 const interactEmbedPostFailSchema = mongoose.Schema({
     _id: reqString,
@@ -7,6 +7,7 @@ const interactEmbedPostFailSchema = mongoose.Schema({
     timestamp: reqNum,
     fixed: reqBool,
     reason: reqString,
+    version: nonreqNum,
 });
 
 module.exports = mongoose.model('interact-embed-post-fail', interactEmbedPostFailSchema);

@@ -3,17 +3,12 @@ const { newUserIndex } = require('../../../../utils/user/createUser');
 const interactUserSchema = require('../../../../schemas/interactUserSchema');
 const interactUserPrivSchema = require('../../../../schemas/interactUserPrivSchema');
 const { searchErrorV2 } = require('../../../../utils/searchError/');
-const { checkUsername, checkPassword, checkUserage } = require('../../../../utils/checks/');
-const { checkDevTokens } = require('../../../../utils/checkDevTokens');
+const { checkUsername, checkUserage } = require('../../../../utils/checks/');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
-const SHA1 = require("crypto-js/sha1");
 const { setEmail } = require('../../../../utils/email/setEmail');
-const { quickCheckPassword } = require('../../../../utils/userAuth');
+const { checkPassword } = require('../../../../utils/userAuth');
 
 router.post('/', async (req, res) => {
-    const tokenData = await checkDevTokens(req.headers.devtoken, req.headers.apptoken);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { username, displayName, password, description, pronouns, statusTitle, email, userAge } = req.body;
 
     if (!username && !displayName) return res.status(400).send(searchErrorV2("C002", { userID: null }));
@@ -24,9 +19,6 @@ router.post('/', async (req, res) => {
 
     const checkedUser = await checkUsername(username);
     if (checkedUser.error) return res.status(400).send(checkedUser.error);
-    
-    const checkedPassword = await checkPassword(password);
-    if (checkedPassword.error) return res.status(400).send(checkedPassword.error);
 
     const checkedUserAge = await checkUserage("newUser", userAge);
     if (checkedUserAge.error) return res.status(400).send(checkedUserAge.error);
@@ -40,8 +32,11 @@ router.post('/', async (req, res) => {
     const foundUsername = await interactUserSchema.findOne({username});
     if (!foundUsername) return res.status(403).send(searchErrorV2("G003", { userID: newUserID })); 
 
-    const privUserPass = await quickCheckPassword({ userID: foundUsername._id, password })
-    if (privUserPass.error) return res.status(400).send(privUserPass);
+    const verifiedPassword = await checkPassword({ userID: foundUsername._id, password });
+    if (verifiedPassword.error) return res.status(400).send(verifiedPassword);
+
+    const privUserPass = await interactUserPrivSchema.findOne({ _id: foundUsername._id });
+    if (!privUserPass) return res.status(403).send(searchErrorV2("G004", { userID: foundUsername._id }));
 
     if (email) {
         await setEmail({ email, userID: foundUsername._id, password });

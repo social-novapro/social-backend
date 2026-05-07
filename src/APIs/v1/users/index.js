@@ -11,6 +11,8 @@ const unfollow = require('./unfollow');
 const following = require('./following');
 const followers = require('./followers');
 const update = require('./update');
+const personalize = require('./personalize');
+const likes = require('./likes');
 
 router.use('/profile', profile);
 router.use('/public', public);
@@ -24,5 +26,7 @@ router.use('/unfollow', unfollow);
 router.use('/following', following);
 router.use('/followers', followers);
 router.use('/update', update);
+router.use('/personalize', personalize);
+router.use('/likes', likes);
 
 module.exports = router;

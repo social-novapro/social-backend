@@ -1,12 +1,8 @@
 const router = require('express').Router();
 const { searchErrorV2 } = require('../../../../utils/searchError');
-const { checkRequestTokens } = require('../../../../utils/checkRequestTokens');
 const { requestRemove } = require('../../../../utils/email/setEmail');
 
 router.delete('/', async (req, res) => {
-    const tokenData = await checkRequestTokens(req);
-    if (tokenData.authorized == false) return res.status(401).send(tokenData);
-
     const { email, password } = req.body;
     const { userid } = req.headers;
 

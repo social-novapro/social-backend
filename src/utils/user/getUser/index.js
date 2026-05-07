@@ -1,6 +1,8 @@
 const interactUserSchema = require("../../../schemas/interactUserSchema");
+const { getUserLikes } = require("../../post/likeUtilV2");
 const { getUserMentions } = require("../../post/tags");
 const { getUserPosts } = require("../../post/user");
+const { validPrivacyOption } = require("../../privacy");
 const { searchErrorV2 } = require("../../searchError");
 const { getUserBadges } = require("../badges");
 const { getUserPins } = require("../edit");
@@ -16,7 +18,7 @@ async function getUser({userID, searchTerm}) {
     return searchErrorV2("C009", { userID });
 }
 
-async function getAllUserData({userID, searchTerm}) {
+async function getAllUserData({userID, searchTerm }) {
     if (!userID) return searchErrorV2("B009", { userID })
     if (!searchTerm) return searchErrorV2("C021", { userID })
 
@@ -28,11 +30,19 @@ async function getAllUserData({userID, searchTerm}) {
     if (userData.error) return userData;
 
     // posts
-    const postData = await getUserPosts({ 
+    const postIndex = await getUserPosts({ 
         userID: userData._id, 
         requesterID: userID, 
-        coposts: true 
+        indexID: userData.postIndexID
     });
+
+    // userPostIndex data
+    const postIndexData = {
+        indexID: postIndex.index._id ?? null,
+        nextIndexID: postIndex.index.nextIndexID ?? null,
+        prevIndexID: postIndex.index.prevIndexID ?? null,
+        amount: postIndex.index.amount ?? 0
+    }
 
     // badges
     const badgeData = await getUserBadges({ userID: userData._id});
@@ -47,20 +57,37 @@ async function getAllUserData({userID, searchTerm}) {
     const userFollowing = await findFollow({ userID: ownUser._id, followedUserID: userData._id });
 
     // TODO - likes (requires update)
+    // const validatedLikePrivacy = validPrivacyOption({ userID })
+    const likesData = await getUserLikes({ userID: userData._id, ownUserID: ownUser._id, ownUserData: ownUser });
+    const hasLikeData = likesData && !likesData.error && likesData.postsLiked && likesData.postsLiked.length > 0;
+
+    const likeIndexData = {
+        indexID: likesData._id ?? null,
+        nextIndexID: likesData.nextIndexID ?? null,
+        prevIndexID: likesData.prevIndexID ?? null,
+        count: likesData.count ?? 0
+    }
+    // get relation
     const sendBack = {
         included: {
             user: "true",
-            posts: `${postData ? true : false}`,
+            posts: `${postIndex ? true : false}`,
             pins: pinData.length > 0 ? true : false,
             badges: badgeData.length > 0 ? true : false,
             mentions: mentionData.length > 0 ? true : false,
+            userPostIndexData: postIndex ? true : false,
+            likes: hasLikeData,
+            likeIndexData: hasLikeData ? likeIndexData : null,
             extraData: true
         },
         userData: userData,
-        postData: postData,
+        postData: postIndex.posts,
+        userPostIndexData: postIndexData,
         pinData: pinData,
         badgeData: badgeData,
         mentionData: mentionData,
+        likesData: hasLikeData ? likesData.postsLiked : null,
+        likeIndexData: hasLikeData ? likeIndexData : null,
         extraData: {
             followed: userFollowing.found ? true : false,
         }

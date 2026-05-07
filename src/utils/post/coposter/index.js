@@ -18,7 +18,7 @@ async function getCopostRequests({userID}) {
     for (const copost of copostRequests) {
         const foundPost = await interactPostSchema.findOne({_id: copost.postID});
         if (foundPost) {
-            const foundUser = await interactUserSchema.findOne({_id: copost.userID});
+            const foundUser = await interactUserSchema.findOne({_id: foundPost.userID});
             
             foundData.push({
                 request: copost,

@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
-const { reqNum, reqString } = require('../../types');
+const { reqNum, reqString, nonreqNum } = require('../../types');
 
 const interactEmbedPostSchema = mongoose.Schema({
     _id: reqString, // postID
+    version: nonreqNum,
     userID: reqString,
     timestamp: reqNum,
     content: reqString,

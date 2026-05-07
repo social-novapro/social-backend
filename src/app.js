@@ -13,9 +13,13 @@ const APIdata = require('./APIs/API');
 const AuthVersions = require('./utils/auth')
 const {v4 : uuidv4} = require('uuid');
 const {searchError} = require('./utils/searchError');
+const {InteractStartup} = require('./utils/startup');
+const developerAppToken = require('./schemas/developer/developerAppToken');
 
 require('dotenv').config({ path: 'secret.env' })
 
+
+// process.on('warning', e => console.warn(e.stack));
 
 // sending email
 const { sendTest } = require('./utils/email/send');
@@ -45,6 +49,7 @@ mongoose.connect(mongoURL, {
     useFindAndModify: false 
 });
 
+InteractStartup();
 /*
 const developerAppToken = require('./schemas/developer/developerAppToken');
 const developerToken = require('./schemas/developer/developerToken');
@@ -104,7 +109,50 @@ async function createTokens() {
 //     ],
 //     credentials: true
 // }));
-app.use(cors())
+
+const localAllowList = [
+    'https://interact.novapro.net',
+    'https://interact-analytics.novapro.net'
+];
+
+app.use(cors((req, callback) => {
+    const origin = req.headers.origin;
+    // Non browser requests
+    if (!origin) {
+        return callback(null, { origin: false })
+    }
+
+    // trusted frontend
+    if (localAllowList.includes(origin)) {
+        return callback(null, { origin, credentials: true })
+    }
+
+    // preflight requests
+    if (req.method === 'OPTIONS') {
+        return callback(null, { origin })
+    }
+
+    // check token for external apps
+    const appToken = req.headers.apptoken;
+    if (!appToken) {
+        return callback(null, { origin: false })
+    }
+
+    // check if token is valid and get app origin
+    const app = await developerAppToken.findOne({ _id: appToken }).lean();
+    if (app && app.origin == origin) {
+        return callback(null, { origin, credentials: true })
+    }
+
+    // everything else blocked
+    return callback(null, { origin: false })
+}));
+
+// app.use(cors({
+//     origin: '*'
+// }));
+// app.use(express.json({ limit: '200mb' }));
+// app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
 /*
 app.get('/', (req, res) => {
@@ -193,7 +241,6 @@ const dmUtils = require('./WS/v1/dms');
 const interactUserSchema = require('./schemas/interactUserSchema');
 const liveChatSchema = require('./schemas/liveChatSchema');
 const { checkRequestTokens } = require('./utils/checkRequestTokens');
-// const { checkRequestTokens } = require('./utils/checkRequestTokens');
 
 function sendEveryone(sendMessage) {
     wss.clients.forEach(client => {
@@ -259,6 +306,20 @@ var connections = {
 function updateCurrentUser(currentUser, ws) {
     connections.users[`${currentUser.userID}`] = currentUser
     connections.websockets[`${currentUser.userID}`] = ws
+}
+
+function validateMessageContent(content) {
+    if (!content) return {"error" : "no content provided"};
+    if (typeof content != "string") return {"error" : "message content must be a string"};
+    if (content.length <= 0) return {"error" : "message content cannot be empty"};
+    if (content.length > msgContentLimit) return {"error" : `message content cannot be longer than ${msgContentLimit} characters`};
+    if (
+        content.includes("<script") || 
+        content.includes("iframe") || 
+        content.includes("meta")
+    ) return {"error": "message content cannot include certain html tags"};
+
+    return true;
 }
 
 const msgContentLimit = 240;
@@ -386,17 +447,17 @@ wss.on('connection', async (ws, req) => {
 
     //connection is up, let's add a simple simple event
     ws.on('message', async (message) => {
-        var data
-        
-        try {
-            data = JSON.parse(message);
-            console.log(data)
-        }
-        catch {
-            console.log(err)
-            ws.send(JSON.stringify({"error": "Invalid JSON"}));
-        }
-        console.log(data)
+        var data 
+         
+        try { 
+            data = JSON.parse(message); 
+            console.log(data) 
+        } 
+        catch { 
+            console.log(err) 
+            ws.send(JSON.stringify({"error": "Invalid JSON"})); 
+        } 
+        console.log(data) 
 
         if (!currentUser.tokensCorrect) {
             if (data.type == 10 && data.mesType == 2) {
@@ -417,7 +478,7 @@ wss.on('connection', async (ws, req) => {
                 if (!data.tokens) return;
                 if (data.tokens.userid != userID) return ws.close();
 
-                const tokenData = await checkRequestTokens(req);
+                const tokenData = await checkRequestTokens(req, true);
                 if (tokenData.authorized == false) {
                     messageError = {
                         // _id: newID,
@@ -467,18 +528,19 @@ wss.on('connection', async (ws, req) => {
             const newID = uuidv4();
             switch (data.type) {
                 case 2:
-                    const checkMSGContent = data.message.content
-                    if (checkMSGContent.length > msgContentLimit || checkMSGContent.includes("<script") || checkMSGContent.includes("iframe") || checkMSGContent.includes("meta")) {
-                        ws.send(JSON.stringify({"error" : `message content to long`}));
+                    const newLiveMessage = data.message.content
+                    const validateMsgContent = validateMessageContent(newLiveMessage);
+
+                    if (validateMsgContent.error) {
                         const errorMSG = {
                             _id: newID,
-                            type: 02,
+                            type: 2,
                             user,
                             apiVersion: config.LATEST_API,
                             message: {
                                 userID,
                                 currentUsers: totalUsers,
-                                content: "Message to long, or you included bad text...",
+                                content: validateMsgContent.error,
                                 timeStamp: getTime(),
                                 replyTo: null,
                                 edited: false
@@ -488,6 +550,7 @@ wss.on('connection', async (ws, req) => {
                         return ws.send(JSON.stringify(errorMSG))
                     };
 
+                    
                     messageSend = {
                         _id: newID,
                         type: 02,
@@ -496,7 +559,7 @@ wss.on('connection', async (ws, req) => {
                         message: {
                             userID,
                             currentUsers: totalUsers,
-                            content: data.message.content,
+                            content: newLiveMessage,
                             timeStamp: getTime(),
                             replyTo: data.message.replyTo? data.message.replyTo : null,
                             edited: false
@@ -532,10 +595,11 @@ wss.on('connection', async (ws, req) => {
                 case 05: 
                     if (!data.editMessage) return ws.send(JSON.stringify({'error' : "you must have a editMessage object included in your message"}))
                     if (!data.editMessage.postID) return ws.send(JSON.stringify({"error" : "you must have a postID inside your editMessage object"}))
-                    
-                    const checkMSGContentEdit = data.newContent
-                    if (checkMSGContentEdit.length > msgContentLimit || checkMSGContentEdit.includes("<script") || checkMSGContentEdit.includes("iframe") || checkMSGContentEdit.includes("meta")) {
-                        ws.send(JSON.stringify({"error" : `message content to long`}));
+
+                    const newMessageEdit = data.editMessage.content
+                    const validateEditContent = validateMessageContent(newMessageEdit);
+
+                    if (validateEditContent.error) {
                         const errorMSG = {
                             _id: newID,
                             type: 2,
@@ -544,7 +608,7 @@ wss.on('connection', async (ws, req) => {
                             message: {
                                 userID,
                                 currentUsers: totalUsers,
-                                content: "Message to long, or you included bad text...",
+                                content: validateEditContent.error,
                                 timeStamp: getTime(),
                                 replyTo: null,
                                 edited: false
@@ -563,7 +627,6 @@ wss.on('connection', async (ws, req) => {
                     } else if (messageOld.user._id != userID) {
                         return ws.send(JSON.stringify(searchError("H001")));
                     } else if (messageOld.user._id == userID) {
-                        const newEdit = data.editMessage.content
                         messageSend = {
                             _id: messageOld._id,
                             type: 05,
@@ -586,7 +649,7 @@ wss.on('connection', async (ws, req) => {
                             newMessage: {
                                 postID: messageOld._id, // dont need after
                                 currentUsers: totalUsers, // dont need
-                                content: newEdit,
+                                content: newMessageEdit,
                                 editedTimeStamp: getTime()
                                 // add replying
                             },

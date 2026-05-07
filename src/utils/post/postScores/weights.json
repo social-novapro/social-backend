@@ -1,0 +1,100 @@
+{
+    "version" : "1.0",
+    "lastUpdated" : "2025-07-02",
+    "actions" : {
+        "POST" : {
+            "CLICK" : {
+                "category_score" : 1.02,
+                "post_points" : 0.2
+            },
+            "CREATE" : {
+                "category_score" : 1.1,
+                "user_points" : 1.0,
+                "post_points" : 10.0
+            },
+            "DELETED" : {
+                "category_score" : -0.04,
+                "user_points" : -0.1,
+                "post_points" : 0.0
+            },
+            "EDIT" : {
+                "category_score" : 1.01,
+                "user_points" : -0.1,
+                "post_points" : -0.1
+            },
+            "LIKE" : {
+                "category_score" : 1.1,
+                "user_points" : 0.4,
+                "post_points" : 3.0
+            },
+            "UNLIKE" : {
+                "category_score" : 0.9,
+                "user_points" : -0.2,
+                "post_points" : -2.0
+            },
+            "REPLY_CREATED" : {
+                "category_score" : 1.05,
+                "user_points" : 0.5,
+                "post_points" : 4.0
+            },
+            "REPLY_DELETED" : {
+                "category_score" : 0.95,
+                "user_points" : -0.2,
+                "post_points" : -1.0
+            },
+            "REPLY_LIKED" : {
+                "category_score" : 1.01,
+                "user_points" : 0.5,
+                "post_points" : 2.0
+            },
+            "REPLY_UNLIKED" : {
+                "category_score" : 0.99,
+                "user_points" : -0.2,
+                "post_points" : -1.0
+            },
+            "QUOTE_CREATED" : {
+                "category_score" : 1.05,
+                "user_points" : 0.5,
+                "post_points" : 4.0
+            },
+            "QUOTE_DELETED" : {
+                "category_score" : 0.95,
+                "user_points" : -0.2,
+                "post_points" : -1.0
+            },
+            "QUOTE_LIKED" : {
+                "category_score" : 1.01,
+                "user_points" : 0.5,
+                "post_points" : 2.0
+            },
+            "QUOTE_UNLIKED" : {
+                "category_score" : 0.99,
+                "user_points" : -0.2,
+                "post_points" : -1.0
+            }
+        },
+        "USER" : {
+            "FOLLOW" : {
+                "user_points" : 1.0,
+                "category_score" : 1.05
+            },
+            "UNFOLLOW" : {
+                "user_points" : -0.5,
+                "category_score" : 0.95
+            },
+            "BLOCK" : {
+                "user_points" : -0.5,
+                "category_score" : 0.95
+            },
+            "UNBLOCK" : {
+                "user_points" : 0.5,
+                "category_score" : 1.05
+            }
+        }
+    },
+    "user_mulitiplies" : {
+        "yearly_multiplier" : 1.2,
+        "normal" : 1.0,
+        "first_month" : 1.4
+    }
+}

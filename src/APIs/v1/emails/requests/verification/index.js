@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const { searchError } = require('../../../../../utils/searchError');
-const { checkRequestTokens } = require('../../../../../utils/checkRequestTokens');
 const { verifyEmail } = require('../../../../../utils/email');
 
 router.post('/:emailVerID', async (req, res) => {
