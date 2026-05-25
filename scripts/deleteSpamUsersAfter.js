@@ -9,12 +9,17 @@ const config = require('../config.json');
 const interactUserSchema = require('../src/schemas/interactUserSchema');
 const interactUserPrivSchema = require('../src/schemas/interactUserPrivSchema');
 const interactPostSchema = require('../src/schemas/interactPostSchema');
+const interactAdminErrorSchema = require('../src/schemas/admin/interactAdminErrorSchema');
+const interactAdminErrorIndexSchema = require('../src/schemas/admin/interactAdminErrorIndexSchema');
 const { deleteUser } = require('../src/utils/user/deleteUser');
+const { getCurrentErrorIndex, setCurrentErrorIndex } = require('../src/utils/admin/indexesAdmin');
 
 const SPAM_CREATED_AFTER = 1779623724700;
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 1000;
 const LOCAL_EXPORT_DIR = path.join(__dirname, '..', 'local-delete-exports', 'spam-users-after-1779623724700');
 const dryRun = process.argv.includes('--dry-run');
+const sendEmail = process.argv.includes('--send-email');
+const deleteErrors = process.argv.includes('--delete-errors');
 
 function getMongoURL() {
     const { MONGO_URL_PROD, MONGO_URL_DEV } = process.env;
@@ -137,6 +142,13 @@ async function countUserPosts(user) {
     });
 }
 
+async function countUserErrors(user) {
+    const userID = String(user._id || '');
+    if (!userID) return null;
+
+    return interactAdminErrorSchema.countDocuments({ userID });
+}
+
 async function findSpamUsers() {
     const found = [];
     const cursor = interactUserSchema.find({}).lean().cursor();
@@ -146,7 +158,8 @@ async function findSpamUsers() {
         if (created.timestamp !== null && created.timestamp > SPAM_CREATED_AFTER) {
             const priv = await findPrivateUser(user);
             const postCount = await countUserPosts(user);
-            found.push({ user, priv, created, postCount });
+            const errorCount = deleteErrors ? await countUserErrors(user) : null;
+            found.push({ user, priv, created, postCount, errorCount });
         }
     }
 
@@ -154,17 +167,18 @@ async function findSpamUsers() {
 }
 
 function printUser(candidate, index) {
-    const { user, priv, created, postCount } = candidate;
+    const { user, priv, created, postCount, errorCount } = candidate;
     const accountAge = created.timestamp === null ? 'unknown' : formatDuration(Date.now() - created.timestamp);
 
     console.log(`${index}. username=${user.username || 'missing'}`);
     console.log(`   userpriv=${priv ? 'yes' : 'no'}`);
     console.log(`   posts=${postCount === null ? 'unknown' : postCount}`);
+    if (deleteErrors) console.log(`   admin errors=${errorCount === null ? 'unknown' : errorCount}`);
     console.log(`   created=${created.display} (${created.source}) - ${accountAge} ago`);
 }
 
 async function saveLocalDeleteJSON({ candidate, deleteResult }) {
-    const { user, priv, created, postCount } = candidate;
+    const { user, priv, created, postCount, errorCount } = candidate;
     const userID = user && user._id ? String(user._id) : 'missing';
     const username = user && user.username ? user.username : 'missing';
     const deletedAt = new Date();
@@ -185,7 +199,8 @@ async function saveLocalDeleteJSON({ candidate, deleteResult }) {
             userprivExists: Boolean(priv),
             userToken: priv && priv.userToken ? priv.userToken : null,
             created,
-            postCount
+            postCount,
+            errorCount
         },
         preDeleteData: {
             user,
@@ -195,6 +210,69 @@ async function saveLocalDeleteJSON({ candidate, deleteResult }) {
     }, null, 2));
 
     return filePath;
+}
+
+async function deleteUserAdminErrors({ userID }) {
+    const errors = await interactAdminErrorSchema.find({ userID }).select('_id').lean();
+    const errorIDs = errors.map((error) => error._id);
+    if (errorIDs.length === 0) {
+        return {
+            deletedCount: 0,
+            indexIDsTouched: [],
+            indexIDsDeleted: []
+        };
+    }
+
+    const indexes = await interactAdminErrorIndexSchema.find({
+        'errorIssues._id': { $in: errorIDs }
+    });
+    const indexIDsTouched = [];
+    const indexIDsDeleted = [];
+
+    for (const index of indexes) {
+        const before = index.errorIssues.length;
+        index.errorIssues = index.errorIssues.filter((issue) => !errorIDs.includes(issue._id));
+        index.amount = index.errorIssues.length;
+
+        if (index.errorIssues.length !== before) {
+            indexIDsTouched.push(index._id);
+            if (index.errorIssues.length === 0) {
+                if (index.prevIndexID) {
+                    await interactAdminErrorIndexSchema.findOneAndUpdate(
+                        { _id: index.prevIndexID },
+                        { nextIndexID: index.nextIndexID || null }
+                    );
+                }
+
+                if (index.nextIndexID) {
+                    await interactAdminErrorIndexSchema.findOneAndUpdate(
+                        { _id: index.nextIndexID },
+                        { prevIndexID: index.prevIndexID || null }
+                    );
+                }
+
+                await interactAdminErrorIndexSchema.deleteOne({ _id: index._id });
+                indexIDsDeleted.push(index._id);
+
+                const currentErrorIndexID = await getCurrentErrorIndex();
+                if (currentErrorIndexID === index._id) {
+                    await setCurrentErrorIndex({ indexID: index.nextIndexID || index.prevIndexID || null });
+                }
+            } else {
+                await index.save();
+            }
+        }
+    }
+
+    const deleted = await interactAdminErrorSchema.deleteMany({
+        _id: { $in: errorIDs }
+    });
+
+    return {
+        deletedCount: deleted.deletedCount || deleted.n || 0,
+        indexIDsTouched,
+        indexIDsDeleted
+    };
 }
 
 async function promptBatch(rl, batch, batchNumber) {
@@ -233,8 +311,18 @@ async function deleteBatch(batch, summary) {
                 continue;
             }
 
-            const deleteResult = await deleteUser({ userID, username: user.username });
+            const deleteResult = await deleteUser({
+                userID,
+                username: user.username,
+                shouldSendCompletionEmail: sendEmail
+            });
             summary.deletedCount += 1;
+
+            if (deleteErrors) {
+                const deletedErrors = await deleteUserAdminErrors({ userID });
+                summary.deletedErrorCount += deletedErrors.deletedCount;
+                deleteResult.deletedAdminErrors = deletedErrors;
+            }
 
             try {
                 const localExportPath = await saveLocalDeleteJSON({ candidate, deleteResult });
@@ -262,6 +350,7 @@ function printSummary(summary) {
     console.log(`deleted count: ${summary.deletedCount}`);
     console.log(`skipped count: ${summary.skippedCount}`);
     console.log(`failed count: ${summary.failedCount}`);
+    console.log(`deleted admin errors: ${summary.deletedErrorCount}`);
     console.log(`local JSON exports: ${summary.localExports.length}`);
     console.log(`local JSON export failures: ${summary.localExportFailures.length}`);
 
@@ -295,7 +384,8 @@ async function main() {
         failedCount: 0,
         failures: [],
         localExports: [],
-        localExportFailures: []
+        localExportFailures: [],
+        deletedErrorCount: 0
     };
 
     try {
@@ -306,6 +396,8 @@ async function main() {
             console.log('DRY RUN ENABLED: no users will be deleted.');
         } else {
             console.warn('REAL RUN: this will delete users through the internal deleteUser cascade after each y confirmation.');
+            if (!sendEmail) console.warn('Completion emails are disabled. Use --send-email to opt back in.');
+            if (deleteErrors) console.warn('Admin errors for deleted users will also be deleted from interact-admin-error and indexes.');
             console.warn(`Local JSON backups will be written to ${LOCAL_EXPORT_DIR}`);
         }
 

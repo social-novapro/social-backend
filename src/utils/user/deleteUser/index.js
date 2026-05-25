@@ -171,7 +171,7 @@ async function demoDelete({ username }) {
  * delete user
  * runs other functions in file to delete each section
  */
-async function deleteUser({ userID, username }) {
+async function deleteUser({ userID, username, shouldSendCompletionEmail = true }) {
     const deletedID = uuidv4();
     const deletedDB = await interactDeletedSchema.create({
         _id: deletedID,
@@ -243,13 +243,18 @@ async function deleteUser({ userID, username }) {
         allData: deleteData
     });
 
-    const emailSending = delEmails?.foundVer?.email ? delEmails.foundVer.email : demoEmailAdr;
-    // sends email to user with completion confirmation
-    await sendCompletionEmail({ email: emailSending, username: delPublicUser?.foundUser?.username, userID });
+    let completionEmail = { skipped: true };
+    if (shouldSendCompletionEmail) {
+        const emailSending = delEmails?.foundVer?.email ? delEmails.foundVer.email : demoEmailAdr;
+        // sends email to user with completion confirmation
+        await sendCompletionEmail({ email: emailSending, username: delPublicUser?.foundUser?.username, userID });
+        completionEmail = { skipped: false, email: emailSending };
+    }
 
     return {
         newID,
-        deleteData
+        deleteData,
+        completionEmail
     };
 }
 
