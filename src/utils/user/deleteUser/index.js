@@ -366,4 +366,4 @@ async function deleteEmails({ userID }) {
    return delEmails;
 }
 
-module.exports = { requestDelete, confirmDelete, cancelDelete, demoDelete }
+module.exports = { requestDelete, confirmDelete, cancelDelete, demoDelete, deleteUser }
