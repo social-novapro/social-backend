@@ -13,6 +13,8 @@ const interactAdminErrorSchema = require('../src/schemas/admin/interactAdminErro
 const interactAdminErrorIndexSchema = require('../src/schemas/admin/interactAdminErrorIndexSchema');
 const { deleteUser } = require('../src/utils/user/deleteUser');
 const { getCurrentErrorIndex, setCurrentErrorIndex } = require('../src/utils/admin/indexesAdmin');
+const { cleanupEmptyPostIndexes } = require('../src/utils/post/postIndexManagement');
+const { cleanupEmptyUserPostIndexes } = require('../src/utils/post/userPostIndexManagement');
 
 const SPAM_CREATED_AFTER = 1779623724700;
 const BATCH_SIZE = 1000;
@@ -20,6 +22,7 @@ const LOCAL_EXPORT_DIR = path.join(__dirname, '..', 'local-delete-exports', 'spa
 const dryRun = process.argv.includes('--dry-run');
 const sendEmail = process.argv.includes('--send-email');
 const deleteErrors = process.argv.includes('--delete-errors');
+const deleteEmptyFeedIndexes = process.argv.includes('--delete-empty-feed-indexes');
 
 function getMongoURL() {
     const { MONGO_URL_PROD, MONGO_URL_DEV } = process.env;
@@ -275,6 +278,28 @@ async function deleteUserAdminErrors({ userID }) {
     };
 }
 
+async function cleanupEmptyFeedIndexes({ summary }) {
+    const globalCleanup = await cleanupEmptyPostIndexes({ dryRun });
+    const userCleanup = await cleanupEmptyUserPostIndexes({ dryRun });
+
+    summary.emptyFeedIndexCleanup = {
+        global: globalCleanup,
+        user: userCleanup
+    };
+
+    console.log('');
+    console.log(dryRun ? 'Empty feed index dry run' : 'Empty feed index cleanup');
+    console.log(`${dryRun ? 'would delete' : 'deleted'} global feed indexes: ${globalCleanup.deletedIndexes.length}`);
+    console.log(`${dryRun ? 'would delete' : 'deleted'} user feed indexes: ${userCleanup.deletedIndexes.length}`);
+    console.log(`${dryRun ? 'would prune' : 'pruned'} global feed indexes with stale posts: ${globalCleanup.prunedIndexes.length}`);
+    console.log(`${dryRun ? 'would prune' : 'pruned'} user feed indexes with stale posts: ${userCleanup.prunedIndexes.length}`);
+    console.log(`${dryRun ? 'would correct' : 'corrected'} global feed index counts: ${globalCleanup.correctedIndexes.length}`);
+    console.log(`${dryRun ? 'would correct' : 'corrected'} user feed index counts: ${userCleanup.correctedIndexes.length}`);
+    if (globalCleanup.pointerReplacementIndexID) {
+        console.log(`system postsIndex ${dryRun ? 'would point' : 'points'} to: ${globalCleanup.pointerReplacementIndexID}`);
+    }
+}
+
 async function promptBatch(rl, batch, batchNumber) {
     console.log('');
     console.log(`Batch ${batchNumber} (${batch.length} user${batch.length === 1 ? '' : 's'})`);
@@ -351,6 +376,15 @@ function printSummary(summary) {
     console.log(`skipped count: ${summary.skippedCount}`);
     console.log(`failed count: ${summary.failedCount}`);
     console.log(`deleted admin errors: ${summary.deletedErrorCount}`);
+    console.log(`${dryRun ? 'would delete' : 'deleted'} empty global feed indexes: ${summary.emptyFeedIndexCleanup.global.deletedIndexes.length}`);
+    console.log(`${dryRun ? 'would delete' : 'deleted'} empty user feed indexes: ${summary.emptyFeedIndexCleanup.user.deletedIndexes.length}`);
+    console.log(`${dryRun ? 'would prune' : 'pruned'} global feed indexes with stale posts: ${summary.emptyFeedIndexCleanup.global.prunedIndexes.length}`);
+    console.log(`${dryRun ? 'would prune' : 'pruned'} user feed indexes with stale posts: ${summary.emptyFeedIndexCleanup.user.prunedIndexes.length}`);
+    console.log(`${dryRun ? 'would correct' : 'corrected'} global feed index counts: ${summary.emptyFeedIndexCleanup.global.correctedIndexes.length}`);
+    console.log(`${dryRun ? 'would correct' : 'corrected'} user feed index counts: ${summary.emptyFeedIndexCleanup.user.correctedIndexes.length}`);
+    if (summary.emptyFeedIndexCleanup.global.pointerReplacementIndexID) {
+        console.log(`system postsIndex ${dryRun ? 'would point' : 'points'} to: ${summary.emptyFeedIndexCleanup.global.pointerReplacementIndexID}`);
+    }
     console.log(`local JSON exports: ${summary.localExports.length}`);
     console.log(`local JSON export failures: ${summary.localExportFailures.length}`);
 
@@ -385,7 +419,20 @@ async function main() {
         failures: [],
         localExports: [],
         localExportFailures: [],
-        deletedErrorCount: 0
+        deletedErrorCount: 0,
+        emptyFeedIndexCleanup: {
+            global: {
+                deletedIndexes: [],
+                correctedIndexes: [],
+                prunedIndexes: [],
+                pointerReplacementIndexID: null
+            },
+            user: {
+                deletedIndexes: [],
+                correctedIndexes: [],
+                prunedIndexes: []
+            }
+        }
     };
 
     try {
@@ -398,10 +445,13 @@ async function main() {
             console.warn('REAL RUN: this will delete users through the internal deleteUser cascade after each y confirmation.');
             if (!sendEmail) console.warn('Completion emails are disabled. Use --send-email to opt back in.');
             if (deleteErrors) console.warn('Admin errors for deleted users will also be deleted from interact-admin-error and indexes.');
+            if (deleteEmptyFeedIndexes) console.warn('Empty global and user feed indexes will be deleted and index counts may be corrected.');
             console.warn(`Local JSON backups will be written to ${LOCAL_EXPORT_DIR}`);
         }
 
         await connectDB();
+        if (deleteEmptyFeedIndexes) await cleanupEmptyFeedIndexes({ summary });
+
         const candidates = await findSpamUsers();
         summary.foundCount = candidates.length;
 

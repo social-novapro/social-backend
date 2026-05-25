@@ -53,10 +53,26 @@ node scripts/deleteSpamUsersAfter.js --send-email
 
 Completion emails are disabled by default for this emergency script to avoid email quota issues. Use this flag only if you intentionally want the normal completion email behavior.
 
+### Delete Empty Feed Indexes
+
+```bash
+node scripts/deleteSpamUsersAfter.js --delete-empty-feed-indexes
+```
+
+This scans global feed indexes (`interact-post-index`) and user feed indexes (`interact-user-post-index`). Stale post IDs for deleted/missing posts are pruned first. Empty indexes are deleted, neighboring `prevIndexID` / `nextIndexID` links are reconnected, and current index pointers are moved to a live index or `null`.
+
+Use dry run first:
+
+```bash
+node scripts/deleteSpamUsersAfter.js --dry-run --delete-empty-feed-indexes
+```
+
+Dry run reports which stale post IDs would be pruned, which empty feed indexes would be deleted, which index counts would be corrected, and where the system `postsIndex` pointer would move.
+
 ### Flags Can Be Combined
 
 ```bash
-node scripts/deleteSpamUsersAfter.js --delete-errors --send-email
+node scripts/deleteSpamUsersAfter.js --delete-errors --delete-empty-feed-indexes --send-email
 ```
 
 ### Prompt Controls
@@ -73,4 +89,37 @@ Before real deletion, make a Mongo backup. Example:
 
 ```bash
 mongodump --uri='mongodb://USER:PASSWORD@HOST:27017/DBNAME' --out=../mongo-backups/YYYY-MM-DD
+```
+
+## Rebuild Post Indexes
+
+Script:
+
+```bash
+node scripts/rebuildPostIndexes.js
+```
+
+Dry run is the default. It reports how many existing indexes would be deleted and how many rebuilt indexes would be created.
+
+### Rebuild Global and User Post Indexes
+
+```bash
+node scripts/rebuildPostIndexes.js --apply
+```
+
+This deletes and rebuilds:
+
+- global feed indexes in `interact-post-index`
+- user post indexes in `interact-user-post-index`
+- post `indexID` and `userPostIndexID` fields
+- user `postIndexID` fields
+- system `interact-indexes.production.postsIndex`
+
+The rebuilt current indexes point to the newest non-empty index chunk. No empty placeholder index is created.
+
+### Rebuild Only One Index Type
+
+```bash
+node scripts/rebuildPostIndexes.js --apply --global-only
+node scripts/rebuildPostIndexes.js --apply --user-only
 ```
