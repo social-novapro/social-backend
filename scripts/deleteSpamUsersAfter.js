@@ -1,5 +1,7 @@
 require('dotenv').config({ path: 'secret.env' });
 
+const fs = require('fs/promises');
+const path = require('path');
 const readline = require('readline/promises');
 const { stdin: input, stdout: output } = require('process');
 const mongoose = require('mongoose');
@@ -11,6 +13,7 @@ const { deleteUser } = require('../src/utils/user/deleteUser');
 
 const SPAM_CREATED_AFTER = 1779623724700;
 const BATCH_SIZE = 10;
+const LOCAL_EXPORT_DIR = path.join(__dirname, '..', 'local-delete-exports', 'spam-users-after-1779623724700');
 const dryRun = process.argv.includes('--dry-run');
 
 function getMongoURL() {
@@ -104,6 +107,12 @@ function formatDuration(ms) {
     return `${minutes}m`;
 }
 
+function safeFilePart(value) {
+    return String(value || 'missing')
+        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .slice(0, 80);
+}
+
 async function findPrivateUser(user) {
     const userID = String(user._id || '');
     if (userID) {
@@ -154,6 +163,40 @@ function printUser(candidate, index) {
     console.log(`   created=${created.display} (${created.source}) - ${accountAge} ago`);
 }
 
+async function saveLocalDeleteJSON({ candidate, deleteResult }) {
+    const { user, priv, created, postCount } = candidate;
+    const userID = user && user._id ? String(user._id) : 'missing';
+    const username = user && user.username ? user.username : 'missing';
+    const deletedAt = new Date();
+    const fileName = `${deletedAt.toISOString().replace(/[:.]/g, '-')}_${safeFilePart(username)}_${safeFilePart(userID)}.json`;
+    const filePath = path.join(LOCAL_EXPORT_DIR, fileName);
+
+    await fs.mkdir(LOCAL_EXPORT_DIR, { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify({
+        deletedAt: deletedAt.toISOString(),
+        sourceScript: 'scripts/deleteSpamUsersAfter.js',
+        threshold: {
+            createdAfter: SPAM_CREATED_AFTER,
+            createdAfterISO: new Date(SPAM_CREATED_AFTER).toISOString()
+        },
+        preview: {
+            username,
+            userID,
+            userprivExists: Boolean(priv),
+            userToken: priv && priv.userToken ? priv.userToken : null,
+            created,
+            postCount
+        },
+        preDeleteData: {
+            user,
+            userpriv: priv
+        },
+        deleteResult
+    }, null, 2));
+
+    return filePath;
+}
+
 async function promptBatch(rl, batch, batchNumber) {
     console.log('');
     console.log(`Batch ${batchNumber} (${batch.length} user${batch.length === 1 ? '' : 's'})`);
@@ -190,8 +233,18 @@ async function deleteBatch(batch, summary) {
                 continue;
             }
 
-            await deleteUser({ userID, username: user.username });
+            const deleteResult = await deleteUser({ userID, username: user.username });
             summary.deletedCount += 1;
+
+            try {
+                const localExportPath = await saveLocalDeleteJSON({ candidate, deleteResult });
+                summary.localExports.push(localExportPath);
+            } catch (exportErr) {
+                summary.localExportFailures.push({
+                    userID,
+                    error: exportErr && exportErr.stack ? exportErr.stack : String(exportErr)
+                });
+            }
         } catch (err) {
             summary.failedCount += 1;
             summary.failures.push({
@@ -209,6 +262,8 @@ function printSummary(summary) {
     console.log(`deleted count: ${summary.deletedCount}`);
     console.log(`skipped count: ${summary.skippedCount}`);
     console.log(`failed count: ${summary.failedCount}`);
+    console.log(`local JSON exports: ${summary.localExports.length}`);
+    console.log(`local JSON export failures: ${summary.localExportFailures.length}`);
 
     if (summary.failures.length > 0) {
         console.log('failed user IDs/errors:');
@@ -217,6 +272,17 @@ function printSummary(summary) {
         }
     } else {
         console.log('failed user IDs/errors: none');
+    }
+
+    if (summary.localExports.length > 0) {
+        console.log(`local export directory: ${LOCAL_EXPORT_DIR}`);
+    }
+
+    if (summary.localExportFailures.length > 0) {
+        console.log('local JSON export failures:');
+        for (const failure of summary.localExportFailures) {
+            console.log(`- ${failure.userID}: ${failure.error}`);
+        }
     }
 }
 
@@ -227,7 +293,9 @@ async function main() {
         deletedCount: 0,
         skippedCount: 0,
         failedCount: 0,
-        failures: []
+        failures: [],
+        localExports: [],
+        localExportFailures: []
     };
 
     try {
@@ -238,6 +306,7 @@ async function main() {
             console.log('DRY RUN ENABLED: no users will be deleted.');
         } else {
             console.warn('REAL RUN: this will delete users through the internal deleteUser cascade after each y confirmation.');
+            console.warn(`Local JSON backups will be written to ${LOCAL_EXPORT_DIR}`);
         }
 
         await connectDB();
