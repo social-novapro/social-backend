@@ -34,6 +34,8 @@ async function test() {
 }
 test()*/
 
+app.set('trust proxy', true);
+
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
@@ -115,7 +117,7 @@ const localAllowList = [
     'https://interact-analytics.novapro.net'
 ];
 
-app.use(cors((req, callback) => {
+app.use(cors(async (req, callback) => {
     const origin = req.headers.origin;
     // Non browser requests
     if (!origin) {

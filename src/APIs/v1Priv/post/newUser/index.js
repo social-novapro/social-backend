@@ -7,6 +7,7 @@ const { checkUsername, checkUserage } = require('../../../../utils/checks/');
 const { createAccessToken } = require('../../../../utils/user/createAccessToken/');
 const { setEmail } = require('../../../../utils/email/setEmail');
 const { checkPassword } = require('../../../../utils/userAuth');
+const { checkBlockedEmailDomain } = require('../../../../utils/email/domainBlocklist');
 
 router.post('/', async (req, res) => {
     const { username, displayName, password, description, pronouns, statusTitle, email, userAge } = req.body;
@@ -16,6 +17,11 @@ router.post('/', async (req, res) => {
     else if (!displayName) return res.status(400).send(searchErrorV2("C004", { userID: null }));
     else if (!password) return res.status(400).send(searchErrorV2("C006", { userID: null }));
     else if (!userAge) return res.status(400).send(searchErrorV2("C034", { userID: null }));
+
+    if (email) {
+        const blockedEmail = checkBlockedEmailDomain({ email });
+        if (blockedEmail.blocked) return res.status(400).send(blockedEmail.error);
+    }
 
     const checkedUser = await checkUsername(username);
     if (checkedUser.error) return res.status(400).send(checkedUser.error);
