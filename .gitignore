@@ -5,3 +5,4 @@
 /env
 
 categorizedPosts*.json
+/local-delete-exports/

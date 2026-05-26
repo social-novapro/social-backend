@@ -119,16 +119,174 @@ async function removePostFromUserPostIndex({ userID, postID, userPostIndexID }) 
         userPostIndexID: null
     });
 
-    await interactUserPostIndexSchema.findOneAndUpdate({
-        _id: postIndexID
-    }, {
-        $inc: { amount: -1 },
-        $pull: { postIDs: { _id: postID } }
-    });
+    const foundIndex = await interactUserPostIndexSchema.findOne({ _id: postIndexID });
+    if (foundIndex) {
+        foundIndex.postIDs = foundIndex.postIDs.filter((post) => post._id !== postID);
+        foundIndex.amount = foundIndex.postIDs.length;
 
-    // check if need to remove / revert index
-    // maybe dont need to, because if index is less than 5 itll include last index
+        if (foundIndex.postIDs.length === 0) {
+            await deleteEmptyUserPostIndex({ index: foundIndex, userID });
+        } else {
+            await foundIndex.save();
+        }
+    }
+
     return { "success": true };
+}
+
+async function deleteEmptyUserPostIndex({ index, indexID, userID, dryRun=false }) {
+    const foundIndex = index ? index : await interactUserPostIndexSchema.findOne({ _id: indexID });
+    if (!foundIndex || (foundIndex.postIDs && foundIndex.postIDs.length > 0)) {
+        return {
+            deleted: false,
+            indexID: foundIndex ? foundIndex._id : indexID,
+            userID,
+            reason: foundIndex ? "not-empty" : "not-found"
+        };
+    }
+
+    const indexUserID = userID || foundIndex.userID;
+    const replacementIndexID = foundIndex.nextIndexID || foundIndex.prevIndexID || null;
+
+    if (dryRun) {
+        return {
+            deleted: false,
+            wouldDelete: true,
+            indexID: foundIndex._id,
+            userID: indexUserID,
+            replacementIndexID
+        };
+    }
+
+    if (foundIndex.prevIndexID) {
+        await interactUserPostIndexSchema.findOneAndUpdate(
+            { _id: foundIndex.prevIndexID },
+            { nextIndexID: foundIndex.nextIndexID || null }
+        );
+    }
+
+    if (foundIndex.nextIndexID) {
+        await interactUserPostIndexSchema.findOneAndUpdate(
+            { _id: foundIndex.nextIndexID },
+            { prevIndexID: foundIndex.prevIndexID || null }
+        );
+    }
+
+    await interactUserPostIndexSchema.deleteOne({ _id: foundIndex._id });
+
+    const userFound = indexUserID ? await interactUserSchema.findOne({ _id: indexUserID }) : null;
+    if (userFound && userFound.postIndexID === foundIndex._id) {
+        await interactUserSchema.findOneAndUpdate(
+            { _id: indexUserID },
+            { postIndexID: replacementIndexID }
+        );
+    }
+
+    return {
+        deleted: true,
+        indexID: foundIndex._id,
+        userID: indexUserID,
+        replacementIndexID
+    };
+}
+
+async function getLiveUserPostIDs(postIDs) {
+    const livePostIDs = [];
+
+    for (const post of postIDs || []) {
+        const postID = post && post._id;
+        if (!postID) continue;
+
+        const foundPost = await interactPostSchema.findOne({
+            _id: postID,
+            deleted: { $ne: true }
+        }).select('_id').lean();
+
+        if (foundPost) livePostIDs.push({ _id: postID });
+    }
+
+    return livePostIDs;
+}
+
+async function pruneUserPostIndex({ index, dryRun=false }) {
+    const originalCount = index.postIDs ? index.postIDs.length : 0;
+    const originalAmount = index.amount;
+    const livePostIDs = await getLiveUserPostIDs(index.postIDs);
+    const changed = livePostIDs.length !== originalCount || originalAmount !== livePostIDs.length;
+
+    if (!changed) {
+        return {
+            changed: false,
+            indexID: index._id,
+            userID: index.userID,
+            from: originalAmount,
+            to: livePostIDs.length
+        };
+    }
+
+    if (!dryRun) {
+        index.postIDs = livePostIDs;
+        index.amount = livePostIDs.length;
+        if (livePostIDs.length > 0) await index.save();
+    }
+
+    return {
+        changed: true,
+        indexID: index._id,
+        userID: index.userID,
+        from: originalAmount,
+        to: livePostIDs.length,
+        removedPostIDs: originalCount - livePostIDs.length
+    };
+}
+
+async function cleanupEmptyUserPostIndexes({ dryRun=false }={}) {
+    const indexIDs = await interactUserPostIndexSchema.find({}).distinct("_id");
+    const deletedIndexes = [];
+    const correctedIndexes = [];
+    const prunedIndexes = [];
+
+    for (const indexID of indexIDs) {
+        const index = await interactUserPostIndexSchema.findOne({ _id: indexID });
+        if (!index) continue;
+
+        const pruned = await pruneUserPostIndex({ index, dryRun });
+        if (pruned.changed && pruned.removedPostIDs > 0) prunedIndexes.push(pruned);
+
+        const postCount = pruned.to;
+        if (postCount === 0) {
+            const deleted = dryRun
+                ? {
+                    deleted: false,
+                    wouldDelete: true,
+                    indexID: index._id,
+                    userID: index.userID,
+                    replacementIndexID: index.nextIndexID || index.prevIndexID || null
+                }
+                : await deleteEmptyUserPostIndex({ index, userID: index.userID, dryRun });
+            if (deleted.deleted || deleted.wouldDelete) deletedIndexes.push(deleted);
+            continue;
+        }
+
+        if (pruned.from !== postCount) {
+            correctedIndexes.push({
+                indexID: index._id,
+                userID: index.userID,
+                from: pruned.from,
+                to: postCount
+            });
+            if (!dryRun && !pruned.changed) {
+                index.amount = postCount;
+                await index.save();
+            }
+        }
+    }
+
+    return {
+        deletedIndexes,
+        correctedIndexes,
+        prunedIndexes
+    };
 }
 
 module.exports = {
@@ -136,5 +294,7 @@ module.exports = {
     getUserPostIndex,
     pushPostToUserPostIndex,
     removePostFromUserPostIndex,
-    getUserPostIndex
+    getUserPostIndex,
+    deleteEmptyUserPostIndex,
+    cleanupEmptyUserPostIndexes
 };

@@ -9,12 +9,16 @@ const { emailSender } = require('../send');
 const { checkPassword } = require('../../userAuth');
 const { current } = require("../../../../config.json");
 const { revokeUserBadge } = require('../../user/badges');
+const { checkBlockedEmailDomain } = require('../domainBlocklist');
 
 // set email verification request
 async function setEmail({ email, userID, password }) {
     if (!email) return searchErrorV2("N004", { userID });
     if (!userID) return searchErrorV2("Z002", { userID, options: [{ name: "msg", data: "no userID provided"}]} );
     if (!password) return searchErrorV2("Z002", { userID, options: [{ name: "msg", data: "no passsword provided"}]} );
+
+    const blockedEmail = checkBlockedEmailDomain({ email, userID });
+    if (blockedEmail.blocked) return blockedEmail.error;
 
     // checks if password is correct
     const passwordCorrect = await checkPassword({ userID: userID, password: password });

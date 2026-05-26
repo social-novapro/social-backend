@@ -48,10 +48,17 @@ async function getCurrentIndex() {
     currentIndexID = await getPostIndex();
     
     // TODO: possible fix this, duplicating ?
-    if (!currentIndexID) currentIndexID = await createIndex({});
+    if (!currentIndexID) {
+        const repairedIndexID = await repairPostIndexPointer();
+        currentIndexID = repairedIndexID || await createIndex({});
+    }
 
     currentIndex = await interactPostIndexSchema.findOne({ _id: currentIndexID });
-    if (!currentIndex) currentIndexID = await createIndex({});
+    if (!currentIndex) {
+        const repairedIndexID = await repairPostIndexPointer();
+        currentIndexID = repairedIndexID || await createIndex({});
+        currentIndex = await interactPostIndexSchema.findOne({ _id: currentIndexID });
+    }
 
     currentCount = currentIndex.amount;
     currentIndexID = currentIndex._id;
@@ -112,13 +119,21 @@ async function removePostFromIndex({ userID, postID }) {
     if (!postData) return searchErrorV2("S013", { userID });
     if (!postData.indexID) return searchErrorV2("S014", { userID });
 
-    await interactPostIndexSchema.findOneAndUpdate({
-        _id: postData.indexID
-    }, {
-        $pull: { "postIDs" : {
-            _id: postID
-        }}
-    });
+    const foundIndex = await interactPostIndexSchema.findOne({ _id: postData.indexID });
+    if (foundIndex) {
+        foundIndex.postIDs = foundIndex.postIDs.filter((post) => post._id !== postID);
+        foundIndex.amount = foundIndex.postIDs.length;
+
+        if (foundIndex.postIDs.length === 0) {
+            await deleteEmptyPostIndex({ index: foundIndex });
+        } else {
+            await foundIndex.save();
+            if (currentIndexID === foundIndex._id) {
+                currentIndex = foundIndex;
+                currentCount = foundIndex.amount;
+            }
+        }
+    }
 
     await interactPostSchema.findOneAndUpdate({
         _id: postID
@@ -129,10 +144,201 @@ async function removePostFromIndex({ userID, postID }) {
     return { "success": true };
 }
 
+async function deleteEmptyPostIndex({ index, indexID, dryRun=false }) {
+    const foundIndex = index ? index : await interactPostIndexSchema.findOne({ _id: indexID });
+    if (!foundIndex || (foundIndex.postIDs && foundIndex.postIDs.length > 0)) {
+        return {
+            deleted: false,
+            indexID: foundIndex ? foundIndex._id : indexID,
+            reason: foundIndex ? "not-empty" : "not-found"
+        };
+    }
+
+    const replacementIndexID = foundIndex.nextIndexID || foundIndex.prevIndexID || await findFallbackPostIndexID({
+        excludeIndexID: foundIndex._id
+    });
+
+    if (dryRun) {
+        return {
+            deleted: false,
+            wouldDelete: true,
+            indexID: foundIndex._id,
+            replacementIndexID
+        };
+    }
+
+    if (foundIndex.prevIndexID) {
+        await interactPostIndexSchema.findOneAndUpdate(
+            { _id: foundIndex.prevIndexID },
+            { nextIndexID: foundIndex.nextIndexID || null }
+        );
+    }
+
+    if (foundIndex.nextIndexID) {
+        await interactPostIndexSchema.findOneAndUpdate(
+            { _id: foundIndex.nextIndexID },
+            { prevIndexID: foundIndex.prevIndexID || null }
+        );
+    }
+
+    await interactPostIndexSchema.deleteOne({ _id: foundIndex._id });
+
+    const activePostIndexID = await getPostIndex();
+    if (activePostIndexID === foundIndex._id) {
+        await updatePostIndex({ indexID: replacementIndexID });
+        currentIndexID = replacementIndexID;
+        currentIndex = replacementIndexID ? await interactPostIndexSchema.findOne({ _id: replacementIndexID }) : null;
+        currentCount = currentIndex ? currentIndex.amount : 0;
+    }
+
+    return {
+        deleted: true,
+        indexID: foundIndex._id,
+        replacementIndexID
+    };
+}
+
+async function getLivePostIDs(postIDs) {
+    const livePostIDs = [];
+
+    for (const post of postIDs || []) {
+        const postID = post && post._id;
+        if (!postID) continue;
+
+        const foundPost = await interactPostSchema.findOne({
+            _id: postID,
+            deleted: { $ne: true }
+        }).select('_id').lean();
+
+        if (foundPost) livePostIDs.push({ _id: postID });
+    }
+
+    return livePostIDs;
+}
+
+async function prunePostIndex({ index, dryRun=false }) {
+    const originalCount = index.postIDs ? index.postIDs.length : 0;
+    const originalAmount = index.amount;
+    const livePostIDs = await getLivePostIDs(index.postIDs);
+    const changed = livePostIDs.length !== originalCount || originalAmount !== livePostIDs.length;
+
+    if (!changed) {
+        return {
+            changed: false,
+            indexID: index._id,
+            from: originalAmount,
+            to: livePostIDs.length
+        };
+    }
+
+    if (!dryRun) {
+        index.postIDs = livePostIDs;
+        index.amount = livePostIDs.length;
+        if (livePostIDs.length > 0) await index.save();
+    }
+
+    return {
+        changed: true,
+        indexID: index._id,
+        from: originalAmount,
+        to: livePostIDs.length,
+        removedPostIDs: originalCount - livePostIDs.length
+    };
+}
+
+async function findFallbackPostIndexID({ excludeIndexID }={}) {
+    const indexes = await interactPostIndexSchema.find({}).sort({ timestamp: -1 });
+
+    for (const index of indexes) {
+        if (excludeIndexID && index._id === excludeIndexID) continue;
+
+        const livePostIDs = await getLivePostIDs(index.postIDs);
+        if (livePostIDs.length > 0) return index._id;
+    }
+
+    return null;
+}
+
+async function repairPostIndexPointer({ dryRun=false }={}) {
+    const activePostIndexID = await getPostIndex();
+    const activeIndex = activePostIndexID ? await interactPostIndexSchema.findOne({ _id: activePostIndexID }) : null;
+    const activeLivePostIDs = activeIndex ? await getLivePostIDs(activeIndex.postIDs) : [];
+
+    if (activeIndex && activeLivePostIDs.length > 0) {
+        return activeIndex._id;
+    }
+
+    const replacementIndexID = await findFallbackPostIndexID({
+        excludeIndexID: activeIndex ? activeIndex._id : null
+    });
+
+    if (!dryRun && replacementIndexID !== activePostIndexID) {
+        await updatePostIndex({ indexID: replacementIndexID });
+        currentIndexID = replacementIndexID;
+        currentIndex = replacementIndexID ? await interactPostIndexSchema.findOne({ _id: replacementIndexID }) : null;
+        currentCount = currentIndex ? currentIndex.amount : 0;
+    }
+
+    return replacementIndexID;
+}
+
+async function cleanupEmptyPostIndexes({ dryRun=false }={}) {
+    const indexIDs = await interactPostIndexSchema.find({}).distinct("_id");
+    const deletedIndexes = [];
+    const correctedIndexes = [];
+    const prunedIndexes = [];
+
+    for (const indexID of indexIDs) {
+        const index = await interactPostIndexSchema.findOne({ _id: indexID });
+        if (!index) continue;
+
+        const pruned = await prunePostIndex({ index, dryRun });
+        if (pruned.changed && pruned.removedPostIDs > 0) prunedIndexes.push(pruned);
+
+        const postCount = pruned.to;
+        if (postCount === 0) {
+            const deleted = dryRun
+                ? {
+                    deleted: false,
+                    wouldDelete: true,
+                    indexID: index._id,
+                    replacementIndexID: index.nextIndexID || index.prevIndexID || null
+                }
+                : await deleteEmptyPostIndex({ index, dryRun });
+            if (deleted.deleted || deleted.wouldDelete) deletedIndexes.push(deleted);
+            continue;
+        }
+
+        if (pruned.from !== postCount) {
+            correctedIndexes.push({
+                indexID: index._id,
+                from: pruned.from,
+                to: postCount
+            });
+            if (!dryRun && !pruned.changed) {
+                index.amount = postCount;
+                await index.save();
+            }
+        }
+    }
+
+    const pointerReplacementIndexID = await repairPostIndexPointer({ dryRun });
+
+    return {
+        deletedIndexes,
+        correctedIndexes,
+        prunedIndexes,
+        pointerReplacementIndexID
+    };
+}
+
 module.exports = { 
     exportIndex,
     getCurrentIndex,
     getPostIndexData,
     pushPostToIndex,
-    removePostFromIndex
+    removePostFromIndex,
+    deleteEmptyPostIndex,
+    cleanupEmptyPostIndexes,
+    repairPostIndexPointer
 }
