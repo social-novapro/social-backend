@@ -20,6 +20,14 @@ const notifications = require('./notifications');
 const feeds = require('./feeds');
 const search = require('./search');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const {
+    REQUEST_TIMEOUT_MS,
+    proxyTarget,
+    unavailable,
+    startProbes,
+    recordSuccess,
+    recordFailure
+} = require('../../utils/capabilities');
 
 // Legacy Routes (still used)
 router.use('/get', getAPI);
@@ -38,85 +46,42 @@ router.use('/notifications', notifications);
 router.use('/feeds', feeds);
 router.use('/search', search);
 
-// re-routes
-router.use('/ai', async (req, res, next) => {
-    let targetService = `${process.env.AI_INTERFACE_SERVICE}/v1`//"http://localhost:5004/v1"; // AI service
-    console.log("Proxying request to AI service")
-    try {
-        createProxyMiddleware({
-            target: targetService,
+function optionalProxy(capability) {
+    return (req, res, next) => {
+        const target = proxyTarget(capability);
+        if (!target) return unavailable(res, capability);
+
+        return createProxyMiddleware({
+            target,
             changeOrigin: true,
-            selfHandleResponse: false, // Let the backend handle the response
+            proxyTimeout: REQUEST_TIMEOUT_MS,
+            timeout: REQUEST_TIMEOUT_MS,
             on: {
-                proxyReq: (proxyReq, req, res) => {
-                    console.log("Forwarding request to AI service")
-                    // Forward request headers
-                    Object.keys(req.headers).forEach((key) => {
-                        proxyReq.setHeader(key, req.headers[key]);
-                    });
-
-                    // Forward request body
-                    if (req.body) {
-                        console.log("Forwarding request body to AI service")
-                        const bodyData = JSON.stringify(req.body);
-                        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-                        proxyReq.write(bodyData);
-                        proxyReq.end(); // Ensure the request is completed
-                    }
+                proxyReq: (proxyReq, request) => {
+                    if (!request.body || ['GET', 'HEAD'].includes(request.method)) return;
+                    const body = JSON.stringify(request.body);
+                    proxyReq.setHeader('Content-Type', 'application/json');
+                    proxyReq.setHeader('Content-Length', Buffer.byteLength(body));
+                    proxyReq.write(body);
+                },
+                proxyRes: (proxyRes) => {
+                    if (proxyRes.statusCode >= 500) recordFailure(capability, 'unhealthy');
+                    else recordSuccess(capability);
+                },
+                error: (_error, _request, response) => {
+                    recordFailure(capability);
+                    if (!response.headersSent) unavailable(response, capability);
                 }
-            },
+            }
         })(req, res, next);
-    } catch (error) {
-        console.error("Proxy error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
+    };
+}
 
-// re-routes
-router.use('/cdn', bodyParser.json(), async (req, res, next) => {
-    let targetService = `${process.env.CDN_SERVICE}/v1`//"http://localhost:5004/v1"; // AI service
-    console.log("Proxying request to CDN service")
-    try {
-        createProxyMiddleware({
-            target: targetService,
-            changeOrigin: true,
-            selfHandleResponse: false, // Let the backend handle the response
-            onProxyReq: (proxyReq, req, res) => {
-                // req.pipe(proxyReq); // Stream request directly
+router.use('/ai', bodyParser.json(), optionalProxy('ai'));
+router.use('/cdn', bodyParser.json(), optionalProxy('media'));
+router.use('/video_embed', bodyParser.json(), optionalProxy('video'));
 
-                // Forward request headers
-                Object.keys(req.headers).forEach((key) => {
-                    proxyReq.setHeader(key, req.headers[key]);
-                });
-            },
-        })(req, res, next);
-    } catch (error) {
-        console.error("Proxy error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-
-// re-routes
-router.use('/video_embed', bodyParser.json(), async (req, res, next) => {
-    let targetService = `${process.env.VIDEO_EMBED}`
-    console.log("Proxying request to video embed service")
-    try {
-        createProxyMiddleware({
-            target: targetService,
-            changeOrigin: true,
-            selfHandleResponse: false, // Let the backend handle the response
-            onProxyReq: (proxyReq, req, res) => {
-                // Forward request headers
-                Object.keys(req.headers).forEach((key) => {
-                    proxyReq.setHeader(key, req.headers[key]);
-                });
-            },
-        })(req, res, next);
-    } catch (error) {
-        console.error("Proxy error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
+startProbes();
 
 // Legacy Routes
 // GET

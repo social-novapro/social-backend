@@ -4,6 +4,7 @@ const interactEmbedSentenceSchema = require('../../../schemas/embeddings/interac
 const interactEmbedSentencePostSchema = require('../../../schemas/embeddings/interactEmbedSentencePost');
 const interactEmbedPostFailSchema = require('../../../schemas/embeddings/interactEmbedPostFail');
 const { checktime } = require('../../checktime');
+const { REQUEST_TIMEOUT_MS, recordSuccess, recordFailure } = require('../../capabilities');
 const { current } = require('../../../../config.json');
 const productionMode = current == "prod" ? true : false;
 const {
@@ -16,16 +17,37 @@ console.log(`---\nEmbedding API: ${EMBED_API_ROUTE}`)
 const EMBEDING_VERSION = 3;
 
 async function embedContent({ content }) {
-    const result = await fetch(EMBED_API_ROUTE, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content }),
-    })
+    if (!EMBED_API_ROUTE) {
+        recordFailure('embeddings', 'unconfigured');
+        return { success: false, error: 'CAPABILITY_UNAVAILABLE' };
+    }
 
-    const res = await result.json();
-    return res;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        const result = await fetch(EMBED_API_ROUTE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content }),
+            signal: controller.signal
+        });
+        if (!result.ok) {
+            recordFailure('embeddings', 'unhealthy');
+            return { success: false, error: 'CAPABILITY_UNAVAILABLE' };
+        }
+        const res = await result.json();
+        if (!res || res.success !== true || !res.embedding) {
+            recordFailure('embeddings', 'malformed_response');
+            return { success: false, error: 'CAPABILITY_UNAVAILABLE' };
+        }
+        recordSuccess('embeddings');
+        return res;
+    } catch (error) {
+        recordFailure('embeddings', error.name === 'AbortError' ? 'timeout' : 'connection_error');
+        return { success: false, error: 'CAPABILITY_UNAVAILABLE' };
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 async function removePostEmbeddings({ postID }) {
@@ -152,7 +174,6 @@ async function embedPost({ postID, userID, timestamp, content }) {
     // const embeddings = await embedContent({ content: contentLc });
     const embeddings = await embedSearch({ content });
     if (!embeddings.success){
-        // save that post failed to embed, with reason
         await interactEmbedPostFailSchema.create({
             _id: uuidv4(),
             postID: postID ?? "Unknown",
@@ -161,6 +182,7 @@ async function embedPost({ postID, userID, timestamp, content }) {
             version: EMBEDING_VERSION,
             reason: embeddings.error ?? "unknown error",
         });
+        return { success: false, error: embeddings.error ?? 'CAPABILITY_UNAVAILABLE' };
     };
 
     await savePostEmbeddings({ postID, userID, timestamp, content: content.toLowerCase(), embeddings: embeddings })
