@@ -8,7 +8,6 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 COPY config.json ./
-COPY secret.env ./
 COPY env/ ./env/
 
 RUN npm install
@@ -19,5 +18,5 @@ RUN npm install
 COPY . .
 
 WORKDIR /usr/src/app
-EXPOSE 3001
-CMD [ "npm", "run", "prod" ]
+EXPOSE 5002
+CMD [ "npm", "start" ]
