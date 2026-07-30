@@ -45,13 +45,21 @@ var mongoURL
 if (config.current == "prod") mongoURL = MONGO_URL_PROD;
 else mongoURL = MONGO_URL_DEV;
 
-mongoose.connect(mongoURL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false 
-});
+function databaseIsReady() {
+    return mongoose.connection.readyState === 1;
+}
 
-InteractStartup();
+async function connectDatabase() {
+    if (!mongoURL) {
+        throw new Error(`Missing required ${config.current == "prod" ? "MONGO_URL_PROD" : "MONGO_URL_DEV"} configuration`);
+    }
+
+    await mongoose.connect(mongoURL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false
+    });
+}
 /*
 const developerAppToken = require('./schemas/developer/developerAppToken');
 const developerToken = require('./schemas/developer/developerToken');
@@ -895,4 +903,17 @@ function sendAllUsers(allUsers, currentUser) {
 
 //start our server
 
-server.listen(PORT, () => console.log(`Server started on port ${PORT}!`));
+async function startServer() {
+    try {
+        await connectDatabase();
+        server.listen(PORT, () => console.log(`Server started on port ${PORT}!`));
+        InteractStartup().catch((error) => {
+            console.error("Background startup work failed:", error.message);
+        });
+    } catch (error) {
+        console.error(`Backend startup configuration or database connection failed: ${error.message}`);
+        process.exitCode = 1;
+    }
+}
+
+startServer();
