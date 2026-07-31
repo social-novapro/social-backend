@@ -59,10 +59,6 @@ var mongoURL
 if (config.current == "prod") mongoURL = MONGO_URL_PROD;
 else mongoURL = resolveDevelopmentMongoURL(MONGO_URL_DEV);
 
-function databaseIsReady() {
-    return mongoose.connection.readyState === 1;
-}
-
 async function connectDatabase() {
     if (!mongoURL) {
         throw new Error(`Missing required ${config.current == "prod" ? "MONGO_URL_PROD" : "MONGO_URL_DEV"} configuration`);
