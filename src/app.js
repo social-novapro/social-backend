@@ -132,7 +132,11 @@ async function createTokens() {
 
 const localAllowList = [
     'https://interact.novapro.net',
-    'https://interact-analytics.novapro.net'
+    'https://interact-analytics.novapro.net',
+    ...(config.current == "prod" ? [] : [
+        'http://localhost:5500',
+        'http://127.0.0.1:5500'
+    ])
 ];
 
 app.use(cors(async (req, callback) => {
