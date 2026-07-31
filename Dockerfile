@@ -8,10 +8,9 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 COPY config.json ./
-COPY secret.env ./
-COPY env/ ./env/
 
 RUN npm install
+RUN mkdir -p /usr/src/app/env
 # If you are building your code for production
 # RUN npm ci --only=production
 
@@ -19,5 +18,5 @@ RUN npm install
 COPY . .
 
 WORKDIR /usr/src/app
-EXPOSE 3001
-CMD [ "npm", "run", "prod" ]
+EXPOSE 5002
+CMD [ "npm", "start" ]

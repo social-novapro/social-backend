@@ -41,17 +41,35 @@ app.use(express.urlencoded({extended: false}));
 
 const { MONGO_URL_PROD, MONGO_URL_DEV } = process.env;
 
+function resolveDevelopmentMongoURL(value) {
+    if (process.env.DOCKER_DEV_HOST_MONGO !== 'true' || !value) return value;
+
+    try {
+        const parsed = new URL(value);
+        if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+            parsed.hostname = 'host.docker.internal';
+        }
+        return parsed.toString();
+    } catch {
+        return value;
+    }
+}
+
 var mongoURL
 if (config.current == "prod") mongoURL = MONGO_URL_PROD;
-else mongoURL = MONGO_URL_DEV;
+else mongoURL = resolveDevelopmentMongoURL(MONGO_URL_DEV);
 
-mongoose.connect(mongoURL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false 
-});
+async function connectDatabase() {
+    if (!mongoURL) {
+        throw new Error(`Missing required ${config.current == "prod" ? "MONGO_URL_PROD" : "MONGO_URL_DEV"} configuration`);
+    }
 
-InteractStartup();
+    await mongoose.connect(mongoURL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false
+    });
+}
 /*
 const developerAppToken = require('./schemas/developer/developerAppToken');
 const developerToken = require('./schemas/developer/developerToken');
@@ -114,7 +132,11 @@ async function createTokens() {
 
 const localAllowList = [
     'https://interact.novapro.net',
-    'https://interact-analytics.novapro.net'
+    'https://interact-analytics.novapro.net',
+    ...(config.current == "prod" ? [] : [
+        'http://localhost:5500',
+        'http://127.0.0.1:5500'
+    ])
 ];
 
 app.use(cors(async (req, callback) => {
@@ -895,4 +917,17 @@ function sendAllUsers(allUsers, currentUser) {
 
 //start our server
 
-server.listen(PORT, () => console.log(`Server started on port ${PORT}!`));
+async function startServer() {
+    try {
+        await connectDatabase();
+        server.listen(PORT, () => console.log(`Server started on port ${PORT}!`));
+        InteractStartup().catch((error) => {
+            console.error("Background startup work failed:", error.message);
+        });
+    } catch (error) {
+        console.error(`Backend startup configuration or database connection failed: ${error.message}`);
+        process.exitCode = 1;
+    }
+}
+
+startServer();

@@ -11,7 +11,23 @@ const {
     EMBED_API_PROD_ROUTE,
 } = process.env;
 
-const EMBED_API_ROUTE = productionMode == true ? EMBED_API_PROD_ROUTE : EMBED_API_DEV_ROUTE;
+function resolveDevelopmentEmbeddingURL(value) {
+    if (process.env.DOCKER_DEV_HOST_EMBEDDING !== 'true' || !value) return value;
+
+    try {
+        const parsed = new URL(value);
+        if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+            parsed.hostname = 'host.docker.internal';
+        }
+        return parsed.toString();
+    } catch {
+        return value;
+    }
+}
+
+const EMBED_API_ROUTE = productionMode == true
+    ? EMBED_API_PROD_ROUTE
+    : resolveDevelopmentEmbeddingURL(EMBED_API_DEV_ROUTE);
 console.log(`---\nEmbedding API: ${EMBED_API_ROUTE}`)
 const EMBEDING_VERSION = 3;
 
