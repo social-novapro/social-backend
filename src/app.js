@@ -41,9 +41,23 @@ app.use(express.urlencoded({extended: false}));
 
 const { MONGO_URL_PROD, MONGO_URL_DEV } = process.env;
 
+function resolveDevelopmentMongoURL(value) {
+    if (process.env.DOCKER_DEV_HOST_MONGO !== 'true' || !value) return value;
+
+    try {
+        const parsed = new URL(value);
+        if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+            parsed.hostname = 'host.docker.internal';
+        }
+        return parsed.toString();
+    } catch {
+        return value;
+    }
+}
+
 var mongoURL
 if (config.current == "prod") mongoURL = MONGO_URL_PROD;
-else mongoURL = MONGO_URL_DEV;
+else mongoURL = resolveDevelopmentMongoURL(MONGO_URL_DEV);
 
 function databaseIsReady() {
     return mongoose.connection.readyState === 1;
